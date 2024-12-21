@@ -4,11 +4,38 @@
 
 <p align="center"><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#Behavior-based Control &emsp; #Communication-aware &emsp; #Formation Control</b></p>
 
-<p>
-🚗 <b>Low-Level Controller:</b> Vehicle agents equipped with behavior-based and communication-aware formation control<br/>
-🤖 <b>High-Level Controller:</b> LLM agents processing simulation data to provide strategic guidance<br/>
-🎯 <b>Goal:</b> Enable swarm resilience and mission completion in challenging environments with jamming/obstacles
-</p>
+
+
+<h2 align="center">🔬 Research Evolution</h2>
+
+This project builds upon our previous research in formation control and swarm intelligence:
+
+- 🚗 **Low-Level Controller:** Vehicle agents equipped with behavior-based and communication-aware formation control<br/>
+- 🤖 **High-Level Controller:** LLM agents processing simulation data to provide strategic guidance<br/>
+- 🎯 **Goal:** Enable swarm resilience and mission completion in challenging environments with jamming/obstacles
+
+<h3 align="center">Supplementary Materials</h3>
+
+<table>
+  <tr>
+    <th>Paper</th>
+    <th>Presentation</th>
+  </tr>
+  <tr>
+    <td align="center">
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_paper.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
+    </td>
+    <td align="center">
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_ppt.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_ppt.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
+    </td>
+  </tr>
+</table>
+
+
 
 <div align="center">
   <h2>🛠️ Setup & Installation</h2>
@@ -33,7 +60,7 @@
 
 3. **Create a virtual environment at `/weather-dashboard/.venv/`:**
    ```bash
-   uv venv --python 3.12.1
+   uv venv --python 3.12
    ```
 
 4. **Activate the virtual environment:**
@@ -56,12 +83,11 @@
   <h2>👨‍💻 Development Setup</h2>
 </div>
 
-### Development Instructions 
-
 1. **Install pre-commit:**
    ```bash
-   uv pip install pre-commit
+   uv pip install ruff pre-commit
    ```
+   ruff is a super fast Python linter and formatter.
    Pre-commit helps maintain code quality by running automated checks before commits are made.
 
 2. **Install git hooks:**
@@ -85,10 +111,11 @@
    python src/app.py
    ```
 
+
 <h2 align="center">File Tree</h2>
 
 ```text
-📦
+📦Swarm-Squad-Ep1
  ┣ 📂img                              // Readme Assets
  ┣ 📂lib                              // Supplementary Materials
  ┣ 📂src                              // Source Code
@@ -97,24 +124,3 @@
  ┣ 📄.gitignore
  ┗ 📄README.md
 ```
-
-<h2 align="center">Supplementary Materials</h2>
-
-<table>
-  <tr>
-    <th>Paper</th>
-    <th>Presentation</th>
-  </tr>
-  <tr>
-    <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_paper.png?raw=true" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
-    </td>
-    <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_ppt.png?raw=true" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/img/cover_ppt.png?raw=true" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
-    </td>
-  </tr>
-</table>
