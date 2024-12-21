@@ -1,6 +1,6 @@
 import matplotlib
 
-matplotlib.use("TkAgg")  # Must be before importing pyplot
+matplotlib.use("TkAgg")
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -15,9 +15,7 @@ class FormationControlGUI:
         self.root.title("Formation Control Simulation")
 
         # Create main figure with subplots
-        plt.ioff()
         self.fig, self.axs = plt.subplots(2, 2, figsize=(10, 10))
-        plt.close("all")
 
         # Create canvas for all plots
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
@@ -90,13 +88,13 @@ class FormationControlGUI:
         self.temp_circle = None  # Store temporary circle while drawing
 
         # Create control buttons
-        self.create_controls()
+        self.create_plot_controls()
 
         # Auto-start the simulation
         self.running = True
         self.simulation_step()
 
-    def create_controls(self):
+    def create_plot_controls(self):
         # Create main control frame
         control_frame = tk.Frame(self.root)
         control_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
@@ -149,7 +147,10 @@ class FormationControlGUI:
         self.stop_button.pack(side=tk.LEFT, padx=5)
 
     def formation_control_step(self):
-        # Your original formation control logic
+        # Reset control inputs at start of step
+        self.swarm_control_ui = np.zeros((self.swarm_size, 2))
+
+        # Formation control
         for i in range(self.swarm_size):
             for j in [x for x in range(self.swarm_size) if x != i]:
                 rij = utils.calculate_distance(
@@ -167,10 +168,6 @@ class FormationControlGUI:
                 qj = self.swarm_position[j, :]
                 eij = (qi - qj) / np.sqrt(rij)
 
-                # Formation control input
-                self.swarm_control_ui[i, 0] += rho_ij * eij[0]
-                self.swarm_control_ui[i, 1] += rho_ij * eij[1]
-
                 # Record matrices
                 phi_rij = gij * aij
                 self.communication_qualities_matrix[i, j] = phi_rij
@@ -180,9 +177,15 @@ class FormationControlGUI:
                 self.neighbor_agent_matrix[i, j] = aij
                 self.neighbor_agent_matrix[j, i] = aij
 
+                # Formation control input
+                self.swarm_control_ui[i] += rho_ij * eij
+
+            # Add destination-reaching control only after formation convergence
+            if self.Jn_converged:
+                self.add_destination_control(i)
+
             # Update position
             self.swarm_position[i] += self.swarm_control_ui[i]
-            self.swarm_control_ui[i] = [0, 0]
 
         # Calculate performance indicators
         Jn_new = utils.calculate_Jn(
@@ -194,7 +197,30 @@ class FormationControlGUI:
 
         self.Jn.append(round(Jn_new, 4))
         self.rn.append(round(rn_new, 4))
+
         self.t_elapsed.append(time.time() - self.start_time)
+
+    def add_destination_control(self, agent_index):
+        """Add destination-reaching control input for an agent"""
+        # Parameters for destination control
+        am = 0.7  # Attraction magnitude
+        bm = 1.0  # Distance threshold
+
+        # Calculate vector to destination
+        destination_vector = self.swarm_destination - self.swarm_position[agent_index]
+        dist_to_dest = np.linalg.norm(destination_vector)
+
+        if dist_to_dest > 0:  # Avoid division by zero
+            destination_direction = destination_vector / dist_to_dest
+
+            # Scale control input based on distance
+            if dist_to_dest > bm:
+                control_param = am
+            else:
+                control_param = am * (dist_to_dest / bm)
+
+            # Add to existing control input
+            self.swarm_control_ui[agent_index] += destination_direction * control_param
 
     def update_plot(self):
         utils.plot_figures_task1(
@@ -209,7 +235,8 @@ class FormationControlGUI:
             self.swarm_paths,
             self.node_colors,
             self.line_colors,
-            self.obstacles,  # Add obstacles parameter
+            self.obstacles,
+            self.swarm_destination,
         )
         self.canvas.draw()
 
@@ -218,17 +245,27 @@ class FormationControlGUI:
             self.formation_control_step()
             self.update_plot()
 
-            # Check convergence
+            # Check convergence but don't pause
             if len(self.Jn) > 19 and len(set(self.Jn[-20:])) == 1:
                 if not self.Jn_converged:
                     print(
-                        f"Formation completed: Jn values has converged in {round(self.t_elapsed[-1], 2)} seconds {self.iteration-20} iterations."
+                        f"Formation completed: Jn values has converged in {round(self.t_elapsed[-1], 2)} seconds {self.iteration-20} iterations.\nSimulation paused."
                     )
                     self.Jn_converged = True
                     self.running = False
 
-            self.iteration += 1
-            self.root.after(50, self.simulation_step)  # Schedule next step
+            # Check if swarm center is close to destination
+            swarm_center = np.mean(self.swarm_position, axis=0)
+            dist_to_dest = np.linalg.norm(swarm_center - self.swarm_destination)
+
+            if dist_to_dest < 0.05:  # Threshold of 0.05 units
+                print(
+                    f"Swarm has reached the destination in {round(self.t_elapsed[-1], 2)} seconds {self.iteration} iterations!"
+                )
+                self.running = False
+            else:
+                self.iteration += 1
+                self.root.after(50, self.simulation_step)
 
     def start_simulation(self):
         if not self.running:
@@ -243,6 +280,8 @@ class FormationControlGUI:
         if not self.running:  # Only restart if not already running
             self.running = True
             self.paused = False
+            if self.Jn_converged:  # Check if this is after formation convergence
+                print("Simulation resumed.\nSwarm start reaching to the destination...")
             self.simulation_step()
 
     def reset_simulation(self):

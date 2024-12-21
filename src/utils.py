@@ -146,6 +146,7 @@ def plot_figures_task1(
     node_colors,
     line_colors,
     obstacles,
+    swarm_destination,
 ):
     """
     Plot 4 figures (Formation Scene, Swarm Trajectories, Jn Performance, rn Performance)
@@ -163,6 +164,7 @@ def plot_figures_task1(
         node_colors (list): The colors of the nodes
         line_colors (list): The colors of the lines
         obstacles (list): The list of obstacles
+        swarm_destination (numpy.ndarray): The destination of the swarm
 
     Returns:
         None
@@ -198,6 +200,23 @@ def plot_figures_task1(
         x, y, radius = obstacle
         circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
         axs[0, 0].add_artist(circle)
+
+    # Plot destination in formation scene
+    axs[0, 0].plot(
+        swarm_destination[0],
+        swarm_destination[1],
+        marker="s",
+        markersize=10,
+        color="none",
+        markeredgecolor="black",
+    )
+    axs[0, 0].text(
+        swarm_destination[0],
+        swarm_destination[1] + 3,
+        "Destination",
+        ha="center",
+        va="bottom",
+    )
 
     ###########################
     # Plot swarm trajectories #
@@ -266,6 +285,23 @@ def plot_figures_task1(
         x, y, radius = obstacle
         circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
         axs[0, 1].add_artist(circle)
+
+    # Plot destination in trajectory plot
+    axs[0, 1].plot(
+        swarm_destination[0],
+        swarm_destination[1],
+        marker="s",
+        markersize=10,
+        color="none",
+        markeredgecolor="black",
+    )
+    axs[0, 1].text(
+        swarm_destination[0],
+        swarm_destination[1] + 3,
+        "Destination",
+        ha="center",
+        va="bottom",
+    )
 
     #######################
     # Plot Jn performance #
