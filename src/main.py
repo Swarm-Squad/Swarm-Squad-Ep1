@@ -1,157 +1,342 @@
-# Communication-aware Formation Control Algorithm
-# Reproduce Author: Sang Xing
-# Date: 01/26/2024
+import matplotlib
 
+matplotlib.use("TkAgg")  # Must be before importing pyplot
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
 import time
 import utils
 
 
-# ---------------------------#
-# Initialize all parameters #
-# ---------------------------#
-max_iter = 500  # Maximum number of iterations
-alpha = 10 ** (-5)  # Initialize system parameter about antenna characteristics
-delta = 2  # Initialize required application data rate
-beta = alpha * (2**delta - 1)
-v = 3  # Initialize path loss exponent
-r0 = 5  # Initialize reference distance
-PT = 0.94  # Initialize the threshold value for communication quality
+class FormationControlGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Formation Control Simulation")
 
+        # Create main figure with subplots
+        plt.ioff()
+        self.fig, self.axs = plt.subplots(2, 2, figsize=(10, 10))
+        plt.close("all")
 
-# Initialize agents' positions
-swarm_position = np.array(
-    [[-5, 14], [-5, -19], [0, 0], [35, -4], [68, 0], [72, 13], [72, -18]], dtype=float
-)
+        # Create canvas for all plots
+        self.canvas = FigureCanvasTkAgg(self.fig, master=root)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-# Initialize the swarm destination
-swarm_destination = np.array([35, 100], dtype=float)
+        # Only bind mouse events to the formation scene subplot
+        self.canvas.mpl_connect("button_press_event", self.on_click)
+        self.canvas.mpl_connect("motion_notify_event", self.on_drag)
+        self.canvas.mpl_connect("button_release_event", self.on_release)
 
-# Initialize the swarm size
-swarm_size = swarm_position.shape[0]
+        # Initialize obstacle list
+        self.obstacles = []  # Will store (x, y, radius) for each obstacle
 
-# Initialize the swarm control
-swarm_control_ui = np.zeros((swarm_size, 2))
+        # Initialize simulation parameters (keeping your original parameters)
+        self.max_iter = 500
+        self.alpha = 10 ** (-5)
+        self.delta = 2
+        self.beta = self.alpha * (2**self.delta - 1)
+        self.v = 3
+        self.r0 = 5
+        self.PT = 0.94
 
-# Initialize performance indicators
-Jn = []
-rn = []
-
-# Initialize timer
-start_time = time.time()
-t_elapsed = []
-
-# Initialize the communication qualities matrix to record the communication qualities between agents
-communication_qualities_matrix = np.zeros((swarm_size, swarm_size))
-
-# Initialize the distances matrix to record the distances between agents
-distances_matrix = np.zeros((swarm_size, swarm_size))
-
-# Initialize the matrix to record the aij (near-field communication quality) value to indicate neighboring agents
-neighbor_agent_matrix = np.zeros((swarm_size, swarm_size))
-
-# Initialize the list for swarm trajectory plot
-swarm_paths = []
-
-# Assign node (aka agent) color
-node_colors = [
-    [108 / 255, 155 / 255, 207 / 255],  # Light Blue
-    [247 / 255, 147 / 255, 39 / 255],  # Orange
-    [242 / 255, 102 / 255, 171 / 255],  # Light Pink
-    [255 / 255, 217 / 255, 90 / 255],  # Light Gold
-    [122 / 255, 168 / 255, 116 / 255],  # Green
-    [147 / 255, 132 / 255, 209 / 255],  # Purple
-    [245 / 255, 80 / 255, 80 / 255],  # Red
-]
-
-# Assign edge (aka communication links between agents) color
-line_colors = np.random.rand(swarm_position.shape[0], swarm_position.shape[0], 3)
-
-# Initialize a flag for Jn convergence
-Jn_converged = False
-
-# Initialize the figure
-fig, axs = plt.subplots(2, 2, figsize=(10, 10))
-
-
-# ----------------------#
-# Formation Controller #
-# ----------------------#
-for iter in range(max_iter):
-    print("Iteration: ", iter)
-    for i in range(swarm_size):
-        # print('Agent: ', i)
-        for j in [x for x in range(swarm_size) if x != i]:
-            # print('Neighbor: ', j)
-            rij = utils.calculate_distance(swarm_position[i], swarm_position[j])
-            aij = utils.calculate_aij(alpha, delta, rij, r0, v)
-            gij = utils.calculate_gij(rij, r0)
-            if aij >= PT:
-                # rho_ij is the derivative of upper case phi_ij (which is the same as the lower case phi_ij in powerpoint)
-                rho_ij = utils.calculate_rho_ij(beta, v, rij, r0)
-            else:
-                rho_ij = 0
-
-            qi = swarm_position[i, :]
-            qj = swarm_position[j, :]
-            eij = (qi - qj) / np.sqrt(rij)
-
-            ###########################
-            # Formation control input #
-            ###########################
-            swarm_control_ui[i, 0] += rho_ij * eij[0]
-            swarm_control_ui[i, 1] += rho_ij * eij[1]
-
-            # Record the communication qualities, distances, and neighbor_agent matrices for Jn and rn performance plots
-            phi_rij = gij * aij
-            communication_qualities_matrix[i, j] = phi_rij
-            communication_qualities_matrix[j, i] = phi_rij
-
-            distances_matrix[i, j] = rij
-            distances_matrix[j, i] = rij
-
-            neighbor_agent_matrix[i, j] = aij
-            neighbor_agent_matrix[j, i] = aij
-
-        swarm_position[i, 0] += swarm_control_ui[i, 0]
-        swarm_position[i, 1] += swarm_control_ui[i, 1]
-        swarm_control_ui[i, 0] = 0
-        swarm_control_ui[i, 1] = 0
-
-        Jn_new = utils.calculate_Jn(
-            communication_qualities_matrix, neighbor_agent_matrix, PT
+        # Initialize swarm positions and other parameters (your original initialization)
+        self.swarm_position = np.array(
+            [[-5, 14], [-5, -19], [0, 0], [35, -4], [68, 0], [72, 13], [72, -18]],
+            dtype=float,
         )
-        rn_new = utils.calculate_rn(distances_matrix, neighbor_agent_matrix, PT)
+        self.swarm_destination = np.array([35, 100], dtype=float)
+        self.swarm_size = self.swarm_position.shape[0]
+        self.swarm_control_ui = np.zeros((self.swarm_size, 2))
 
-    # Record the performance indicators
-    Jn.append(round(Jn_new, 4))
-    rn.append(round(rn_new, 4))
+        # Performance indicators
+        self.Jn = []
+        self.rn = []
+        self.t_elapsed = []
+        self.start_time = time.time()
 
-    # Check if the last 20 values in Jn are the same, if so, the formation is completed, and the swarm starts to reach the destination
-    if len(Jn) > 19 and len(set(Jn[-20:])) == 1:
-        if not Jn_converged:
-            print(
-                f"Formation completed: Jn values has converged in {round(t_elapsed[-1], 2)} seconds {iter-20} iterations."
+        # Initialize matrices
+        self.communication_qualities_matrix = np.zeros(
+            (self.swarm_size, self.swarm_size)
+        )
+        self.distances_matrix = np.zeros((self.swarm_size, self.swarm_size))
+        self.neighbor_agent_matrix = np.zeros((self.swarm_size, self.swarm_size))
+        self.swarm_paths = []
+
+        # Colors (your original color settings)
+        self.node_colors = [
+            [108 / 255, 155 / 255, 207 / 255],  # Light Blue
+            [247 / 255, 147 / 255, 39 / 255],  # Orange
+            [242 / 255, 102 / 255, 171 / 255],  # Light Pink
+            [255 / 255, 217 / 255, 90 / 255],  # Light Gold
+            [122 / 255, 168 / 255, 116 / 255],  # Green
+            [147 / 255, 132 / 255, 209 / 255],  # Purple
+            [245 / 255, 80 / 255, 80 / 255],  # Red
+        ]
+        self.line_colors = np.random.rand(
+            self.swarm_position.shape[0], self.swarm_position.shape[0], 3
+        )
+
+        # Simulation control variables
+        self.running = False
+        self.paused = False
+        self.iteration = 0
+        self.Jn_converged = False
+
+        # Add drawing state variables
+        self.drawing_obstacle = False
+        self.obstacle_start = None
+        self.temp_circle = None  # Store temporary circle while drawing
+
+        # Create control buttons
+        self.create_controls()
+
+        # Auto-start the simulation
+        self.running = True
+        self.simulation_step()
+
+    def create_controls(self):
+        # Create main control frame
+        control_frame = tk.Frame(self.root)
+        control_frame.pack(side=tk.BOTTOM, padx=10, pady=10)
+
+        # Button styles and colors
+        button_width = 10
+        button_height = 2
+
+        # Create buttons (removed start button)
+        self.pause_button = tk.Button(
+            control_frame,
+            text="Pause",
+            command=self.pause_simulation,
+            bg="#fdf2ca",  # Yellow
+            width=button_width,
+            height=button_height,
+        )
+
+        self.continue_button = tk.Button(
+            control_frame,
+            text="Continue",
+            command=self.continue_simulation,
+            bg="#e3f0d8",  # Green
+            width=button_width,
+            height=button_height,
+        )
+
+        self.reset_button = tk.Button(
+            control_frame,
+            text="Reset",
+            command=self.reset_simulation,
+            bg="#d8e3f0",  # Blue
+            width=button_width,
+            height=button_height,
+        )
+
+        self.stop_button = tk.Button(
+            control_frame,
+            text="Stop",
+            command=self.stop_simulation,
+            bg="#f9aeae",  # Red
+            width=button_width,
+            height=button_height,
+        )
+
+        # Pack buttons horizontally with spacing
+        self.pause_button.pack(side=tk.LEFT, padx=5)
+        self.continue_button.pack(side=tk.LEFT, padx=5)
+        self.reset_button.pack(side=tk.LEFT, padx=5)
+        self.stop_button.pack(side=tk.LEFT, padx=5)
+
+    def formation_control_step(self):
+        # Your original formation control logic
+        for i in range(self.swarm_size):
+            for j in [x for x in range(self.swarm_size) if x != i]:
+                rij = utils.calculate_distance(
+                    self.swarm_position[i], self.swarm_position[j]
+                )
+                aij = utils.calculate_aij(self.alpha, self.delta, rij, self.r0, self.v)
+                gij = utils.calculate_gij(rij, self.r0)
+
+                if aij >= self.PT:
+                    rho_ij = utils.calculate_rho_ij(self.beta, self.v, rij, self.r0)
+                else:
+                    rho_ij = 0
+
+                qi = self.swarm_position[i, :]
+                qj = self.swarm_position[j, :]
+                eij = (qi - qj) / np.sqrt(rij)
+
+                # Formation control input
+                self.swarm_control_ui[i, 0] += rho_ij * eij[0]
+                self.swarm_control_ui[i, 1] += rho_ij * eij[1]
+
+                # Record matrices
+                phi_rij = gij * aij
+                self.communication_qualities_matrix[i, j] = phi_rij
+                self.communication_qualities_matrix[j, i] = phi_rij
+                self.distances_matrix[i, j] = rij
+                self.distances_matrix[j, i] = rij
+                self.neighbor_agent_matrix[i, j] = aij
+                self.neighbor_agent_matrix[j, i] = aij
+
+            # Update position
+            self.swarm_position[i] += self.swarm_control_ui[i]
+            self.swarm_control_ui[i] = [0, 0]
+
+        # Calculate performance indicators
+        Jn_new = utils.calculate_Jn(
+            self.communication_qualities_matrix, self.neighbor_agent_matrix, self.PT
+        )
+        rn_new = utils.calculate_rn(
+            self.distances_matrix, self.neighbor_agent_matrix, self.PT
+        )
+
+        self.Jn.append(round(Jn_new, 4))
+        self.rn.append(round(rn_new, 4))
+        self.t_elapsed.append(time.time() - self.start_time)
+
+    def update_plot(self):
+        utils.plot_figures_task1(
+            self.axs,
+            self.t_elapsed,
+            self.Jn,
+            self.rn,
+            self.swarm_position,
+            self.PT,
+            self.communication_qualities_matrix,
+            self.swarm_size,
+            self.swarm_paths,
+            self.node_colors,
+            self.line_colors,
+            self.obstacles,  # Add obstacles parameter
+        )
+        self.canvas.draw()
+
+    def simulation_step(self):
+        if self.running and not self.paused and self.iteration < self.max_iter:
+            self.formation_control_step()
+            self.update_plot()
+
+            # Check convergence
+            if len(self.Jn) > 19 and len(set(self.Jn[-20:])) == 1:
+                if not self.Jn_converged:
+                    print(
+                        f"Formation completed: Jn values has converged in {round(self.t_elapsed[-1], 2)} seconds {self.iteration-20} iterations."
+                    )
+                    self.Jn_converged = True
+                    self.running = False
+
+            self.iteration += 1
+            self.root.after(50, self.simulation_step)  # Schedule next step
+
+    def start_simulation(self):
+        if not self.running:
+            self.running = True
+            self.simulation_step()
+
+    def pause_simulation(self):
+        self.paused = True
+        self.running = False  # Stop the simulation loop
+
+    def continue_simulation(self):
+        if not self.running:  # Only restart if not already running
+            self.running = True
+            self.paused = False
+            self.simulation_step()
+
+    def reset_simulation(self):
+        # Reset all simulation parameters
+        self.running = False
+        self.paused = False
+        self.iteration = 0
+        self.Jn_converged = False
+
+        # Reset performance indicators
+        self.Jn = []
+        self.rn = []
+        self.t_elapsed = []
+        self.start_time = time.time()
+
+        # Reset swarm positions to initial state
+        self.swarm_position = np.array(
+            [[-5, 14], [-5, -19], [0, 0], [35, -4], [68, 0], [72, 13], [72, -18]],
+            dtype=float,
+        )
+        self.swarm_control_ui = np.zeros((self.swarm_size, 2))
+
+        # Reset matrices
+        self.communication_qualities_matrix = np.zeros(
+            (self.swarm_size, self.swarm_size)
+        )
+        self.distances_matrix = np.zeros((self.swarm_size, self.swarm_size))
+        self.neighbor_agent_matrix = np.zeros((self.swarm_size, self.swarm_size))
+        self.swarm_paths = []
+
+        # Update the plot
+        self.update_plot()
+
+    def stop_simulation(self):
+        self.running = False
+        self.root.quit()  # This will close the application
+        self.root.destroy()
+
+    def on_click(self, event):
+        if event.inaxes == self.axs[0, 0]:  # Only allow drawing in formation scene
+            # Pause simulation when starting to draw
+            self.paused = True
+            self.drawing_obstacle = True
+            self.obstacle_start = (event.xdata, event.ydata)
+
+    def on_drag(self, event):
+        if self.drawing_obstacle and event.inaxes:
+            # Calculate radius from drag distance
+            radius = np.sqrt(
+                (event.xdata - self.obstacle_start[0]) ** 2
+                + (event.ydata - self.obstacle_start[1]) ** 2
             )
-            Jn_converged = True
-            break
 
-    # Record the elapsed time
-    t_elapsed.append(time.time() - start_time)
+            # Remove previous temporary circle if it exists
+            if self.temp_circle is not None:
+                self.temp_circle.remove()
 
-    # Starts plotting
-    utils.plot_figures_task1(
-        axs,
-        t_elapsed,
-        Jn,
-        rn,
-        swarm_position,
-        PT,
-        communication_qualities_matrix,
-        swarm_size,
-        swarm_paths,
-        node_colors,
-        line_colors,
-    )
-plt.show()
+            # Draw new temporary circle
+            self.temp_circle = plt.Circle(
+                self.obstacle_start, radius, color="red", alpha=0.3
+            )
+            self.axs[0, 0].add_artist(self.temp_circle)
+            self.canvas.draw()
+
+    def on_release(self, event):
+        if self.drawing_obstacle and event.inaxes:
+            radius = np.sqrt(
+                (event.xdata - self.obstacle_start[0]) ** 2
+                + (event.ydata - self.obstacle_start[1]) ** 2
+            )
+
+            # Add permanent obstacle
+            self.obstacles.append(
+                (self.obstacle_start[0], self.obstacle_start[1], radius)
+            )
+
+            # Clean up
+            self.drawing_obstacle = False
+            self.obstacle_start = None
+            if self.temp_circle is not None:
+                self.temp_circle.remove()
+                self.temp_circle = None
+
+            # Update plot with new obstacle
+            self.update_plot()
+
+            # Resume simulation properly
+            self.paused = False
+            self.running = True
+            self.simulation_step()  # Restart the simulation loop
+
+
+# Create and run the application
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = FormationControlGUI(root)
+    root.mainloop()

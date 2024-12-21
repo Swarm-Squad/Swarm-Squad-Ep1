@@ -63,7 +63,22 @@ This project builds upon our previous research in formation control and swarm in
    uv venv --python 3.12
    ```
 
-4. **Activate the virtual environment:**
+4. **Install tkinter (if not already installed):**
+   ```bash
+   # Debian/Ubuntu
+   sudo apt-get install python3-tk
+
+   # Arch Linux
+   sudo pacman -Syu tk
+
+   # Fedora
+   sudo dnf install python3-tkinter
+
+   # macOS (Homebrew)
+   brew install python-tk
+   ```
+
+5. **Activate the virtual environment:**
    ```bash
    # macOS/Linux
    source .venv/bin/activate
@@ -74,7 +89,7 @@ This project builds upon our previous research in formation control and swarm in
    .venv\Scripts\activate
    ```
 
-5. **Install the required packages:**
+6. **Install the required packages:**
    ```bash
    uv pip install -r requirements.txt
    ```

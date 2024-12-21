@@ -145,6 +145,7 @@ def plot_figures_task1(
     swarm_paths,
     node_colors,
     line_colors,
+    obstacles,
 ):
     """
     Plot 4 figures (Formation Scene, Swarm Trajectories, Jn Performance, rn Performance)
@@ -161,6 +162,7 @@ def plot_figures_task1(
         swarm_paths (list): The paths of the swarm
         node_colors (list): The colors of the nodes
         line_colors (list): The colors of the lines
+        obstacles (list): The list of obstacles
 
     Returns:
         None
@@ -190,6 +192,12 @@ def plot_figures_task1(
                 )
 
     axs[0, 0].axis("equal")
+
+    # Add obstacles to formation scene
+    for obstacle in obstacles:
+        x, y, radius = obstacle
+        circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
+        axs[0, 0].add_artist(circle)
 
     ###########################
     # Plot swarm trajectories #
@@ -253,6 +261,12 @@ def plot_figures_task1(
         trajectory_array[0, :, 0], trajectory_array[0, :, 1], color=node_colors
     )
 
+    # Add obstacles to trajectory plot
+    for obstacle in obstacles:
+        x, y, radius = obstacle
+        circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
+        axs[0, 1].add_artist(circle)
+
     #######################
     # Plot Jn performance #
     #######################
@@ -276,8 +290,6 @@ def plot_figures_task1(
     )
 
     plt.tight_layout()
-    plt.draw()
-    plt.pause(0.01)
 
 
 def plot_figures_task2(
@@ -449,5 +461,3 @@ def plot_figures_task2(
     )
 
     plt.tight_layout()
-    plt.draw()
-    plt.pause(0.01)
