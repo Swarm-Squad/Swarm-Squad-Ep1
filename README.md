@@ -60,7 +60,7 @@ This project builds upon our previous research in formation control and swarm in
 
 3. **Create a virtual environment at `/weather-dashboard/.venv/`:**
    ```bash
-   uv venv --python 3.12
+   uv venv --python 3.11
    ```
 
 4. **Install tkinter (if not already installed):**
