@@ -310,9 +310,10 @@ def plot_figures_task1(
     axs[1, 0].plot(t_elapsed, Jn)
     axs[1, 0].set_xlabel("$t(s)$")
     axs[1, 0].set_ylabel("$J_n$", rotation=0, labelpad=20)
-    axs[1, 0].text(
-        t_elapsed[-1], Jn[-1], "Jn={:.4f}".format(Jn[-1]), ha="right", va="top"
-    )
+    if len(Jn) > 0:  # Only add text if there are values
+        axs[1, 0].text(
+            t_elapsed[-1], Jn[-1], "Jn={:.4f}".format(Jn[-1]), ha="right", va="top"
+        )
 
     #######################
     # Plot rn performance #
@@ -321,9 +322,10 @@ def plot_figures_task1(
     axs[1, 1].plot(t_elapsed, rn)
     axs[1, 1].set_xlabel("$t(s)$")
     axs[1, 1].set_ylabel("$r_n$", rotation=0, labelpad=20)
-    axs[1, 1].text(
-        t_elapsed[-1], rn[-1], "$r_n$={:.4f}".format(rn[-1]), ha="right", va="top"
-    )
+    if len(rn) > 0:  # Only add text if there are values
+        axs[1, 1].text(
+            t_elapsed[-1], rn[-1], "$r_n$={:.4f}".format(rn[-1]), ha="right", va="top"
+        )
 
     plt.tight_layout()
 
@@ -481,9 +483,10 @@ def plot_figures_task2(
     axs[1, 0].plot(t_elapsed, Jn)
     axs[1, 0].set_xlabel("$t(s)$")
     axs[1, 0].set_ylabel("$J_n$", rotation=0, labelpad=20)
-    axs[1, 0].text(
-        t_elapsed[-1], Jn[-1], "Jn={:.4f}".format(Jn[-1]), ha="right", va="top"
-    )
+    if len(Jn) > 0:  # Only add text if there are values
+        axs[1, 0].text(
+            t_elapsed[-1], Jn[-1], "Jn={:.4f}".format(Jn[-1]), ha="right", va="top"
+        )
 
     #######################
     # Plot rn performance #
@@ -492,8 +495,9 @@ def plot_figures_task2(
     axs[1, 1].plot(t_elapsed, rn)
     axs[1, 1].set_xlabel("$t(s)$")
     axs[1, 1].set_ylabel("$r_n$", rotation=0, labelpad=20)
-    axs[1, 1].text(
-        t_elapsed[-1], rn[-1], "$r_n$={:.4f}".format(rn[-1]), ha="right", va="top"
-    )
+    if len(rn) > 0:  # Only add text if there are values
+        axs[1, 1].text(
+            t_elapsed[-1], rn[-1], "$r_n$={:.4f}".format(rn[-1]), ha="right", va="top"
+        )
 
     plt.tight_layout()

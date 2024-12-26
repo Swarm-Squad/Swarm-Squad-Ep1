@@ -44,7 +44,7 @@ class FormationControlGUI:
             [[-5, 14], [-5, -19], [0, 0], [35, -4], [68, 0], [72, 13], [72, -18]],
             dtype=float,
         )
-        self.swarm_destination = np.array([35, 100], dtype=float)
+        self.swarm_destination = np.array([35, 150], dtype=float)
         self.swarm_size = self.swarm_position.shape[0]
         self.swarm_control_ui = np.zeros((self.swarm_size, 2))
 
@@ -103,7 +103,7 @@ class FormationControlGUI:
         button_width = 10
         button_height = 2
 
-        # Create buttons (removed start button)
+        # Create buttons
         self.pause_button = tk.Button(
             control_frame,
             text="Pause",
@@ -140,11 +140,22 @@ class FormationControlGUI:
             height=button_height,
         )
 
+        # Add new Undo button
+        self.undo_button = tk.Button(
+            control_frame,
+            text="Undo",
+            command=self.undo_last_obstacle,
+            bg="#e6e6e6",  # Light Gray
+            width=button_width,
+            height=button_height,
+        )
+
         # Pack buttons horizontally with spacing
         self.pause_button.pack(side=tk.LEFT, padx=5)
         self.continue_button.pack(side=tk.LEFT, padx=5)
         self.reset_button.pack(side=tk.LEFT, padx=5)
         self.stop_button.pack(side=tk.LEFT, padx=5)
+        self.undo_button.pack(side=tk.LEFT, padx=5)  # Add undo button to layout
 
     def formation_control_step(self):
         # Reset control inputs at start of step
@@ -182,7 +193,42 @@ class FormationControlGUI:
 
             # Add destination-reaching control only after formation convergence
             if self.Jn_converged:
-                self.add_destination_control(i)
+                # First check for obstacle collisions and apply avoidance
+                for obstacle in self.obstacles:
+                    obstacle_pos = np.array([obstacle[0], obstacle[1]])
+                    obstacle_radius = obstacle[2]
+
+                    # Calculate distance to obstacle center
+                    dist_to_center = np.linalg.norm(
+                        self.swarm_position[i] - obstacle_pos
+                    )
+
+                    # Increase buffer zones even more
+                    buffer_zone = obstacle_radius + 6.0  # Even larger buffer zone
+                    wall_follow_zone = (
+                        obstacle_radius + 3.0
+                    )  # Larger wall following zone
+
+                    if dist_to_center < buffer_zone:  # If within buffer zone
+                        if dist_to_center < wall_follow_zone:
+                            # Much stronger avoidance when very close
+                            self.add_obstacle_avoidance(
+                                i, obstacle_pos, obstacle_radius
+                            )
+                            # Minimal destination control when very close to obstacle
+                            self.add_destination_control(i, weight=0.1)
+                        else:
+                            # Enhanced wall following when in outer buffer zone
+                            wall_normal = (
+                                self.swarm_position[i] - obstacle_pos
+                            ) / dist_to_center
+                            wall_pos = obstacle_pos + wall_normal * obstacle_radius
+                            self.add_wall_following(i, wall_pos, wall_normal)
+                            # Reduced destination control during wall following
+                            self.add_destination_control(i, weight=0.2)
+                    else:
+                        # Normal destination control when far from obstacles
+                        self.add_destination_control(i, weight=1.0)
 
             # Update position
             self.swarm_position[i] += self.swarm_control_ui[i]
@@ -200,7 +246,7 @@ class FormationControlGUI:
 
         self.t_elapsed.append(time.time() - self.start_time)
 
-    def add_destination_control(self, agent_index):
+    def add_destination_control(self, agent_index, weight=1.0):
         """Add destination-reaching control input for an agent"""
         # Parameters for destination control
         am = 0.7  # Attraction magnitude
@@ -219,8 +265,59 @@ class FormationControlGUI:
             else:
                 control_param = am * (dist_to_dest / bm)
 
+            # Apply weight to control input
+            self.swarm_control_ui[agent_index] += (
+                weight * destination_direction * control_param
+            )
+
+    def add_obstacle_avoidance(self, agent_index, obstacle_position, obstacle_radius):
+        """Add obstacle avoidance control input for an agent"""
+        # Much stronger avoidance parameters
+        ao = 3.0  # Significantly increased avoidance magnitude
+        bo = 6.0  # Even larger influence range
+
+        # Calculate vector away from the obstacle
+        obstacle_vector = self.swarm_position[agent_index] - obstacle_position
+        dist_to_obstacle = np.linalg.norm(obstacle_vector)
+
+        if dist_to_obstacle < (obstacle_radius + bo):
+            avoidance_direction = obstacle_vector / dist_to_obstacle
+
+            # Stronger exponential scaling for more aggressive close-range avoidance
+            proximity_factor = np.exp(-0.3 * (dist_to_obstacle - obstacle_radius))
+            control_param = (
+                ao
+                * proximity_factor
+                * (1 + 1 / (dist_to_obstacle - obstacle_radius + 0.1))
+            )
+
             # Add to existing control input
-            self.swarm_control_ui[agent_index] += destination_direction * control_param
+            self.swarm_control_ui[agent_index] += avoidance_direction * control_param
+
+    def add_wall_following(self, agent_index, wall_position, wall_normal):
+        """Add wall-following control input for an agent"""
+        # Stronger wall following parameters
+        af = 2.0  # Much stronger wall following force
+        df = 10.0  # Larger desired distance from wall
+
+        # Calculate perpendicular distance to wall
+        agent_position = self.swarm_position[agent_index]
+        distance_to_wall = np.dot(agent_position - wall_position, wall_normal)
+
+        # Calculate tangent direction (clockwise around obstacle)
+        tangent_direction = np.array([-wall_normal[1], wall_normal[0]])
+
+        # Enhanced wall following behavior
+        if abs(distance_to_wall) > df:
+            # Stronger correction when too close or too far from wall
+            correction = -np.sign(distance_to_wall) * wall_normal
+            # Increase correction influence
+            control = af * (0.4 * tangent_direction + 0.6 * correction)
+        else:
+            # Stronger wall following when at good distance
+            control = 1.2 * af * tangent_direction
+
+        self.swarm_control_ui[agent_index] += control
 
     def update_plot(self):
         utils.plot_figures_task1(
@@ -372,6 +469,12 @@ class FormationControlGUI:
             self.paused = False
             self.running = True
             self.simulation_step()  # Restart the simulation loop
+
+    def undo_last_obstacle(self):
+        """Remove the most recently added obstacle"""
+        if self.obstacles:  # Check if there are any obstacles
+            self.obstacles.pop()  # Remove the last obstacle
+            self.update_plot()  # Update the visualization
 
 
 # Create and run the application
