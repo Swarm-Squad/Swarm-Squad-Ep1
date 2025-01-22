@@ -1,9 +1,9 @@
-<h1 align="center">Swarm Squad: Episode I – Surviving the Jam</h1>
-
-<h6 align="center"><small>A hybrid control architecture combining behavior-based formation control with LLM-powered decision making for autonomous multi-agent systems.</small></h6>
-
-<p align="center"><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#Behavior-based Control &emsp; #Communication-aware &emsp; #Formation Control</b></p>
-
+<div align="center">
+<img src="img/banner.png?raw=true" />
+<h1>Swarm Squad: Episode I – Surviving the Jam</h1>
+<h6><small>A hybrid control architecture combining behavior-based formation control with LLM-powered decision making for autonomous multi-agent systems.</small></h6>
+<p><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#Behavior-based Control &emsp; #Communication-aware &emsp; #Formation Control</b></p>
+</div>
 
 
 <h2 align="center">🔬 Research Evolution</h2>
