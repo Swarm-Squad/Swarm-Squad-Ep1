@@ -1,11 +1,13 @@
 import matplotlib
 
 matplotlib.use("TkAgg")
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import tkinter as tk
 import time
+import tkinter as tk
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import utils
 
 

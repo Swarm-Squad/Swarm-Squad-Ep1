@@ -123,7 +123,7 @@ This project builds upon our previous research in formation control and swarm in
 
 4. **Run the application:**
    ```bash
-   python src/app.py
+   python src/main.py
    ```
 
 
