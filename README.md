@@ -58,7 +58,7 @@ This project builds upon our previous research in formation control and swarm in
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Create a virtual environment at `/weather-dashboard/.venv/`:**
+3. **Create a virtual environment:**
    ```bash
    uv venv --python 3.11
    ```
