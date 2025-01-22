@@ -127,7 +127,7 @@ This project builds upon our previous research in formation control and swarm in
    ```
 
 
-<h2 align="center">File Tree</h2>
+<h2 align="center">📁 File Tree</h2>
 
 ```text
 📦Swarm-Squad-Ep1
