@@ -58,12 +58,7 @@ This project builds upon our previous research in formation control and swarm in
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Create a virtual environment:**
-   ```bash
-   uv venv --python 3.11
-   ```
-
-4. **Install tkinter (if not already installed):**
+3. **Install tkinter (if not already installed):**
    ```bash
    # Debian/Ubuntu
    sudo apt-get install python3-tk
@@ -76,6 +71,18 @@ This project builds upon our previous research in formation control and swarm in
 
    # macOS (Homebrew)
    brew install python-tk
+
+   # After installing, check which Python version has tkinter:
+   for v in $(ls /usr/bin/python3*); do
+       echo -n "$v: "
+       $v -c "import tkinter; print('tkinter available')" 2>/dev/null || echo "no tkinter"
+   done
+   ```
+
+4. **Create a virtual environment using the Python version that has tkinter:**
+   ```bash
+   # Replace X.Y with the version number found above (e.g., 3.13, 3.12, 3.11)
+   uv venv --python 3.X
    ```
 
 5. **Activate the virtual environment:**
