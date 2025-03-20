@@ -348,7 +348,7 @@ class FormationControlGUI:
             if len(self.Jn) > 19 and len(set(self.Jn[-20:])) == 1:
                 if not self.Jn_converged:
                     print(
-                        f"Formation completed: Jn values has converged in {round(self.t_elapsed[-1], 2)} seconds {self.iteration-20} iterations.\nSimulation paused."
+                        f"Formation completed: Jn values has converged in {round(self.t_elapsed[-1], 2)} seconds {self.iteration - 20} iterations.\nSimulation paused."
                     )
                     self.Jn_converged = True
                     self.running = False

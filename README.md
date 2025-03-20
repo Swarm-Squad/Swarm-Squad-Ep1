@@ -105,7 +105,7 @@ This project builds upon our previous research in formation control and swarm in
   <h2>👨‍💻 Development Setup</h2>
 </div>
 
-1. **Install pre-commit:**
+1. **Install ruff and pre-commit:**
    ```bash
    uv pip install ruff pre-commit
    ```
