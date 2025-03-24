@@ -195,6 +195,7 @@ class FormationControlGUI:
 
             # Add destination-reaching control only after formation convergence
             if self.Jn_converged:
+                has_obstacle_influence = False
                 # First check for obstacle collisions and apply avoidance
                 for obstacle in self.obstacles:
                     obstacle_pos = np.array([obstacle[0], obstacle[1]])
@@ -205,13 +206,12 @@ class FormationControlGUI:
                         self.swarm_position[i] - obstacle_pos
                     )
 
-                    # Increase buffer zones even more
-                    buffer_zone = obstacle_radius + 6.0  # Even larger buffer zone
-                    wall_follow_zone = (
-                        obstacle_radius + 3.0
-                    )  # Larger wall following zone
+                    # Increase buffer zones
+                    buffer_zone = obstacle_radius + 6.0
+                    wall_follow_zone = obstacle_radius + 3.0
 
                     if dist_to_center < buffer_zone:  # If within buffer zone
+                        has_obstacle_influence = True
                         if dist_to_center < wall_follow_zone:
                             # Much stronger avoidance when very close
                             self.add_obstacle_avoidance(
@@ -228,9 +228,10 @@ class FormationControlGUI:
                             self.add_wall_following(i, wall_pos, wall_normal)
                             # Reduced destination control during wall following
                             self.add_destination_control(i, weight=0.2)
-                    else:
-                        # Normal destination control when far from obstacles
-                        self.add_destination_control(i, weight=1.0)
+
+                # If not influenced by any obstacle, apply normal destination control
+                if not has_obstacle_influence:
+                    self.add_destination_control(i, weight=1.0)
 
             # Update position
             self.swarm_position[i] += self.swarm_control_ui[i]
