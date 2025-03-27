@@ -5,7 +5,7 @@ Configuration parameters for the formation control simulation.
 import numpy as np
 
 # Simulation parameters
-MAX_ITER = 500
+MAX_ITER = 1000
 ALPHA = 10 ** (-5)
 DELTA = 2
 BETA = ALPHA * (2**DELTA - 1)
@@ -34,7 +34,7 @@ NODE_COLORS = [
 ]
 
 # Controller parameters
-DESTINATION_ATTRACTION_MAGNITUDE = 0.7  # am parameter
+DESTINATION_ATTRACTION_MAGNITUDE = 1.0  # am parameter
 DESTINATION_DISTANCE_THRESHOLD = 1.0  # bm parameter
 OBSTACLE_AVOIDANCE_MAGNITUDE = 3.0  # ao parameter
 OBSTACLE_INFLUENCE_RANGE = 6.0  # bo parameter

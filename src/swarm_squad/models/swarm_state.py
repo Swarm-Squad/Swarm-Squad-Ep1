@@ -126,8 +126,14 @@ class SwarmState:
             return len(set(self.Jn[-20:])) == 1
         return False
 
-    def check_destination_reached(self, threshold=0.05) -> bool:
+    def check_destination_reached(self, threshold=0.5) -> bool:
         """Check if the swarm has reached its destination"""
         swarm_center = np.mean(self.swarm_position, axis=0)
         dist_to_dest = np.linalg.norm(swarm_center - self.swarm_destination)
+        print(
+            f"\nDEBUG: Swarm center at {swarm_center}, destination at {self.swarm_destination}"
+        )
+        print(
+            f"DEBUG: Distance to destination: {dist_to_dest:.2f} (threshold: {threshold})"
+        )
         return dist_to_dest < threshold

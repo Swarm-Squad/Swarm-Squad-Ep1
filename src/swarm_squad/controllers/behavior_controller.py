@@ -70,7 +70,7 @@ class BehaviorController(BaseController):
                             control_inputs, i, obstacle_pos, obstacle_radius
                         )
                         # Minimal destination control when very close to obstacle
-                        self._add_destination_control(control_inputs, i, weight=0.1)
+                        self._add_destination_control(control_inputs, i, weight=0.3)
                     else:
                         # Apply wall following when in outer buffer zone
                         wall_normal = (
@@ -81,7 +81,7 @@ class BehaviorController(BaseController):
                             control_inputs, i, wall_pos, wall_normal
                         )
                         # Reduced destination control during wall following
-                        self._add_destination_control(control_inputs, i, weight=0.2)
+                        self._add_destination_control(control_inputs, i, weight=0.4)
 
             # If not influenced by any obstacle, apply normal destination control
             if not has_obstacle_influence:

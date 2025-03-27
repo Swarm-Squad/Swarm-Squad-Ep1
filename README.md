@@ -38,8 +38,9 @@ This project builds upon our previous research in formation control and swarm in
 
 <h2 align="center">🚀 Getting Started</h2>
 
+Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and create a virtual environment.
 ```bash
-uv venv --python 3.13.2
+uv venv --python 3.10
 source .venv/bin/activate
 uv pip install swarm-squad-ep1
 ```
@@ -71,34 +72,12 @@ swarm-squad
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Install tkinter (if not already installed):**
+3. **Create a virtual environment:**
    ```bash
-   # Debian/Ubuntu
-   sudo apt-get install python3-tk
-
-   # Arch Linux
-   sudo pacman -Syu tk
-
-   # Fedora
-   sudo dnf install python3-tkinter
-
-   # macOS (Homebrew)
-   brew install python-tk
-
-   # After installing, check which Python version has tkinter:
-   for v in $(ls /usr/bin/python3*); do
-       echo -n "$v: "
-       $v -c "import tkinter; print('tkinter available')" 2>/dev/null || echo "no tkinter"
-   done
+   uv venv
    ```
 
-4. **Create a virtual environment using the Python version that has tkinter:**
-   ```bash
-   # Replace X.Y with the version number found above (e.g., 3.13, 3.12, 3.11)
-   uv venv --python 3.X
-   ```
-
-5. **Activate the virtual environment:**
+4. **Activate the virtual environment:**
    ```bash
    # macOS/Linux
    source .venv/bin/activate
@@ -109,7 +88,7 @@ swarm-squad
    .venv\Scripts\activate
    ```
 
-6. **Install the required packages:**
+5. **Install the required packages:**
    ```bash
    uv pip install -e .
    ```
@@ -144,8 +123,6 @@ swarm-squad
 
 4. **Run the application:**
    ```bash
-   swarm-squad
-   # or
    uv run src/main.py
    ```
 
