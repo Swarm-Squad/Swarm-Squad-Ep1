@@ -36,9 +36,19 @@ This project builds upon our previous research in formation control and swarm in
 </table>
 
 
+<h2 align="center">🚀 Getting Started</h2>
+
+```bash
+pip install swarm-squad-ep1
+```
+
+```bash
+swarm-squad # run the application
+```
+
 
 <div align="center">
-  <h2>🛠️ Setup & Installation</h2>
+  <h2>🛠️ Development Installation</h2>
 </div>
 
 1. **Clone the repository and navigate to project folder:**
@@ -98,7 +108,7 @@ This project builds upon our previous research in formation control and swarm in
 
 6. **Install the required packages:**
    ```bash
-   uv pip install -r requirements.txt
+   uv pip install -e .
    ```
 
 <div align="center">
@@ -124,25 +134,50 @@ This project builds upon our previous research in formation control and swarm in
   
 3. **Code Linting:**
    ```bash
-   ruff check
+   ruff check --fix
+   ruff check --select I --fix
    ruff format
    ```
 
 4. **Run the application:**
    ```bash
-   python src/main.py
+   swarm-squad
+   # or
+   uv run src/main.py
    ```
 
 
 <h2 align="center">📁 File Tree</h2>
 
-```text
-📦Swarm-Squad-Ep1
- ┣ 📂img                              // Readme Assets
- ┣ 📂lib                              // Supplementary Materials
- ┣ 📂src                              // Source Code
- ┃ ┃ ┣ 📄main.py
- ┃ ┃ ┗ 📄utils.py
+```
+ 📂Swarm-Squad-Ep1
+ ┣ 📂lib
+ ┃ ┗ 📂img                              // Readme Assets
+ ┣ 📂src
+ ┃ ┣ 📦Swarm-Squad-Ep1                   // Source Code
+ ┃ ┣ 📄main.py                            // Entry point
+ ┃ ┣ 📄config.py                          // Configuration parameters
+ ┃ ┣ 📄utils.py                           // Core utility functions
+ ┃ ┣ 📄visualization.py                   // Visualization functions
+ ┃ ┣ 📂models                         // Model components
+ ┃ ┃ ┣ 📄__init__.py
+ ┃ ┃ ┗ 📄swarm_state.py                   // Swarm state management
+ ┃ ┣ 📂controllers                    // Controllers for swarm behavior
+ ┃ ┃ ┣ 📄__init__.py
+ ┃ ┃ ┣ 📄base_controller.py               // Base controller interface
+ ┃ ┃ ┣ 📄communication_controller.py      // Communication-aware controller
+ ┃ ┃ ┣ 📄behavior_controller.py           // Behavior-based controller
+ ┃ ┃ ┣ 📄llm_controller.py                // LLM controller
+ ┃ ┃ ┗ 📄controller_factory.py            // Controller management system
+ ┃ ┗ 📂gui                            // GUI components
+ ┃   ┣ 📄__init__.py
+ ┃   ┗ 📄formation_control_gui.py         // GUI application
  ┣ 📄.gitignore
- ┗ 📄README.md
+ ┣ 📄.pre-commit-msg_template.yaml
+ ┣ 📄.pre-commit-config.yaml
+ ┣ 📄.python-version
+ ┣ 📄LICENSE
+ ┣ 📄pyproject.toml
+ ┣ 📄README.md
+ ┗ 📄uv.lock
 ```
