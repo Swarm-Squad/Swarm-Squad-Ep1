@@ -39,11 +39,14 @@ This project builds upon our previous research in formation control and swarm in
 <h2 align="center">🚀 Getting Started</h2>
 
 ```bash
-pip install swarm-squad-ep1
+uv venv --python 3.13.2
+source .venv/bin/activate
+uv pip install swarm-squad-ep1
 ```
 
+To run the application, simply type:
 ```bash
-swarm-squad # run the application
+swarm-squad
 ```
 
 
