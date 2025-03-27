@@ -616,7 +616,7 @@ wheels = [
 
 [[package]]
 name = "swarm-squad-ep1"
-version = "0.1.2"
+version = "0.1.4"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
