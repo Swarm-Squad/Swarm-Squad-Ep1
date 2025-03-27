@@ -1,5 +1,5 @@
 <div align="center">
-<a href="https://github.com/Sang-Buster/Swarm-Squad"><img src="img/banner.png?raw=true" /></a>
+<a href="https://github.com/Sang-Buster/Swarm-Squad"><img src="lib/imgbanner.png?raw=true" /></a>
 <h1>Swarm Squad: Episode I – Surviving the Jam</h1>
 <h6><small>A hybrid control architecture combining behavior-based formation control with LLM-powered decision making for autonomous multi-agent systems.</small></h6>
 <p><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#Behavior-based Control &emsp; #Communication-aware &emsp; #Formation Control</b></p>
@@ -23,13 +23,13 @@ This project builds upon our previous research in formation control and swarm in
   </tr>
   <tr>
     <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="img/cover_paper.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="lib/img/cover_paper.png?raw=true" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
     </td>
     <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="img/cover_ppt.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_ppt.png?raw=true" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="img/cover_video.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_video.png?raw=true" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
     </td>
   </tr>
@@ -151,27 +151,25 @@ swarm-squad # run the application
 
 ```
  📂Swarm-Squad-Ep1
- ┣ 📂lib
- ┃ ┗ 📂img                              // Readme Assets
+ ┣ 📂lib                                  // Supplementary materials
+ ┃ ┣ 📂img                                   // Readme Assets
+ ┃ ┗ 📂old                                   // Original old code
  ┣ 📂src
  ┃ ┣ 📦Swarm-Squad-Ep1                   // Source Code
- ┃ ┣ 📄main.py                            // Entry point
- ┃ ┣ 📄config.py                          // Configuration parameters
- ┃ ┣ 📄utils.py                           // Core utility functions
- ┃ ┣ 📄visualization.py                   // Visualization functions
- ┃ ┣ 📂models                         // Model components
- ┃ ┃ ┣ 📄__init__.py
- ┃ ┃ ┗ 📄swarm_state.py                   // Swarm state management
- ┃ ┣ 📂controllers                    // Controllers for swarm behavior
- ┃ ┃ ┣ 📄__init__.py
- ┃ ┃ ┣ 📄base_controller.py               // Base controller interface
- ┃ ┃ ┣ 📄communication_controller.py      // Communication-aware controller
- ┃ ┃ ┣ 📄behavior_controller.py           // Behavior-based controller
- ┃ ┃ ┣ 📄llm_controller.py                // LLM controller
- ┃ ┃ ┗ 📄controller_factory.py            // Controller management system
- ┃ ┗ 📂gui                            // GUI components
- ┃   ┣ 📄__init__.py
- ┃   ┗ 📄formation_control_gui.py         // GUI application
+ ┃ ┃ ┣ 📄main.py                            // Entry point
+ ┃ ┃ ┣ 📄config.py                          // Configuration parameters
+ ┃ ┃ ┣ 📄utils.py                           // Core utility functions
+ ┃ ┃ ┣ 📄visualization.py                   // Visualization functions
+ ┃ ┃ ┣ 📂models                         // Model components
+ ┃ ┃ ┃ ┗ 📄swarm_state.py                   // Swarm state management
+ ┃ ┃ ┣ 📂controllers                    // Controllers for swarm behavior
+ ┃ ┃ ┃ ┣ 📄base_controller.py               // Base controller interface
+ ┃ ┃ ┃ ┣ 📄communication_controller.py      // Communication-aware controller
+ ┃ ┃ ┃ ┣ 📄behavior_controller.py           // Behavior-based controller
+ ┃ ┃ ┃ ┣ 📄llm_controller.py                // LLM controller
+ ┃ ┃ ┃ ┗ 📄controller_factory.py            // Controller management system
+ ┃ ┃ ┣ 📂gui                            // GUI components
+ ┃ ┃ ┗ ┗ 📄formation_control_gui.py         // GUI application
  ┣ 📄.gitignore
  ┣ 📄.pre-commit-msg_template.yaml
  ┣ 📄.pre-commit-config.yaml
