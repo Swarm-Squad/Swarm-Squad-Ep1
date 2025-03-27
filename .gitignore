@@ -1,5 +1,4 @@
-.idea/
+.venv/
 __pycache__/
-.asv
 .ruff_cache
 dist/
