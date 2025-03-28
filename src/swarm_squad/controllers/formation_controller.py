@@ -36,9 +36,9 @@ class FormationController(BaseController):
             A numpy array of shape (swarm_size, 2) containing the control
             inputs for each agent in the swarm.
         """
-        print(
-            f"BREAKPOINT: FormationController.compute_control called at iteration {self.swarm_state.iteration}"
-        )
+        # print(
+        #     f"BREAKPOINT: FormationController.compute_control called at iteration {self.swarm_state.iteration}"
+        # )
         # Reset control inputs
         control_inputs = np.zeros((self.swarm_state.swarm_size, 2))
 

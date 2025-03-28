@@ -345,6 +345,7 @@ def plot_all_figures(
     swarm_destination,
     agent_status=None,
     jamming_affected=None,
+    llm_controller=None,
 ):
     """
     Plot all figures for the simulation.
@@ -365,6 +366,7 @@ def plot_all_figures(
         swarm_destination: The destination of the swarm
         agent_status: Status of each agent (active or returning)
         jamming_affected: Whether agents are affected by jamming
+        llm_controller: The LLM controller for feedback display (not used in plots anymore)
     """
     # Clear all axes
     for ax in axs.flat:

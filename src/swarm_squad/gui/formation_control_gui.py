@@ -2,6 +2,9 @@
 GUI for the formation control simulation.
 """
 
+import re
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -9,10 +12,12 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QPushButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -88,27 +93,37 @@ class FormationControlGUI(QMainWindow):
         """Set up the main window and matplotlib components."""
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-        self.main_layout = QVBoxLayout(self.central_widget)
+
+        # Using a horizontal layout to place plots on left, controls on right
+        self.main_layout = QHBoxLayout(self.central_widget)
+
+        # Create left panel for plots
+        plot_panel = QWidget()
+        plot_layout = QVBoxLayout(plot_panel)
+        plot_layout.setContentsMargins(0, 0, 0, 0)
 
         # Create main figure with subplots
-        self.fig, self.axs = plt.subplots(2, 2, figsize=(10, 10))
+        self.fig, self.axs = plt.subplots(2, 2, figsize=(12, 10))
         self.fig.tight_layout(pad=3.0)  # Add padding between subplots
 
         # Create canvas for all plots
         self.canvas = FigureCanvas(self.fig)
-        self.main_layout.addWidget(self.canvas)
+        plot_layout.addWidget(self.canvas)
 
         # Add matplotlib toolbar for additional navigation
         self.toolbar = NavigationToolbar(self.canvas, self)
-        self.main_layout.addWidget(self.toolbar)
+        plot_layout.addWidget(self.toolbar)
 
         # Only bind mouse events to the formation scene subplot
         self.canvas.mpl_connect("button_press_event", self.on_click)
         self.canvas.mpl_connect("motion_notify_event", self.on_drag)
         self.canvas.mpl_connect("button_release_event", self.on_release)
 
-        # Set window size
-        self.resize(800, 800)
+        # Add plot panel to main layout
+        self.main_layout.addWidget(plot_panel, 3)  # Give plots 3/4 of the width
+
+        # Set window size - wider to accommodate side panel
+        self.resize(1400, 800)
 
     def initialize_state(self):
         """Initialize simulation state and variables."""
@@ -128,17 +143,33 @@ class FormationControlGUI(QMainWindow):
         self.obstacle_start = None
         self.temp_circle = None  # Store temporary circle while drawing
 
+        # Add LLM feedback display timer - check more frequently (250ms)
+        self.llm_feedback_timer = QTimer(self)
+        self.llm_feedback_timer.timeout.connect(self.update_llm_feedback)
+        self.llm_feedback_timer.setInterval(
+            250
+        )  # Check for new feedback more frequently
+
     def setup_simulation(self):
         """Set up simulation timer and start simulation."""
         self.running = True
         self.timer.start()
 
+        # Start LLM feedback timer
+        self.llm_feedback_timer.start()
+
     def create_plot_controls(self):
         """Create control buttons and layout for the simulation."""
+        # Create right side panel for controls
         controls_container = QWidget()
         controls_vertical_layout = QVBoxLayout(controls_container)
         controls_vertical_layout.setContentsMargins(10, 5, 10, 10)
-        self.main_layout.addWidget(controls_container)
+
+        # Add controls container to main layout (right side)
+        self.main_layout.addWidget(controls_container, 1)  # 1/4 of the width
+
+        # Add spacer at the top to push content down for vertical centering
+        controls_vertical_layout.addStretch(1)
 
         # Create frames
         main_controls_frame = self.create_main_controls()
@@ -150,6 +181,15 @@ class FormationControlGUI(QMainWindow):
         controls_vertical_layout.addWidget(obstacle_controls_frame)
         controls_vertical_layout.addSpacing(STATUS_SPACING)
         controls_vertical_layout.addWidget(status_frame)
+
+        # Create and add feedback panel
+        feedback_frame = self.create_llm_feedback_panel()
+        controls_vertical_layout.addWidget(
+            feedback_frame, 2
+        )  # Give it more vertical space (increased from 1 to 2)
+
+        # Add spacer at the bottom to push content up for vertical centering
+        controls_vertical_layout.addStretch(1)
 
     def create_main_controls(self):
         """Create main control buttons."""
@@ -232,9 +272,12 @@ class FormationControlGUI(QMainWindow):
     def create_status_bar(self):
         """Create status bar with labels."""
         frame = QWidget()
-        layout = QHBoxLayout(frame)
+        layout = QVBoxLayout(frame)  # Changed to vertical layout
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignCenter)
+
+        # Create horizontal layout for status labels
+        status_layout = QHBoxLayout()
+        status_layout.setAlignment(Qt.AlignCenter)
 
         # Create status labels
         self.simulation_status_label = QLabel("Simulation Status: Running")
@@ -252,13 +295,137 @@ class FormationControlGUI(QMainWindow):
         )
 
         # Add labels to layout
-        layout.addWidget(self.simulation_status_label)
-        layout.addWidget(self.spacer_label)
-        layout.addWidget(self.obstacle_mode_label)
+        status_layout.addWidget(self.simulation_status_label)
+        status_layout.addWidget(self.spacer_label)
+        status_layout.addWidget(self.obstacle_mode_label)
+
+        # Add status layout to main layout
+        layout.addLayout(status_layout)
 
         # Set initial status
         self.update_status_bar("Running", config.OBSTACLE_MODE.value)
         return frame
+
+    def create_llm_feedback_panel(self):
+        """Create the LLM feedback panel as a fixed widget in the layout"""
+        # Create feedback panel container
+        feedback_frame = QWidget()
+        feedback_layout = QVBoxLayout(feedback_frame)
+        feedback_layout.setContentsMargins(10, 10, 10, 10)
+
+        # Make panel background visible
+        feedback_frame.setStyleSheet(
+            "background-color: rgba(220, 220, 255, 0.9); border-radius: 10px; border: 2px solid #3333aa;"
+        )
+
+        # Add title
+        title_label = QLabel("LLM TACTICAL FEEDBACK")
+        title_label.setStyleSheet("font-weight: bold; color: #333399; font-size: 16px;")
+        title_label.setAlignment(Qt.AlignCenter)
+        feedback_layout.addWidget(title_label)
+
+        # Add current feedback label
+        self.llm_feedback_label = QLabel("Waiting for tactical advice...")
+        self.llm_feedback_label.setWordWrap(True)
+        self.llm_feedback_label.setStyleSheet(
+            "color: #333366; font-size: 14px; font-weight: bold; padding: 5px;"
+        )
+        self.llm_feedback_label.setAlignment(Qt.AlignCenter)
+        self.llm_feedback_label.setMinimumHeight(50)
+        feedback_layout.addWidget(self.llm_feedback_label)
+
+        # Add timestamp for feedback (now centered)
+        self.feedback_timestamp = QLabel("")
+        self.feedback_timestamp.setStyleSheet("color: #4d4d4d; font-size: 11px;")
+        self.feedback_timestamp.setAlignment(Qt.AlignCenter)  # Center alignment
+        feedback_layout.addWidget(self.feedback_timestamp)
+
+        # Add separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("background-color: #8888cc;")
+        feedback_layout.addWidget(separator)
+
+        # Add previous feedback section
+        self.prev_feedback_title = QLabel("PREVIOUS ADVICE:")
+        self.prev_feedback_title.setStyleSheet(
+            "color: #333399; font-size: 14px; font-weight: bold;"
+        )
+        self.prev_feedback_title.setAlignment(Qt.AlignCenter)  # Center alignment
+        feedback_layout.addWidget(self.prev_feedback_title)
+
+        self.prev_feedback_label = QLabel("No previous advice available")
+        self.prev_feedback_label.setWordWrap(True)
+        self.prev_feedback_label.setStyleSheet(
+            "color: #4d4d4d; font-size: 13px; font-style: italic; padding: 5px;"
+        )
+        self.prev_feedback_label.setAlignment(Qt.AlignCenter)  # Center alignment
+        self.prev_feedback_label.setMinimumHeight(40)
+        feedback_layout.addWidget(self.prev_feedback_label)
+
+        # Add timestamp for previous feedback
+        self.prev_feedback_timestamp = QLabel("")
+        self.prev_feedback_timestamp.setStyleSheet("color: #4d4d4d; font-size: 11px;")
+        self.prev_feedback_timestamp.setAlignment(Qt.AlignCenter)  # Center alignment
+        feedback_layout.addWidget(self.prev_feedback_timestamp)
+
+        # Add second separator
+        separator2 = QFrame()
+        separator2.setFrameShape(QFrame.HLine)
+        separator2.setFrameShadow(QFrame.Sunken)
+        separator2.setStyleSheet("background-color: #8888cc;")
+        feedback_layout.addWidget(separator2)
+
+        # Add state perception section
+        perceived_state_title = QLabel("PERCEIVED STATE:")
+        perceived_state_title.setStyleSheet(
+            "color: #333399; font-size: 14px; font-weight: bold;"
+        )
+        perceived_state_title.setAlignment(Qt.AlignCenter)
+        feedback_layout.addWidget(perceived_state_title)
+
+        # Create a container for the state label with border
+        perceived_state_container = QWidget()
+        perceived_state_container.setStyleSheet(
+            "background-color: rgba(240, 240, 255, 0.7); border: 1px solid #8888cc; border-radius: 5px;"
+        )
+        perceived_state_layout = QVBoxLayout(perceived_state_container)
+        perceived_state_layout.setContentsMargins(5, 5, 5, 5)
+
+        # State content
+        self.perceived_state_label = QLabel("Waiting for state information...")
+        self.perceived_state_label.setWordWrap(True)
+        self.perceived_state_label.setStyleSheet(
+            "color: #333366; font-size: 12px; font-family: 'Courier New', monospace; padding: 5px; background-color: transparent;"
+        )
+        self.perceived_state_label.setAlignment(Qt.AlignLeft)
+        self.perceived_state_label.setMinimumHeight(150)  # Minimum height
+        self.perceived_state_label.setTextFormat(Qt.RichText)  # Use rich text format
+        self.perceived_state_label.setTextInteractionFlags(
+            Qt.TextSelectableByMouse
+        )  # Make text selectable
+
+        # Allow the label to expand as needed
+        perceived_state_layout.addWidget(self.perceived_state_label)
+
+        # Create a scroll area for the perceived state
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(perceived_state_container)
+        scroll_area.setMinimumHeight(250)  # Increased minimum height
+        scroll_area.setMaximumHeight(350)  # Set maximum height
+        scroll_area.setVerticalScrollBarPolicy(
+            Qt.ScrollBarAlwaysOn
+        )  # Always show scrollbar
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setStyleSheet(
+            "border: none; background-color: transparent;"
+        )  # Remove scroll area border since we have one on the container
+
+        feedback_layout.addWidget(scroll_area, 2)  # Give it more stretch priority
+
+        return feedback_frame
 
     def on_mode_button_clicked(self, mode):
         """Handle mode button click"""
@@ -281,10 +448,15 @@ class FormationControlGUI(QMainWindow):
         # Update the plot to reflect changes
         self.update_plot()
 
-        print(f"DEBUG: Obstacle mode changed to {mode.value}")
+        # print(f"DEBUG: Obstacle mode changed to {mode.value}")
 
     def update_plot(self):
         """Update the plot with the current swarm state"""
+        # Get LLM controller if enabled
+        llm_controller = None
+        if config.LLM_ENABLED:
+            llm_controller = self.controller_factory.get_controller(ControllerType.LLM)
+
         visualization.plot_all_figures(
             self.axs,
             self.swarm_state.t_elapsed,
@@ -301,6 +473,7 @@ class FormationControlGUI(QMainWindow):
             self.swarm_state.swarm_destination,
             self.swarm_state.agent_status,
             self.swarm_state.jamming_affected,
+            llm_controller,
         )
         self.canvas.draw_idle()  # Use draw_idle for better performance
 
@@ -336,7 +509,7 @@ class FormationControlGUI(QMainWindow):
 
             # Check if swarm center is close to destination
             if self.swarm_state.check_destination_reached():
-                print("DEBUG: Destination reached check passed!")
+                # print("DEBUG: Destination reached check passed!")
                 self.running = False
                 self.timer.stop()
                 self.update_status_bar(
@@ -357,6 +530,7 @@ class FormationControlGUI(QMainWindow):
         self.paused = True
         self.running = False  # Stop the simulation loop
         self.timer.stop()
+        self.llm_feedback_timer.stop()  # Also stop LLM feedback updates
         self.update_status_bar("Paused", config.OBSTACLE_MODE.value)
 
     def continue_simulation(self):
@@ -367,9 +541,9 @@ class FormationControlGUI(QMainWindow):
             self.update_status_bar("Running", config.OBSTACLE_MODE.value)
 
             # Debug the controller status
-            print(
-                f"DEBUG: continue_simulation - active controller: {self.controller_factory.active_controller_type}"
-            )
+            # print(
+            #     f"DEBUG: continue_simulation - active controller: {self.controller_factory.active_controller_type}"
+            # )
 
             if (
                 self.swarm_state.Jn_converged
@@ -378,11 +552,12 @@ class FormationControlGUI(QMainWindow):
 
                 # Make sure we're using the combined controller
                 self.controller_factory.set_active_controller(ControllerType.COMBINED)
-                print(
-                    f"DEBUG: Set active controller to {self.controller_factory.active_controller_type}"
-                )
+                # print(
+                #     f"DEBUG: Set active controller to {self.controller_factory.active_controller_type}"
+                # )
 
             self.timer.start()
+            self.llm_feedback_timer.start()  # Restart LLM feedback updates
 
     def reset_simulation(self):
         """Reset the simulation to initial state"""
@@ -521,3 +696,184 @@ class FormationControlGUI(QMainWindow):
             self.obstacle_mode_label.setStyleSheet(
                 f"{COMMON_LABEL_STYLE} background-color: {COLORS['high_power']};"
             )
+
+    def update_llm_feedback(self):
+        """Update the LLM feedback display with latest information"""
+        if not config.LLM_ENABLED:
+            return
+
+        # Get LLM controller
+        llm_controller = self.controller_factory.get_controller(ControllerType.LLM)
+
+        # Get latest feedback
+        current_feedback = llm_controller.get_last_feedback()
+
+        if current_feedback and current_feedback != self.llm_feedback_label.text():
+            # Store previous feedback before updating
+            prev_feedback = self.llm_feedback_label.text()
+            if (
+                prev_feedback
+                and prev_feedback != "Waiting for tactical advice..."
+                and prev_feedback
+                != "No feedback received from LLM. Please check Ollama is running correctly."
+            ):
+                self.prev_feedback_label.setText(prev_feedback)
+
+                # Update previous feedback timestamp
+                prev_time = self.feedback_timestamp.text().replace("Updated at ", "")
+                self.prev_feedback_timestamp.setText(prev_time)
+
+            # Update current feedback
+            self.llm_feedback_label.setText(current_feedback)
+
+            # Update timestamp
+            current_time = time.strftime("%H:%M:%S", time.localtime())
+            self.feedback_timestamp.setText(
+                f"Updated at {current_time} (Iteration: {self.swarm_state.iteration})"
+            )
+
+            # Update perceived state information
+            if (
+                hasattr(llm_controller, "last_state_description")
+                and llm_controller.last_state_description
+            ):
+                # Format the state description for better display
+                formatted_state = self._format_state_for_display(
+                    llm_controller.last_state_description
+                )
+                self.perceived_state_label.setText(formatted_state)
+            else:
+                # Generate simplified state description as fallback
+                state_desc = []
+                state_desc.append(
+                    f"Destination: [{self.swarm_state.swarm_destination[0]:.1f}, {self.swarm_state.swarm_destination[1]:.1f}]"
+                )
+
+                for i in range(self.swarm_state.swarm_size):
+                    pos = self.swarm_state.swarm_position[i]
+                    conn_count = sum(
+                        self.swarm_state.neighbor_agent_matrix[i, :] > config.PT
+                    )
+                    state_desc.append(
+                        f"Agent-{i} at [{pos[0]:.1f}, {pos[1]:.1f}] with {conn_count} connections"
+                    )
+
+                self.perceived_state_label.setText("\n".join(state_desc))
+
+    def _format_state_for_display(self, state_description):
+        """Format the state description for better display in the UI"""
+        lines = state_description.split("\n")
+        formatted_lines = []
+
+        # Convert NODE_COLORS to hex for HTML use
+        node_colors_hex = []
+        for color in config.NODE_COLORS:
+            r, g, b = color
+            hex_color = f"#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
+            node_colors_hex.append(hex_color)
+
+        # Track current agent for coloring
+        current_agent_idx = -1
+
+        for line in lines:
+            # Skip empty lines
+            if not line.strip():
+                formatted_lines.append("<br>")
+                continue
+
+            # Highlight destination info
+            if "destination" in line.lower():
+                formatted_lines.append(
+                    f"<span style='color:#006699; font-weight:bold; background-color: rgba(0, 102, 153, 0.2);'>{line}</span>"
+                )
+            # Highlight obstacles
+            elif "obstacle" in line.lower():
+                formatted_lines.append(
+                    f"<span style='color:#994400; font-weight:bold; background-color: rgba(153, 68, 0, 0.2);'>{line}</span>"
+                )
+            # Format agent information
+            elif any(f"Agent-{i}" in line for i in range(10)):
+                # Identify which agent this is to use the right color
+                for i in range(10):
+                    if f"Agent-{i}" in line:
+                        current_agent_idx = i
+                        break
+
+                # Get agent color (with fallback)
+                agent_color = "#333366"  # Default color
+                if 0 <= current_agent_idx < len(node_colors_hex):
+                    agent_color = node_colors_hex[current_agent_idx]
+
+                # Format agent name in color and bold
+                agent_name_match = re.search(r"(Agent-\d+)", line)
+                if agent_name_match:
+                    agent_name = agent_name_match.group(1)
+                    colored_line = line.replace(
+                        agent_name,
+                        f"<span style='color:{agent_color}; font-weight:bold;'>{agent_name}</span>",
+                    )
+                    formatted_lines.append(colored_line)
+                else:
+                    formatted_lines.append(line)
+            # Format bullet points for agent connections
+            elif line.strip().startswith("  - Agent-"):
+                # Extract the agent number from the line
+                other_agent_match = re.search(r"Agent-(\d+)", line)
+                if other_agent_match:
+                    other_agent_idx = int(other_agent_match.group(1))
+                    other_agent = f"Agent-{other_agent_idx}"
+
+                    # Get color for the other agent
+                    other_color = "#333366"  # Default
+                    if 0 <= other_agent_idx < len(node_colors_hex):
+                        other_color = node_colors_hex[other_agent_idx]
+
+                    # Color the agent name in the line
+                    colored_line = line.replace(
+                        other_agent,
+                        f"<span style='color:{other_color}; font-weight:bold;'>{other_agent}</span>",
+                    )
+
+                    # Color the connection quality info
+                    if "poor quality" in colored_line:
+                        # Highlight poor quality in red
+                        colored_line = colored_line.replace(
+                            "poor quality",
+                            "<span style='color:#cc0000; font-weight:bold;'>poor quality</span>",
+                        )
+                    elif "good quality" in colored_line:
+                        # Highlight good quality in green
+                        colored_line = colored_line.replace(
+                            "good quality",
+                            "<span style='color:#006600; font-weight:bold;'>good quality</span>",
+                        )
+
+                    # Highlight connection status
+                    if "connected" in colored_line:
+                        colored_line = colored_line.replace(
+                            "connected",
+                            "<span style='color:#006600; font-weight:bold;'>connected</span>",
+                        )
+                    elif "disconnected" in colored_line:
+                        colored_line = colored_line.replace(
+                            "disconnected",
+                            "<span style='color:#cc0000; font-weight:bold;'>disconnected</span>",
+                        )
+
+                    # Indent and format as a bullet point
+                    formatted_lines.append(f"&nbsp;&nbsp;• {colored_line[4:]}")
+                else:
+                    formatted_lines.append(f"&nbsp;&nbsp;• {line[4:]}")
+            # Handle mission info and other lines
+            elif "mission" in line.lower():
+                formatted_lines.append(
+                    f"<span style='color:#663399; font-weight:bold;'>{line}</span>"
+                )
+            else:
+                formatted_lines.append(line)
+
+        return "<br>".join(formatted_lines)
+
+    def resizeEvent(self, event):
+        """Handle resize events"""
+        super().resizeEvent(event)

@@ -62,3 +62,30 @@ OBSTACLE_AVOIDANCE_MAGNITUDE = 3.0  # ao parameter
 OBSTACLE_INFLUENCE_RANGE = 6.0  # bo parameter
 WALL_FOLLOWING_MAGNITUDE = 2.0  # af parameter
 WALL_DISTANCE = 10.0  # df parameter
+
+# LLM Integration Parameters
+LLM_ENABLED = True
+LLM_FEEDBACK_INTERVAL = 15  # How often to send updates to LLM (every N simulation steps) - increase for less frequent updates
+LLM_ENDPOINT = "http://localhost:11434/api/generate"  # Ollama direct endpoint
+LLM_MODEL = "llama3.2:3b-instruct-q4_K_M"  # Model to use with Ollama
+AGENT_NAMES = [
+    f"Agent-{i}" for i in range(len(INITIAL_SWARM_POSITIONS))
+]  # Default agent names
+LLM_SYSTEM_PROMPT = """You are a tactical advisor for a swarm of autonomous vehicles in a formation control simulation.
+IMPORTANT: You must provide brief, actionable tactical advice in 30 words or less based on the current state information.
+Focus on:
+1. Formation integrity between agents
+2. Obstacle avoidance strategies
+3. Communication quality issues
+4. Path to destination
+
+The state description provides you with:
+- The mission objective and any special conditions
+- Destination coordinates
+- Obstacles in the environment
+- Each agent's position and distance to destination
+- Communication links between agents and their quality
+
+Be direct and urgent in your tone. Do not explain or use pleasantries. Just give the tactical advice.
+Example: "Agents 2 and 3: Increase spacing. Agent 5: Move east to avoid obstacle. All agents: Improve formation."
+"""

@@ -303,10 +303,10 @@ class SwarmState:
 
         swarm_center = np.mean(active_positions, axis=0)
         dist_to_dest = np.linalg.norm(swarm_center - self.swarm_destination)
-        print(
-            f"\nDEBUG: Swarm center at {swarm_center}, destination at {self.swarm_destination}"
-        )
-        print(
-            f"DEBUG: Distance to destination: {dist_to_dest:.2f} (threshold: {threshold})"
-        )
+        # print(
+        #     f"\nDEBUG: Swarm center at {swarm_center}, destination at {self.swarm_destination}"
+        # )
+        # print(
+        #     f"DEBUG: Distance to destination: {dist_to_dest:.2f} (threshold: {threshold})"
+        # )
         return dist_to_dest < threshold

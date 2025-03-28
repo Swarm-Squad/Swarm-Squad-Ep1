@@ -12,6 +12,7 @@ import swarm_squad.config as config
 from swarm_squad.controllers.base_controller import BaseController
 from swarm_squad.controllers.behavior_controller import BehaviorController
 from swarm_squad.controllers.formation_controller import FormationController
+from swarm_squad.controllers.llm_controller import LLMController
 from swarm_squad.models.swarm_state import SwarmState
 
 
@@ -21,7 +22,7 @@ class ControllerType(Enum):
     FORMATION = "formation"
     BEHAVIOR = "behavior"
     COMBINED = "combined"
-    LLM = "llm"  # Future LLM controller
+    LLM = "llm"  # LLM controller
 
 
 class ControllerFactory:
@@ -49,11 +50,22 @@ class ControllerFactory:
 
     def _init_controllers(self):
         """Initialize all available controllers"""
+        # Core controllers
         self.controllers[ControllerType.FORMATION] = FormationController(
             self.swarm_state
         )
         self.controllers[ControllerType.BEHAVIOR] = BehaviorController(self.swarm_state)
-        # LLM controller would be initialized here in the future
+
+        # Initialize LLM controller - with debug print
+        print("### Initializing LLM controller")
+        llm_controller = LLMController(self.swarm_state)
+
+        # Set combined controller as default for LLM controller
+        # to fall back on when not actively providing control
+        llm_controller.set_default_controller(self)
+
+        self.controllers[ControllerType.LLM] = llm_controller
+        print("### LLM controller initialized")
 
     def get_controller(self, controller_type: ControllerType) -> BaseController:
         """
@@ -74,14 +86,14 @@ class ControllerFactory:
         Args:
             controller_type: Type of controller to activate
         """
-        print(f"DEBUG: Setting active controller to {controller_type}")
+        # print(f"DEBUG: Setting active controller to {controller_type}")
 
         if controller_type == ControllerType.COMBINED:
             self.active_controller_type = ControllerType.COMBINED
-            print(f"DEBUG: Active controller is now {self.active_controller_type}")
+            # print(f"DEBUG: Active controller is now {self.active_controller_type}")
         elif controller_type in self.controllers:
             self.active_controller_type = controller_type
-            print(f"DEBUG: Active controller is now {self.active_controller_type}")
+            # print(f"DEBUG: Active controller is now {self.active_controller_type}")
         else:
             print(
                 f"WARNING: Controller type {controller_type} not found in available controllers"
@@ -114,13 +126,13 @@ class ControllerFactory:
         # If formation has converged, use behavior control
         if self.swarm_state.Jn_converged:
             print(
-                f"DEBUG: Using BEHAVIOR controller at iteration {self.swarm_state.iteration}"
+                # f"DEBUG: Using BEHAVIOR controller at iteration {self.swarm_state.iteration}"
             )
             return self.controllers[ControllerType.BEHAVIOR].compute_control()
 
         # Otherwise use communication-aware formation control
         print(
-            f"DEBUG: Using FORMATION controller at iteration {self.swarm_state.iteration}"
+            # f"DEBUG: Using FORMATION controller at iteration {self.swarm_state.iteration}"
         )
         return self.controllers[ControllerType.FORMATION].compute_control()
 
@@ -131,6 +143,14 @@ class ControllerFactory:
         This method computes control inputs, applies them, and updates
         the swarm state for the next iteration.
         """
+        # Always update LLM controller to receive feedback, regardless of whether
+        # it's the active controller - add debug print
+        llm_controller = self.controllers[ControllerType.LLM]
+        # print(f"### Controller Factory step() at iteration {self.swarm_state.iteration}, getting LLM controller")
+
+        # Call LLM controller's compute_control method to let it process feedback
+        # This is separate from actual control execution
+        _ = llm_controller.compute_control()
 
         # Special case for combined controller
         if self.active_controller_type == ControllerType.COMBINED:
@@ -172,7 +192,7 @@ class ControllerFactory:
                     behav_controller = self.controllers[ControllerType.BEHAVIOR]
 
                     print(
-                        "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
+                        # "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
                     )
 
                     # Get control inputs from both controllers
@@ -188,7 +208,7 @@ class ControllerFactory:
                 else:
                     # Before convergence, use only formation controller
                     comm_controller = self.controllers[ControllerType.FORMATION]
-                    print("DEBUG: Using ONLY formation controller before convergence")
+                    # print("DEBUG: Using ONLY formation controller before convergence")
                     control_inputs = comm_controller.compute_control()
                     comm_controller.apply_control(control_inputs)
 
@@ -213,7 +233,7 @@ class ControllerFactory:
             self.swarm_state.update_swarm_paths()
             self.swarm_state.iteration += 1
 
-    # LLM intervention hooks - to be implemented in the future
+    # LLM intervention hooks
     def llm_override_control(self, agent_indices, control_inputs):
         """
         Hook for LLM to override control for specific agents.
@@ -222,5 +242,13 @@ class ControllerFactory:
             agent_indices: Indices of agents to override
             control_inputs: New control inputs for these agents
         """
-        # This is a placeholder for future LLM integration
-        pass
+        # Store the original controls
+        original_controls = self.swarm_state.swarm_control_ui.copy()
+
+        # Override controls for specified agents
+        for idx, control in zip(agent_indices, control_inputs):
+            if idx < self.swarm_state.swarm_size:
+                self.swarm_state.swarm_control_ui[idx] = control
+
+        # Return original controls for reference
+        return original_controls
