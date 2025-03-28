@@ -6,14 +6,60 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 import swarm_squad.config as config
 import swarm_squad.visualization as visualization
 from swarm_squad.controllers.controller_factory import ControllerFactory, ControllerType
 from swarm_squad.models.swarm_state import SwarmState
+
+# UI Constants
+BUTTON_WIDTH = 120
+BUTTON_HEIGHT = 40
+BUTTON_FONT = QFont("Arial", 12)
+BUTTON_SPACING = 10
+STATUS_SPACING = 30
+
+# Common Styles
+COMMON_BUTTON_STYLE = """
+    font-family: Arial;
+    font-size: 14px;
+    color: black;
+    border-radius: 5px;
+    border: 1px solid #888888;
+    padding: 5px;
+    min-width: 100px;
+"""
+
+COMMON_LABEL_STYLE = """
+    font-family: 'Arial';
+    font-size: 14px;
+    color: black;
+    border-radius: 5px;
+    border: 1px solid #888888;
+    padding: 8px 15px;
+"""
+
+# Color Constants
+COLORS = {
+    "pause": "#fdf2ca",
+    "continue": "#e3f0d8",
+    "reset": "#d8e3f0",
+    "stop": "#f9aeae",
+    "undo": "#c0c0c0",
+    "hard": "#c0c0c0",
+    "low_power": "#fdf2ca",
+    "high_power": "#f9aeae",
+}
 
 
 class FormationControlGUI(QMainWindow):
@@ -33,8 +79,13 @@ class FormationControlGUI(QMainWindow):
         """
         super().__init__(parent)
         self.setWindowTitle("Formation Control Simulation")
+        self.setup_main_window()
+        self.initialize_state()
+        self.create_plot_controls()
+        self.setup_simulation()
 
-        # Create central widget
+    def setup_main_window(self):
+        """Set up the main window and matplotlib components."""
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
@@ -56,14 +107,15 @@ class FormationControlGUI(QMainWindow):
         self.canvas.mpl_connect("motion_notify_event", self.on_drag)
         self.canvas.mpl_connect("button_release_event", self.on_release)
 
-        # Initialize state and controllers
+        # Set window size
+        self.resize(800, 800)
+
+    def initialize_state(self):
+        """Initialize simulation state and variables."""
         self.swarm_state = SwarmState()
         self.controller_factory = ControllerFactory(self.swarm_state)
-
-        # Set the combined controller as the active controller
         self.controller_factory.set_active_controller(ControllerType.COMBINED)
 
-        # Initialize simulation control variables
         self.running = False
         self.paused = False
         self.max_iter = config.MAX_ITER
@@ -76,100 +128,160 @@ class FormationControlGUI(QMainWindow):
         self.obstacle_start = None
         self.temp_circle = None  # Store temporary circle while drawing
 
-        # Create control buttons
-        self.create_plot_controls()
-
-        # Set window size
-        self.resize(800, 800)
-
-        # Auto-start the simulation
+    def setup_simulation(self):
+        """Set up simulation timer and start simulation."""
         self.running = True
         self.timer.start()
 
     def create_plot_controls(self):
-        """Create control buttons for the simulation"""
-        # Create control frame (horizontal layout)
-        control_frame = QWidget()
-        control_layout = QHBoxLayout(control_frame)
-        control_layout.setContentsMargins(10, 5, 10, 10)  # Add margins
-        self.main_layout.addWidget(control_frame)
+        """Create control buttons and layout for the simulation."""
+        controls_container = QWidget()
+        controls_vertical_layout = QVBoxLayout(controls_container)
+        controls_vertical_layout.setContentsMargins(10, 5, 10, 10)
+        self.main_layout.addWidget(controls_container)
 
-        # Button styles and colors
-        button_width = 120
-        button_height = 40
+        # Create frames
+        main_controls_frame = self.create_main_controls()
+        obstacle_controls_frame = self.create_obstacle_controls()
+        status_frame = self.create_status_bar()
 
-        # Create a common button style
-        button_style = """
-        QPushButton {
-            font-family: 'Arial';
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 5px;
-            border: 1px solid #888888;
-            padding: 5px;
-            min-width: 100px;
-        }
-        QPushButton:hover {
-            border: 2px solid #555555;
-        }
-        """
+        # Add frames to layout with spacing
+        controls_vertical_layout.addWidget(main_controls_frame)
+        controls_vertical_layout.addWidget(obstacle_controls_frame)
+        controls_vertical_layout.addSpacing(STATUS_SPACING)
+        controls_vertical_layout.addWidget(status_frame)
 
-        # Create a common font
-        button_font = QFont("Arial", 12, QFont.Bold)
+    def create_main_controls(self):
+        """Create main control buttons."""
+        frame = QWidget()
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(0, 0, 0, 5)
+        layout.setAlignment(Qt.AlignCenter)
+
+        # Define button configurations
+        buttons = [
+            ("Pause", self.pause_simulation, COLORS["pause"]),
+            ("Continue", self.continue_simulation, COLORS["continue"]),
+            ("Reset", self.reset_simulation, COLORS["reset"]),
+            ("Stop", self.stop_simulation, COLORS["stop"]),
+            ("Undo", self.undo_last_obstacle, COLORS["undo"]),
+        ]
 
         # Create buttons
-        self.pause_button = QPushButton("Pause")
-        self.pause_button.clicked.connect(self.pause_simulation)
-        self.pause_button.setStyleSheet(
-            button_style + "background-color: #fdf2ca;"
-        )  # Yellow
-        self.pause_button.setFixedSize(button_width, button_height)
-        self.pause_button.setFont(button_font)
+        for text, callback, color in buttons:
+            button = self.create_button(text, callback, color)
+            layout.addWidget(button)
+            layout.addSpacing(BUTTON_SPACING)
+            if text == "Pause":
+                self.pause_button = button
+            elif text == "Continue":
+                self.continue_button = button
 
-        self.continue_button = QPushButton("Continue")
-        self.continue_button.clicked.connect(self.continue_simulation)
-        self.continue_button.setStyleSheet(
-            button_style + "background-color: #e3f0d8;"
-        )  # Green
-        self.continue_button.setFixedSize(button_width, button_height)
-        self.continue_button.setFont(button_font)
+        return frame
 
-        self.reset_button = QPushButton("Reset")
-        self.reset_button.clicked.connect(self.reset_simulation)
-        self.reset_button.setStyleSheet(
-            button_style + "background-color: #d8e3f0;"
-        )  # Blue
-        self.reset_button.setFixedSize(button_width, button_height)
-        self.reset_button.setFont(button_font)
+    def create_button(self, text, callback, color):
+        """Create a styled button with given parameters."""
+        button = QPushButton(text)
+        button.clicked.connect(callback)
+        button.setStyleSheet(f"{COMMON_BUTTON_STYLE} background-color: {color};")
+        button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        button.setFont(BUTTON_FONT)
+        return button
 
-        self.stop_button = QPushButton("Stop")
-        self.stop_button.clicked.connect(self.stop_simulation)
-        self.stop_button.setStyleSheet(
-            button_style + "background-color: #f9aeae;"
-        )  # Red
-        self.stop_button.setFixedSize(button_width, button_height)
-        self.stop_button.setFont(button_font)
+    def create_obstacle_controls(self):
+        """Create obstacle mode control buttons."""
+        frame = QWidget()
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(0, 0, 0, 5)
+        layout.setAlignment(Qt.AlignCenter)
 
-        # Add Undo button
-        self.undo_button = QPushButton("Undo")
-        self.undo_button.clicked.connect(self.undo_last_obstacle)
-        self.undo_button.setStyleSheet(
-            button_style + "background-color: #e6e6e6;"
-        )  # Light Gray
-        self.undo_button.setFixedSize(button_width, button_height)
-        self.undo_button.setFont(button_font)
+        self.mode_buttons = {}
 
-        # Pack buttons horizontally with spacing
-        control_layout.addWidget(self.pause_button)
-        control_layout.addSpacing(10)  # Add spacing between buttons
-        control_layout.addWidget(self.continue_button)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.reset_button)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.stop_button)
-        control_layout.addSpacing(10)
-        control_layout.addWidget(self.undo_button)
-        control_layout.addStretch()  # Add stretch to keep buttons left-aligned
+        # Define obstacle modes
+        modes = [
+            (config.ObstacleMode.HARD, "Physical", COLORS["hard"]),
+            (config.ObstacleMode.LOW_POWER_JAMMING, "Low Power", COLORS["low_power"]),
+            (
+                config.ObstacleMode.HIGH_POWER_JAMMING,
+                "High Power",
+                COLORS["high_power"],
+            ),
+        ]
+
+        # Create mode buttons
+        for mode, text, color in modes:
+            button = self.create_mode_button(mode, text, color)
+            layout.addWidget(button)
+            layout.addSpacing(BUTTON_SPACING)
+
+        # Set initial mode
+        self.mode_buttons[config.OBSTACLE_MODE].setChecked(True)
+        return frame
+
+    def create_mode_button(self, mode, text, color):
+        """Create a mode selection button."""
+        button = QPushButton(text)
+        button.setCheckable(True)
+        button.setStyleSheet(f"{COMMON_BUTTON_STYLE} background-color: {color};")
+        button.setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT)
+        button.setFont(BUTTON_FONT)
+        button.clicked.connect(lambda: self.on_mode_button_clicked(mode))
+        self.mode_buttons[mode] = button
+        return button
+
+    def create_status_bar(self):
+        """Create status bar with labels."""
+        frame = QWidget()
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+
+        # Create status labels
+        self.simulation_status_label = QLabel("Simulation Status: Running")
+        self.simulation_status_label.setFont(BUTTON_FONT)
+        self.simulation_status_label.setStyleSheet(
+            f"{COMMON_LABEL_STYLE} background-color: {COLORS['continue']};"
+        )
+
+        self.spacer_label = QLabel("   ")
+
+        self.obstacle_mode_label = QLabel("Obstacle Mode: Physical")
+        self.obstacle_mode_label.setFont(BUTTON_FONT)
+        self.obstacle_mode_label.setStyleSheet(
+            f"{COMMON_LABEL_STYLE} background-color: {COLORS['hard']};"
+        )
+
+        # Add labels to layout
+        layout.addWidget(self.simulation_status_label)
+        layout.addWidget(self.spacer_label)
+        layout.addWidget(self.obstacle_mode_label)
+
+        # Set initial status
+        self.update_status_bar("Running", config.OBSTACLE_MODE.value)
+        return frame
+
+    def on_mode_button_clicked(self, mode):
+        """Handle mode button click"""
+        # Update the checked state of all buttons
+        for button_mode, button in self.mode_buttons.items():
+            button.setChecked(button_mode == mode)
+
+        # Update the config
+        config.OBSTACLE_MODE = mode
+
+        # Update the status bar
+        if self.running:
+            status = "Running"
+        elif self.paused:
+            status = "Paused"
+        else:
+            status = "Ready"
+        self.update_status_bar(status, mode.value)
+
+        # Update the plot to reflect changes
+        self.update_plot()
+
+        print(f"DEBUG: Obstacle mode changed to {mode.value}")
 
     def update_plot(self):
         """Update the plot with the current swarm state"""
@@ -187,6 +299,8 @@ class FormationControlGUI(QMainWindow):
             self.swarm_state.line_colors,
             self.swarm_state.obstacles,
             self.swarm_state.swarm_destination,
+            self.swarm_state.agent_status,
+            self.swarm_state.jamming_affected,
         )
         self.canvas.draw_idle()  # Use draw_idle for better performance
 
@@ -214,6 +328,9 @@ class FormationControlGUI(QMainWindow):
                 self.swarm_state.Jn_converged = True
                 self.running = False
                 self.timer.stop()
+                self.update_status_bar(
+                    "Formation Converged", config.OBSTACLE_MODE.value
+                )
                 self.update_plot()
                 return
 
@@ -222,6 +339,9 @@ class FormationControlGUI(QMainWindow):
                 print("DEBUG: Destination reached check passed!")
                 self.running = False
                 self.timer.stop()
+                self.update_status_bar(
+                    "Destination Reached", config.OBSTACLE_MODE.value
+                )
                 print(
                     f"\n=== Mission Accomplished! ===\n"
                     f"Swarm has successfully reached the destination in:\n"
@@ -231,20 +351,20 @@ class FormationControlGUI(QMainWindow):
                     f"==========================="
                 )
                 self.update_plot()  # Final update to show end state
-            else:
-                print("DEBUG: Destination not yet reached")
 
     def pause_simulation(self):
         """Pause the simulation"""
         self.paused = True
         self.running = False  # Stop the simulation loop
         self.timer.stop()
+        self.update_status_bar("Paused", config.OBSTACLE_MODE.value)
 
     def continue_simulation(self):
         """Continue the simulation after pause"""
         if not self.running:  # Only restart if not already running
             self.running = True
             self.paused = False
+            self.update_status_bar("Running", config.OBSTACLE_MODE.value)
 
             # Debug the controller status
             print(
@@ -276,6 +396,7 @@ class FormationControlGUI(QMainWindow):
 
         # Update the plot
         self.update_plot()
+        self.update_status_bar("Reset", config.OBSTACLE_MODE.value)
 
     def stop_simulation(self):
         """Stop the simulation and close the application"""
@@ -292,9 +413,17 @@ class FormationControlGUI(QMainWindow):
             self.drawing_obstacle = True
             self.obstacle_start = (event.xdata, event.ydata)
 
+            # Select color based on current obstacle mode
+            obstacle_color = "gray"  # Default for hard obstacles
+
+            if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING:
+                obstacle_color = "yellow"
+            elif config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+                obstacle_color = "red"
+
             # Create initial circle with 0 radius
             self.temp_circle = plt.Circle(
-                self.obstacle_start, 0, color="red", alpha=0.3
+                self.obstacle_start, 0, color=obstacle_color, alpha=0.3
             )
             self.axs[0, 0].add_artist(self.temp_circle)
             self.canvas.draw_idle()
@@ -341,7 +470,54 @@ class FormationControlGUI(QMainWindow):
             self.running = True
             self.timer.start()
 
+            # Update the status bar to show "Running"
+            self.update_status_bar("Running", config.OBSTACLE_MODE.value)
+
     def undo_last_obstacle(self):
         """Remove the most recently added obstacle"""
         self.swarm_state.remove_last_obstacle()
         self.update_plot()  # Update the visualization
+
+    def update_status_bar(self, simulation_status, obstacle_mode):
+        """Update the status bar with current simulation status and obstacle mode"""
+        # Format obstacle mode text
+        obstacle_mode_text = obstacle_mode.replace("_", " ").title()
+
+        # Set simulation status with appropriate color
+        self.simulation_status_label.setText(f"Simulation Status: {simulation_status}")
+
+        # Set obstacle mode with appropriate color
+        self.obstacle_mode_label.setText(f"Obstacle Mode: {obstacle_mode_text}")
+
+        # Set color based on simulation status
+        if simulation_status == "Running":
+            self.simulation_status_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['continue']};"
+            )
+        elif simulation_status == "Paused":
+            self.simulation_status_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['pause']};"
+            )
+        elif simulation_status == "Reset":
+            self.simulation_status_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['reset']};"
+            )
+        else:
+            # For other statuses like "Formation Converged" or "Destination Reached"
+            self.simulation_status_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['stop']};"
+            )
+
+        # Set obstacle mode with appropriate color
+        if obstacle_mode == config.ObstacleMode.HARD.value:
+            self.obstacle_mode_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['hard']};"
+            )
+        elif obstacle_mode == config.ObstacleMode.LOW_POWER_JAMMING.value:
+            self.obstacle_mode_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['low_power']};"
+            )
+        elif obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING.value:
+            self.obstacle_mode_label.setStyleSheet(
+                f"{COMMON_LABEL_STYLE} background-color: {COLORS['high_power']};"
+            )

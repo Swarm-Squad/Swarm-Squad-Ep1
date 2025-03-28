@@ -8,16 +8,17 @@ from typing import Dict
 
 import numpy as np
 
+import swarm_squad.config as config
 from swarm_squad.controllers.base_controller import BaseController
 from swarm_squad.controllers.behavior_controller import BehaviorController
-from swarm_squad.controllers.communication_controller import CommunicationController
+from swarm_squad.controllers.formation_controller import FormationController
 from swarm_squad.models.swarm_state import SwarmState
 
 
 class ControllerType(Enum):
     """Enum for different controller types"""
 
-    COMMUNICATION = "communication"
+    FORMATION = "formation"
     BEHAVIOR = "behavior"
     COMBINED = "combined"
     LLM = "llm"  # Future LLM controller
@@ -41,14 +42,14 @@ class ControllerFactory:
         """
         self.swarm_state = swarm_state
         self.controllers: Dict[ControllerType, BaseController] = {}
-        self.active_controller_type = ControllerType.COMMUNICATION
+        self.active_controller_type = ControllerType.FORMATION
 
         # Initialize controllers
         self._init_controllers()
 
     def _init_controllers(self):
         """Initialize all available controllers"""
-        self.controllers[ControllerType.COMMUNICATION] = CommunicationController(
+        self.controllers[ControllerType.FORMATION] = FormationController(
             self.swarm_state
         )
         self.controllers[ControllerType.BEHAVIOR] = BehaviorController(self.swarm_state)
@@ -117,11 +118,11 @@ class ControllerFactory:
             )
             return self.controllers[ControllerType.BEHAVIOR].compute_control()
 
-        # Otherwise use communication-aware control
+        # Otherwise use communication-aware formation control
         print(
-            f"DEBUG: Using COMMUNICATION controller at iteration {self.swarm_state.iteration}"
+            f"DEBUG: Using FORMATION controller at iteration {self.swarm_state.iteration}"
         )
-        return self.controllers[ControllerType.COMMUNICATION].compute_control()
+        return self.controllers[ControllerType.FORMATION].compute_control()
 
     def step(self):
         """
@@ -138,31 +139,58 @@ class ControllerFactory:
 
             control_inputs = np.zeros((self.swarm_state.swarm_size, 2))
 
-            if self.swarm_state.Jn_converged:
-                # After convergence, use both controllers
-                comm_controller = self.controllers[ControllerType.COMMUNICATION]
-                behav_controller = self.controllers[ControllerType.BEHAVIOR]
+            # For high power jamming, let formation controller handle it for returning agents
+            # but still use behavior controller for destination reaching after convergence
+            if config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+                # After convergence, use both controllers for active agents
+                if self.swarm_state.Jn_converged:
+                    # Get formation control inputs
+                    comm_controller = self.controllers[ControllerType.FORMATION]
+                    comm_inputs = comm_controller.compute_control()
 
-                print(
-                    "DEBUG: Using BOTH controllers (communication + behavior) after convergence"
-                )
+                    # Get behavior (destination) control inputs
+                    behav_controller = self.controllers[ControllerType.BEHAVIOR]
+                    behav_inputs = behav_controller.compute_control()
 
-                # Get control inputs from both controllers
-                comm_inputs = comm_controller.compute_control()
-                behav_inputs = behav_controller.compute_control()
+                    # Combine control inputs (weighted sum)
+                    control_inputs = 0.3 * comm_inputs + 0.7 * behav_inputs
 
-                # Combine control inputs (weighted sum)
-                control_inputs = 0.3 * comm_inputs + 0.7 * behav_inputs
+                    # Apply combined control inputs using the base method
+                    self.swarm_state.swarm_control_ui = control_inputs
+                    self.swarm_state.swarm_position += control_inputs
+                else:
+                    # Before convergence, use only formation controller
+                    comm_controller = self.controllers[ControllerType.FORMATION]
+                    comm_controller.update_swarm_state()
 
-                # Apply combined control inputs using the base method
-                self.swarm_state.swarm_control_ui = control_inputs
-                self.swarm_state.swarm_position += control_inputs
+            # For all other obstacle modes (hard and low power jamming)
             else:
-                # Before convergence, use only communication controller
-                comm_controller = self.controllers[ControllerType.COMMUNICATION]
-                print("DEBUG: Using ONLY communication controller before convergence")
-                control_inputs = comm_controller.compute_control()
-                comm_controller.apply_control(control_inputs)
+                # After convergence, use both controllers for improved obstacle avoidance and destination reaching
+                if self.swarm_state.Jn_converged:
+                    # After convergence, use both controllers
+                    comm_controller = self.controllers[ControllerType.FORMATION]
+                    behav_controller = self.controllers[ControllerType.BEHAVIOR]
+
+                    print(
+                        "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
+                    )
+
+                    # Get control inputs from both controllers
+                    comm_inputs = comm_controller.compute_control()
+                    behav_inputs = behav_controller.compute_control()
+
+                    # Combine control inputs (weighted sum)
+                    control_inputs = 0.3 * comm_inputs + 0.7 * behav_inputs
+
+                    # Apply combined control inputs using the base method
+                    self.swarm_state.swarm_control_ui = control_inputs
+                    self.swarm_state.swarm_position += control_inputs
+                else:
+                    # Before convergence, use only formation controller
+                    comm_controller = self.controllers[ControllerType.FORMATION]
+                    print("DEBUG: Using ONLY formation controller before convergence")
+                    control_inputs = comm_controller.compute_control()
+                    comm_controller.apply_control(control_inputs)
 
             # Update performance metrics
             self.swarm_state.update_performance_metrics()
@@ -174,8 +202,8 @@ class ControllerFactory:
             self.swarm_state.iteration += 1
 
         # For single controllers
-        elif self.active_controller_type == ControllerType.COMMUNICATION:
-            self.controllers[ControllerType.COMMUNICATION].update_swarm_state()
+        elif self.active_controller_type == ControllerType.FORMATION:
+            self.controllers[ControllerType.FORMATION].update_swarm_state()
         else:
             # For other controllers without specific update methods
             self.swarm_state.update_matrices()

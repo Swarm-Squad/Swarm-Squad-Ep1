@@ -66,7 +66,9 @@ def calculate_rho_ij(beta, v, rij, r0):
     )
 
 
-def calculate_Jn(communication_qualities_matrix, neighbor_agent_matrix, PT):
+def calculate_Jn(
+    communication_qualities_matrix, neighbor_agent_matrix, PT, agent_status=None
+):
     """
     Calculate the Jn (average communication performance indicator) value
 
@@ -74,6 +76,7 @@ def calculate_Jn(communication_qualities_matrix, neighbor_agent_matrix, PT):
         communication_qualities_matrix (numpy.ndarray): The communication qualities matrix among agents
         neighbor_agent_matrix (numpy.ndarray): The neighbor_agent matrix which is adjacency matrix of aij value
         PT (float): The reception probability threshold
+        agent_status (numpy.ndarray, optional): Boolean array indicating which agents are active
 
     Returns:
         float: The calculated Jn value
@@ -81,15 +84,29 @@ def calculate_Jn(communication_qualities_matrix, neighbor_agent_matrix, PT):
     total_communication_quality = 0
     total_neighbors = 0
     swarm_size = communication_qualities_matrix.shape[0]
+
     for i in range(swarm_size):
+        # Skip inactive agents
+        if agent_status is not None and not agent_status[i]:
+            continue
+
         for j in [x for x in range(swarm_size) if x != i]:
+            # Skip inactive agents
+            if agent_status is not None and not agent_status[j]:
+                continue
+
             if neighbor_agent_matrix[i, j] > PT:
                 total_communication_quality += communication_qualities_matrix[i, j]
                 total_neighbors += 1
+
+    # Return 0 if no valid neighbors
+    if total_neighbors == 0:
+        return 0
+
     return total_communication_quality / total_neighbors
 
 
-def calculate_rn(distances_matrix, neighbor_agent_matrix, PT):
+def calculate_rn(distances_matrix, neighbor_agent_matrix, PT, agent_status=None):
     """
     Calculate the rn (average neighboring distance performance indicator) value
 
@@ -97,6 +114,7 @@ def calculate_rn(distances_matrix, neighbor_agent_matrix, PT):
         distances_matrix (numpy.ndarray): The distances matrix among agents
         neighbor_agent_matrix (numpy.ndarray): The neighbor_agent matrix which is adjacency matrix of aij value
         PT (float): The reception probability threshold
+        agent_status (numpy.ndarray, optional): Boolean array indicating which agents are active
 
     Returns:
         float: The calculated rn value
@@ -104,9 +122,23 @@ def calculate_rn(distances_matrix, neighbor_agent_matrix, PT):
     total_distance = 0
     total_neighbors = 0
     swarm_size = distances_matrix.shape[0]
+
     for i in range(swarm_size):
+        # Skip inactive agents
+        if agent_status is not None and not agent_status[i]:
+            continue
+
         for j in [x for x in range(swarm_size) if x != i]:
+            # Skip inactive agents
+            if agent_status is not None and not agent_status[j]:
+                continue
+
             if neighbor_agent_matrix[i, j] > PT:
                 total_distance += distances_matrix[i, j]
                 total_neighbors += 1
+
+    # Return 0 if no valid neighbors
+    if total_neighbors == 0:
+        return 0
+
     return total_distance / total_neighbors

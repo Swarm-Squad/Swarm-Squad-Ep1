@@ -10,7 +10,7 @@ from swarm_squad.controllers.base_controller import BaseController
 from swarm_squad.models.swarm_state import SwarmState
 
 
-class CommunicationController(BaseController):
+class FormationController(BaseController):
     """
     Controller that implements communication-aware formation control logic.
 
@@ -20,12 +20,12 @@ class CommunicationController(BaseController):
 
     def __init__(self, swarm_state: SwarmState):
         """
-        Initialize the communication controller.
+        Initialize the formation controller.
 
         Args:
             swarm_state: Reference to the swarm state object
         """
-        print("BREAKPOINT: CommunicationController initialized")
+        print("BREAKPOINT: FormationController initialized")
         super().__init__(swarm_state)
 
     def compute_control(self) -> np.ndarray:
@@ -37,14 +37,22 @@ class CommunicationController(BaseController):
             inputs for each agent in the swarm.
         """
         print(
-            f"BREAKPOINT: CommunicationController.compute_control called at iteration {self.swarm_state.iteration}"
+            f"BREAKPOINT: FormationController.compute_control called at iteration {self.swarm_state.iteration}"
         )
         # Reset control inputs
         control_inputs = np.zeros((self.swarm_state.swarm_size, 2))
 
-        # Formation control
+        # Formation control - only for active agents
         for i in range(self.swarm_state.swarm_size):
-            for j in [x for x in range(self.swarm_state.swarm_size) if x != i]:
+            # Skip agents affected by high-power jamming (returning to launch)
+            if not self.swarm_state.agent_status[i]:
+                continue
+
+            for j in [
+                x
+                for x in range(self.swarm_state.swarm_size)
+                if x != i and self.swarm_state.agent_status[x]
+            ]:
                 rij = utils.calculate_distance(
                     self.swarm_state.swarm_position[i],
                     self.swarm_state.swarm_position[j],
@@ -53,6 +61,7 @@ class CommunicationController(BaseController):
                     config.ALPHA, config.DELTA, rij, config.R0, config.V
                 )
 
+                # Only apply formation control if communication quality is above threshold
                 if aij >= config.PT:
                     rho_ij = utils.calculate_rho_ij(
                         config.BETA, config.V, rij, config.R0
@@ -81,6 +90,22 @@ class CommunicationController(BaseController):
 
         # Compute and apply control inputs
         control_inputs = self.compute_control()
+
+        # For agents affected by high-power jamming, get return-to-launch control
+        # from the behavior controller
+        if config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+            # Import here to avoid circular imports
+            from swarm_squad.controllers.behavior_controller import BehaviorController
+
+            rtl_controller = BehaviorController(self.swarm_state)
+
+            for i in range(self.swarm_state.swarm_size):
+                if not self.swarm_state.agent_status[i]:
+                    # Calculate RTL control for returning agents
+                    rtl_inputs = np.zeros((self.swarm_state.swarm_size, 2))
+                    rtl_controller._add_rtl_behavior(rtl_inputs, i)
+                    control_inputs[i] = rtl_inputs[i]
+
         self.apply_control(control_inputs)
 
         # Update performance metrics

@@ -2,7 +2,29 @@
 Configuration parameters for the formation control simulation.
 """
 
+from enum import Enum
+
 import numpy as np
+
+
+# Obstacle modes
+class ObstacleMode(Enum):
+    HARD = "physical"  # Physical obstacle
+    LOW_POWER_JAMMING = "low_power_jamming"  # Communication degradation
+    HIGH_POWER_JAMMING = "high_power_jamming"  # Abrupt disruption
+
+
+# Active obstacle mode
+OBSTACLE_MODE = ObstacleMode.HARD  # Default obstacle mode
+
+# Jamming parameters
+JAMMING_RADIUS_MULTIPLIER = (
+    2.0  # How much larger jamming radius is than physical radius
+)
+LOWPOWER_JAMMING_DEGRADATION = 0.8  # Base factor for low power jamming (higher = less degradation at edge of field)
+# Note: Actual degradation is gradual based on penetration depth into jamming field
+# At the edge: degradation_factor = LOWPOWER_JAMMING_DEGRADATION (mild effect)
+# Deep inside: degradation_factor approaches 0.2 (severe effect)
 
 # Simulation parameters
 MAX_ITER = 1000

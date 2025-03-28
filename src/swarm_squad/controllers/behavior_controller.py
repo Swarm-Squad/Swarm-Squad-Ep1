@@ -18,6 +18,7 @@ class BehaviorController(BaseController):
     - Obstacle avoidance
     - Wall following
     - Destination reaching
+    - Return-to-launch (RTL) behavior for jammed agents
     """
 
     def __init__(self, swarm_state: SwarmState):
@@ -46,48 +47,89 @@ class BehaviorController(BaseController):
 
         # Apply behavior-based control for each agent
         for i in range(self.swarm_state.swarm_size):
+            # For agents affected by high-power jamming, return to launch
+            if not self.swarm_state.agent_status[i]:
+                self._add_rtl_behavior(control_inputs, i)
+                continue
+
+            # Normal behavior for active agents
             has_obstacle_influence = False
 
-            # Check for obstacle collisions and apply avoidance
-            for obstacle in self.swarm_state.obstacles:
-                obstacle_pos = np.array([obstacle[0], obstacle[1]])
-                obstacle_radius = obstacle[2]
+            # Only consider hard obstacles if in hard obstacle mode
+            if config.OBSTACLE_MODE == config.ObstacleMode.HARD:
+                # Check for obstacle collisions and apply avoidance
+                for obstacle in self.swarm_state.obstacles:
+                    obstacle_pos = np.array([obstacle[0], obstacle[1]])
+                    obstacle_radius = obstacle[2]
 
-                # Calculate distance to obstacle center
-                dist_to_center = np.linalg.norm(
-                    self.swarm_state.swarm_position[i] - obstacle_pos
-                )
+                    # Calculate distance to obstacle center
+                    dist_to_center = np.linalg.norm(
+                        self.swarm_state.swarm_position[i] - obstacle_pos
+                    )
 
-                # Define buffer zones
-                buffer_zone = obstacle_radius + 6.0
-                wall_follow_zone = obstacle_radius + 3.0
+                    # Define buffer zones
+                    buffer_zone = obstacle_radius + 6.0
+                    wall_follow_zone = obstacle_radius + 3.0
 
-                if dist_to_center < buffer_zone:  # If within buffer zone
-                    has_obstacle_influence = True
-                    if dist_to_center < wall_follow_zone:
-                        # Apply strong avoidance when very close
-                        self._add_obstacle_avoidance(
-                            control_inputs, i, obstacle_pos, obstacle_radius
-                        )
-                        # Minimal destination control when very close to obstacle
-                        self._add_destination_control(control_inputs, i, weight=0.3)
-                    else:
-                        # Apply wall following when in outer buffer zone
-                        wall_normal = (
-                            self.swarm_state.swarm_position[i] - obstacle_pos
-                        ) / dist_to_center
-                        wall_pos = obstacle_pos + wall_normal * obstacle_radius
-                        self._add_wall_following(
-                            control_inputs, i, wall_pos, wall_normal
-                        )
-                        # Reduced destination control during wall following
-                        self._add_destination_control(control_inputs, i, weight=0.4)
+                    if dist_to_center < buffer_zone:  # If within buffer zone
+                        has_obstacle_influence = True
+                        if dist_to_center < wall_follow_zone:
+                            # Apply strong avoidance when very close
+                            self._add_obstacle_avoidance(
+                                control_inputs, i, obstacle_pos, obstacle_radius
+                            )
+                            # Minimal destination control when very close to obstacle
+                            self._add_destination_control(control_inputs, i, weight=0.3)
+                        else:
+                            # Apply wall following when in outer buffer zone
+                            wall_normal = (
+                                self.swarm_state.swarm_position[i] - obstacle_pos
+                            ) / dist_to_center
+                            wall_pos = obstacle_pos + wall_normal * obstacle_radius
+                            self._add_wall_following(
+                                control_inputs, i, wall_pos, wall_normal
+                            )
+                            # Reduced destination control during wall following
+                            self._add_destination_control(control_inputs, i, weight=0.4)
 
             # If not influenced by any obstacle, apply normal destination control
             if not has_obstacle_influence:
                 self._add_destination_control(control_inputs, i, weight=1.0)
 
         return control_inputs
+
+    def _add_rtl_behavior(self, control_inputs: np.ndarray, agent_index: int):
+        """
+        Add return-to-launch control input for an agent affected by jamming.
+
+        Args:
+            control_inputs: The array of control inputs to modify
+            agent_index: Index of the agent to control
+        """
+        # RTL parameters
+        rtl_magnitude = 0.8  # Slightly slower return speed
+
+        # Calculate vector to initial position
+        rtl_vector = (
+            self.swarm_state.initial_positions[agent_index]
+            - self.swarm_state.swarm_position[agent_index]
+        )
+        dist_to_home = np.linalg.norm(rtl_vector)
+
+        # If very close to home, stop
+        if dist_to_home < 0.5:
+            control_inputs[agent_index] = np.zeros(2)
+            return
+
+        # Calculate direction and apply speed
+        if dist_to_home > 0:  # Avoid division by zero
+            rtl_direction = rtl_vector / dist_to_home
+
+            # Scale control input based on distance
+            control_param = min(rtl_magnitude, dist_to_home * 0.1)
+
+            # Apply to control input
+            control_inputs[agent_index] = rtl_direction * control_param
 
     def _add_destination_control(
         self, control_inputs: np.ndarray, agent_index: int, weight=1.0

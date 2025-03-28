@@ -5,6 +5,8 @@ Visualization module for the formation control simulation.
 import matplotlib.pyplot as plt
 import numpy as np
 
+import swarm_squad.config as config
+
 
 def plot_formation_scene(
     ax,
@@ -15,6 +17,8 @@ def plot_formation_scene(
     line_colors,
     obstacles,
     swarm_destination,
+    agent_status=None,
+    jamming_affected=None,
 ):
     """
     Plot the formation scene.
@@ -28,14 +32,37 @@ def plot_formation_scene(
         line_colors: The colors of the lines
         obstacles: List of obstacles
         swarm_destination: The destination of the swarm
+        agent_status: Status of each agent (active or returning)
+        jamming_affected: Whether agents are affected by jamming
     """
     ax.set_title("Formation Scene")
     ax.set_xlabel("$x$")
     ax.set_ylabel("$y$", rotation=0)
 
-    # Plot the nodes
+    # Plot the nodes with status indicators
     for i in range(swarm_position.shape[0]):
-        ax.scatter(*swarm_position[i], color=node_colors[i])
+        # Define marker style based on agent status
+        marker_style = "o"  # Default marker
+
+        # Get status if provided
+        is_active = True
+        is_jammed = False
+        if agent_status is not None:
+            is_active = agent_status[i]
+        if jamming_affected is not None:
+            is_jammed = jamming_affected[i]
+
+        # Change marker for returning agents
+        if not is_active:
+            marker_style = "x"  # X for inactive/returning agents
+
+        # Add special outline for jamming-affected agents
+        if is_jammed:
+            # Draw outer ring for jamming-affected agents
+            ax.scatter(*swarm_position[i], s=100, color="yellow", alpha=0.3)
+
+        # Draw the agent marker
+        ax.scatter(*swarm_position[i], color=node_colors[i], marker=marker_style)
 
     # Plot the edges
     for i in range(swarm_position.shape[0]):
@@ -49,10 +76,37 @@ def plot_formation_scene(
 
     ax.axis("equal")
 
-    # Add obstacles to formation scene
+    # Add obstacles to formation scene based on type
     for obstacle in obstacles:
         x, y, radius = obstacle
-        circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
+
+        # Default obstacle color for hard obstacles
+        obstacle_color = "gray"  # Gray for hard obstacles
+        obstacle_alpha = 0.4
+
+        # Show obstacle based on current mode
+        if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING:
+            obstacle_color = "yellow"  # Yellow for low-power jamming
+
+            # Show jamming radius
+            jamming_radius = radius * config.JAMMING_RADIUS_MULTIPLIER
+            jamming_circle = plt.Circle(
+                (x, y), jamming_radius, color=obstacle_color, alpha=0.15
+            )
+            ax.add_artist(jamming_circle)
+
+        elif config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+            obstacle_color = "red"  # Red for high-power jamming
+
+            # Show jamming radius
+            jamming_radius = radius * config.JAMMING_RADIUS_MULTIPLIER
+            jamming_circle = plt.Circle(
+                (x, y), jamming_radius, color=obstacle_color, alpha=0.15
+            )
+            ax.add_artist(jamming_circle)
+
+        # Draw the physical obstacle
+        circle = plt.Circle((x, y), radius, color=obstacle_color, alpha=obstacle_alpha)
         ax.add_artist(circle)
 
     # Plot destination in formation scene
@@ -74,7 +128,14 @@ def plot_formation_scene(
 
 
 def plot_swarm_trajectories(
-    ax, swarm_position, swarm_paths, node_colors, obstacles, swarm_destination
+    ax,
+    swarm_position,
+    swarm_paths,
+    node_colors,
+    obstacles,
+    swarm_destination,
+    agent_status=None,
+    jamming_affected=None,
 ):
     """
     Plot the swarm trajectories.
@@ -86,6 +147,8 @@ def plot_swarm_trajectories(
         node_colors: The colors of the nodes
         obstacles: List of obstacles
         swarm_destination: The destination of the swarm
+        agent_status: Status of each agent (active or returning)
+        jamming_affected: Whether agents are affected by jamming
     """
     ax.set_title("Swarm Trajectories")
     ax.set_xlabel("$x$")
@@ -97,7 +160,28 @@ def plot_swarm_trajectories(
     if not swarm_paths:
         # Just plot the current positions
         for i in range(swarm_size):
-            ax.scatter(*swarm_position[i], color=node_colors[i])
+            # Define marker style based on agent status
+            marker_style = "o"  # Default marker
+
+            # Get status if provided
+            is_active = True
+            is_jammed = False
+            if agent_status is not None:
+                is_active = agent_status[i]
+            if jamming_affected is not None:
+                is_jammed = jamming_affected[i]
+
+            # Change marker for returning agents
+            if not is_active:
+                marker_style = "x"  # X for inactive/returning agents
+
+            # Add special outline for jamming-affected agents
+            if is_jammed:
+                # Draw outer ring for jamming-affected agents
+                ax.scatter(*swarm_position[i], s=100, color="yellow", alpha=0.3)
+
+            # Draw the agent marker
+            ax.scatter(*swarm_position[i], color=node_colors[i], marker=marker_style)
     else:
         # Convert the list of positions to a numpy array
         trajectory_array = np.array(swarm_paths)
@@ -158,10 +242,37 @@ def plot_swarm_trajectories(
                 trajectory_array[0, :, 0], trajectory_array[0, :, 1], color=node_colors
             )
 
-    # Add obstacles to trajectory plot
+    # Add obstacles to trajectory plot with type differentiation
     for obstacle in obstacles:
         x, y, radius = obstacle
-        circle = plt.Circle((x, y), radius, color="red", alpha=0.3)
+
+        # Default obstacle color for hard obstacles
+        obstacle_color = "gray"  # Gray for hard obstacles
+        obstacle_alpha = 0.4
+
+        # Show obstacle based on current mode
+        if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING:
+            obstacle_color = "yellow"  # Yellow for low-power jamming
+
+            # Show jamming radius
+            jamming_radius = radius * config.JAMMING_RADIUS_MULTIPLIER
+            jamming_circle = plt.Circle(
+                (x, y), jamming_radius, color=obstacle_color, alpha=0.15
+            )
+            ax.add_artist(jamming_circle)
+
+        elif config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+            obstacle_color = "red"  # Red for high-power jamming
+
+            # Show jamming radius
+            jamming_radius = radius * config.JAMMING_RADIUS_MULTIPLIER
+            jamming_circle = plt.Circle(
+                (x, y), jamming_radius, color=obstacle_color, alpha=0.15
+            )
+            ax.add_artist(jamming_circle)
+
+        # Draw the physical obstacle
+        circle = plt.Circle((x, y), radius, color=obstacle_color, alpha=obstacle_alpha)
         ax.add_artist(circle)
 
     # Plot destination in trajectory plot
@@ -232,6 +343,8 @@ def plot_all_figures(
     line_colors,
     obstacles,
     swarm_destination,
+    agent_status=None,
+    jamming_affected=None,
 ):
     """
     Plot all figures for the simulation.
@@ -250,8 +363,11 @@ def plot_all_figures(
         line_colors: The colors of the lines
         obstacles: List of obstacles
         swarm_destination: The destination of the swarm
+        agent_status: Status of each agent (active or returning)
+        jamming_affected: Whether agents are affected by jamming
     """
-    for ax in axs.flatten():
+    # Clear all axes
+    for ax in axs.flat:
         ax.clear()
 
     # Plot formation scene
@@ -264,6 +380,8 @@ def plot_all_figures(
         line_colors,
         obstacles,
         swarm_destination,
+        agent_status,
+        jamming_affected,
     )
 
     # Plot swarm trajectories
@@ -274,6 +392,8 @@ def plot_all_figures(
         node_colors,
         obstacles,
         swarm_destination,
+        agent_status,
+        jamming_affected,
     )
 
     # Plot Jn performance
@@ -282,4 +402,5 @@ def plot_all_figures(
     # Plot rn performance
     plot_rn_performance(axs[1, 1], t_elapsed, rn)
 
+    # Adjust the layout
     plt.tight_layout()
