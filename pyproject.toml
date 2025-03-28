@@ -1,6 +1,6 @@
 [project]
 name = "swarm-squad-ep1"
-version = "0.1.4"
+version = "0.1.5"
 description = "Swarm Squad Ep1: Surviving the jam"
 authors = [{ name = "Sang Buster", email = "hello@singsongaftermath.com" }]
 readme = "README.md"
@@ -9,6 +9,7 @@ requires-python = ">=3.10"
 dependencies = [
     "matplotlib>=3.10.1",
     "pyqt5>=5.15.11",
+    "requests>=2.32.3",
 ]
 
 [project.urls]
