@@ -41,12 +41,16 @@ class LLMController(BaseController):
     high-level reasoning from the LLM.
     """
 
-    def __init__(self, swarm_state: SwarmState):
+    def __init__(
+        self, swarm_state: SwarmState, llm_model=None, llm_feedback_interval=None
+    ):
         """
         Initialize the LLM controller.
 
         Args:
             swarm_state: Reference to the swarm state object
+            llm_model: Custom LLM model to use (overrides config)
+            llm_feedback_interval: Custom LLM feedback interval (overrides config)
         """
         print("### Initializing LLM controller")
         super().__init__(swarm_state)
@@ -57,6 +61,14 @@ class LLMController(BaseController):
         self.current_feedback = None
         self.enabled = LLM_ENABLED
         self.step_counter = 0
+
+        # Store custom settings
+        self.llm_model = llm_model if llm_model is not None else LLM_MODEL
+        self.llm_feedback_interval = (
+            llm_feedback_interval
+            if llm_feedback_interval is not None
+            else LLM_FEEDBACK_INTERVAL
+        )
 
         # Store the last state description for UI display
         self.last_state_description = None
@@ -180,7 +192,7 @@ class LLMController(BaseController):
         steps_since_update = self.step_counter - self.last_llm_update_step
 
         if (
-            steps_since_update >= LLM_FEEDBACK_INTERVAL
+            steps_since_update >= self.llm_feedback_interval
             and not self.is_llm_request_pending
             and time_since_last_request >= 2.0
         ):  # Minimum 2 seconds between requests
@@ -195,9 +207,9 @@ class LLMController(BaseController):
             logger.debug(
                 f"Skipping LLM request at step {self.step_counter}: request already pending"
             )
-        elif steps_since_update < LLM_FEEDBACK_INTERVAL:
+        elif steps_since_update < self.llm_feedback_interval:
             logger.debug(
-                f"Skipping LLM request at step {self.step_counter}: next at step {self.last_llm_update_step + LLM_FEEDBACK_INTERVAL}"
+                f"Skipping LLM request at step {self.step_counter}: next at step {self.last_llm_update_step + self.llm_feedback_interval}"
             )
         else:
             logger.debug(
@@ -267,7 +279,7 @@ class LLMController(BaseController):
             prompt = f"{LLM_SYSTEM_PROMPT}\n\nCurrent swarm state:\n{state_description}\n\nProvide tactical advice:"
 
             # Create request for Ollama API format
-            request_data = {"model": LLM_MODEL, "prompt": prompt, "stream": False}
+            request_data = {"model": self.llm_model, "prompt": prompt, "stream": False}
 
             # Print debug info about the request
             logger.info(
@@ -357,7 +369,7 @@ class LLMController(BaseController):
     def test_llm_connection(self):
         """Test connection to Ollama"""
         test_message = {
-            "model": LLM_MODEL,
+            "model": self.llm_model,
             "prompt": "Test connection. Reply with 'OK'.",
             "stream": False,
             "max_tokens": 10,  # Keep response very short for speed

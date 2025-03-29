@@ -34,16 +34,24 @@ class ControllerFactory:
     hooks for LLM intervention.
     """
 
-    def __init__(self, swarm_state: SwarmState):
+    def __init__(
+        self, swarm_state: SwarmState, llm_model=None, llm_feedback_interval=None
+    ):
         """
         Initialize the controller factory.
 
         Args:
             swarm_state: Reference to the swarm state object
+            llm_model: Custom LLM model to use (overrides config)
+            llm_feedback_interval: Custom LLM feedback interval (overrides config)
         """
         self.swarm_state = swarm_state
         self.controllers: Dict[ControllerType, BaseController] = {}
         self.active_controller_type = ControllerType.FORMATION
+
+        # Store custom LLM settings
+        self.llm_model = llm_model
+        self.llm_feedback_interval = llm_feedback_interval
 
         # Initialize controllers
         self._init_controllers()
@@ -58,7 +66,11 @@ class ControllerFactory:
 
         # Initialize LLM controller - with debug print
         print("### Initializing LLM controller")
-        llm_controller = LLMController(self.swarm_state)
+        llm_controller = LLMController(
+            self.swarm_state,
+            llm_model=self.llm_model,
+            llm_feedback_interval=self.llm_feedback_interval,
+        )
 
         # Set combined controller as default for LLM controller
         # to fall back on when not actively providing control

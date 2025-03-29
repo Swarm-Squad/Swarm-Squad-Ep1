@@ -1,6 +1,6 @@
 [project]
 name = "swarm-squad-ep1"
-version = "0.1.5.1"
+version = "0.1.5.2"
 description = "Swarm Squad Ep1: Surviving the jam"
 authors = [{ name = "Sang Buster", email = "hello@singsongaftermath.com" }]
 readme = "README.md"
@@ -18,7 +18,7 @@ Documentation = "https://docs.swarm-squad.com"
 Repository = "https://github.com/Swarm-Squad/Swarm-Squad-Ep1"
 
 [project.scripts]
-swarm-squad = "swarm_squad.main:main"  # GUI entry point
+swarm-squad-ep1 = "swarm_squad.main:main"  # GUI entry point
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/swarm_squad"]

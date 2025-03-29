@@ -47,7 +47,9 @@ uv pip install swarm-squad-ep1
 
 To run the application, simply type:
 ```bash
-swarm-squad
+swarm-squad-ep1
+# or
+swarm-squad-ep1 --help
 ```
 
 
@@ -83,7 +85,7 @@ swarm-squad
    source .venv/bin/activate
    ```
 
-   ```bash
+   ```powershell
    # Windows
    .venv\Scripts\activate
    ```

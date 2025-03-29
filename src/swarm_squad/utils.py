@@ -273,15 +273,21 @@ def format_swarm_state_for_llm(swarm_state, agent_names=None):
     return "\n".join(state_desc)
 
 
-def check_ollama_running() -> bool:
+def check_ollama_running(model=None) -> bool:
     """
     Check if Ollama is running and the specified model is available.
+
+    Args:
+        model: The model to check for (defaults to config.LLM_MODEL)
 
     Returns:
         bool: True if Ollama is running and the model is available, False otherwise
     """
     if not LLM_ENABLED:
         return True
+
+    # Use the provided model or fall back to the config
+    check_model = model if model is not None else LLM_MODEL
 
     try:
         # Get base URL by removing endpoint path
@@ -297,11 +303,11 @@ def check_ollama_running() -> bool:
 
             logger.info(f"Available models: {model_names}")
 
-            if LLM_MODEL in model_names:
-                logger.info(f"Ollama is running with {LLM_MODEL} available")
+            if check_model in model_names:
+                logger.info(f"Ollama is running with {check_model} available")
                 return True
             else:
-                logger.warning(f"Ollama is running but {LLM_MODEL} is not available")
+                logger.warning(f"Ollama is running but {check_model} is not available")
                 return False
         else:
             logger.warning(f"Ollama check failed with status {response.status_code}")
