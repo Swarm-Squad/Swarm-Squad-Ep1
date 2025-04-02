@@ -132,32 +132,34 @@ swarm-squad-ep1 --help
 <h2 align="center">📁 File Tree</h2>
 
 ```
- 📂Swarm-Squad-Ep1
- ┣ 📂lib                                  // Supplementary materials
- ┃ ┣ 📂img                                   // Readme Assets
- ┃ ┗ 📂old                                   // Original old code
- ┣ 📂src
- ┃ ┣ 📦Swarm-Squad-Ep1                   // Source Code
- ┃ ┃ ┣ 📄main.py                            // Entry point
- ┃ ┃ ┣ 📄config.py                          // Configuration parameters
- ┃ ┃ ┣ 📄utils.py                           // Core utility functions
- ┃ ┃ ┣ 📄visualization.py                   // Visualization functions
- ┃ ┃ ┣ 📂models                         // Model components
- ┃ ┃ ┃ ┗ 📄swarm_state.py                   // Swarm state management
- ┃ ┃ ┣ 📂controllers                    // Controllers for swarm behavior
- ┃ ┃ ┃ ┣ 📄base_controller.py               // Base controller interface
- ┃ ┃ ┃ ┣ 📄communication_controller.py      // Communication-aware controller
- ┃ ┃ ┃ ┣ 📄behavior_controller.py           // Behavior-based controller
- ┃ ┃ ┃ ┣ 📄llm_controller.py                // LLM controller
- ┃ ┃ ┃ ┗ 📄controller_factory.py            // Controller management system
- ┃ ┃ ┣ 📂gui                            // GUI components
- ┃ ┃ ┗ ┗ 📄formation_control_gui.py         // GUI application
+📦Swarm-Squad-Ep1
+ ┣ 📂lib                              // Supplementary materials
+ ┃ ┣ 📂img                                // Readme Assets
+ ┃ ┣ 📂old                                // Original old code
+ ┣ 📂src                              // Source Code
+ ┃ ┗ 📂swarm_squad                        // Python package
+ ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior
+ ┃ ┃ ┃ ┣ 📄base_controller.py                   // Base controller interface
+ ┃ ┃ ┃ ┣ 📄behavior_controller.py               // Behavior-based controller
+ ┃ ┃ ┃ ┣ 📄controller_factory.py                // Controller management system
+ ┃ ┃ ┃ ┣ 📄formation_controller.py              // Formation control
+ ┃ ┃ ┃ ┗ 📄llm_controller.py                    // LLM controller
+ ┃ ┃ ┣ 📂gui                                 // GUI components
+ ┃ ┃ ┃ ┗ 📄formation_control_gui.py             // GUI application
+ ┃ ┃ ┣ 📂models                              // Model components
+ ┃ ┃ ┃ ┗ 📄swarm_state.py                       // Swarm state management
+ ┃ ┃ ┣ 📂tests                               // Test cases
+ ┃ ┃ ┃ ┗ 📄test_ollama.py                       // Test for Ollama
+ ┃ ┃ ┣ 📄config.py                           // Configuration parameters
+ ┃ ┃ ┣ 📄main.py                             // Entry point
+ ┃ ┃ ┣ 📄utils.py                            // Core utility functions
+ ┃ ┃ ┗ 📄visualization.py                    // Visualization functions
  ┣ 📄.gitignore
- ┣ 📄.pre-commit-msg_template.yaml
  ┣ 📄.pre-commit-config.yaml
+ ┣ 📄.pre-commit-msg_template.py
  ┣ 📄.python-version
  ┣ 📄LICENSE
- ┣ 📄pyproject.toml
  ┣ 📄README.md
+ ┣ 📄pyproject.toml
  ┗ 📄uv.lock
 ```
