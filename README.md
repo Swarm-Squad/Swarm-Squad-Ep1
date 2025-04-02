@@ -132,7 +132,7 @@ swarm-squad-ep1 --help
 <h2 align="center">📁 File Tree</h2>
 
 ```
-📦Swarm-Squad-Ep1
+📂Swarm-Squad-Ep1
  ┣ 📂lib                              // Supplementary materials
  ┃ ┣ 📂img                                // Readme Assets
  ┃ ┣ 📂old                                // Original old code
@@ -141,7 +141,7 @@ swarm-squad-ep1 --help
  ┃ ┣ 📄Xing-paper2.pdf                    // Paper 2
  ┃ ┗ 📄Xing-ppt.pdf                       // Presentation
  ┣ 📂src                              // Source Code
- ┃ ┗ 📂swarm_squad                        // Python package
+ ┃ ┗ 📦swarm_squad                        // Python package
  ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior
  ┃ ┃ ┃ ┣ 📄base_controller.py                   // Base controller interface
  ┃ ┃ ┃ ┣ 📄behavior_controller.py               // Behavior-based controller
