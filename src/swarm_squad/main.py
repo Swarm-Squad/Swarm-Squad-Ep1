@@ -25,9 +25,7 @@ logger = logging.getLogger("main")
 
 def parse_arguments():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(
-        description="Swarm Squad Formation Control Simulation"
-    )
+    parser = argparse.ArgumentParser(description="Swarm Squad Ep1: Surviving the Jam")
 
     parser.add_argument(
         "-m",
