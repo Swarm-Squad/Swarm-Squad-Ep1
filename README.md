@@ -136,6 +136,10 @@ swarm-squad-ep1 --help
  ┣ 📂lib                              // Supplementary materials
  ┃ ┣ 📂img                                // Readme Assets
  ┃ ┣ 📂old                                // Original old code
+ ┃ ┣ 📄Li-paper.pdf                       // Original paper
+ ┃ ┣ 📄Xing-paper1.pdf                    // Paper 1
+ ┃ ┣ 📄Xing-paper2.pdf                    // Paper 2
+ ┃ ┗ 📄Xing-ppt.pdf                       // Presentation
  ┣ 📂src                              // Source Code
  ┃ ┗ 📂swarm_squad                        // Python package
  ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior
