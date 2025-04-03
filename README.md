@@ -125,7 +125,7 @@ swarm-squad-ep1 --help
 
 4. **Run the application:**
    ```bash
-   uv run src/main.py
+   uv run src/swarm_squad/main.py
    ```
 
 
