@@ -6,7 +6,7 @@ import tkinter as tk
 
 import matplotlib.pyplot as plt
 import numpy as np
-import utils
+import utils_old as utils
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
