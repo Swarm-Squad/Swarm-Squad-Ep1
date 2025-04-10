@@ -4,11 +4,13 @@ LLM controller for integration with language models.
 
 import json
 import logging
+import os
 import queue
 import re
 import threading
 import time
 import traceback  # Add explicit import
+from datetime import datetime
 
 import numpy as np
 import requests
@@ -79,35 +81,42 @@ class LLMController(BaseController):
         self.is_llm_request_pending = False
         self.last_request_time = 0
 
-        # Initialize connection with LLM if enabled
-        if self.enabled:
-            # Try to connect to LLM with retries
-            max_retries = 10
-            retry_delay = 3  # seconds
-            connected = False
+        # Set up logging to file
+        self._setup_file_logging()
 
-            for attempt in range(1, max_retries + 1):
-                try:
-                    logger.info(
-                        f"Attempting to connect to LLM (attempt {attempt}/{max_retries})..."
-                    )
-                    self.test_llm_connection()
-                    logger.info("LLM connection established successfully")
-                    connected = True
-                    break
-                except Exception as e:
-                    logger.warning(f"Connection attempt {attempt} failed: {e}")
-                    if attempt < max_retries:
-                        logger.info(f"Retrying in {retry_delay} seconds...")
-                        time.sleep(retry_delay)
-                        retry_delay *= 2  # Exponential backoff
+    def _setup_file_logging(self):
+        """Set up dedicated file logging for LLM responses"""
+        # Create logs directory if it doesn't exist
+        log_dir = os.path.join(os.getcwd(), "logs")
+        os.makedirs(log_dir, exist_ok=True)
 
-            if not connected:
-                logger.error("Failed to connect to LLM after multiple attempts")
-                logger.warning("Disabling LLM integration")
-                self.enabled = False
-                # Try one more time in the background after a delay
-                self.schedule_reconnect()
+        # Create a timestamped log file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_file_path = os.path.join(log_dir, f"llm_responses_{timestamp}.log")
+
+        # Set up a file handler specifically for LLM responses
+        self.file_handler = logging.FileHandler(self.log_file_path)
+        self.file_handler.setLevel(logging.INFO)
+        self.file_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s"))
+
+        # Create a separate logger for the file to avoid duplicate console output
+        self.file_logger = logging.getLogger("LLMResponseFile")
+        self.file_logger.setLevel(logging.INFO)
+        self.file_logger.addHandler(self.file_handler)
+        self.file_logger.propagate = False  # Don't propagate to root logger
+
+        # Log initial message to the file
+        self.log_to_file(
+            f"LLM Response Log - Model: {self.llm_model} - Started at {timestamp}"
+        )
+        self.log_to_file("=" * 80)
+
+        # Log to console about the file creation
+        logger.info(f"LLM responses will be logged to: {self.log_file_path}")
+
+    def log_to_file(self, message):
+        """Log a message to the dedicated LLM response log file"""
+        self.file_logger.info(message)
 
     def schedule_reconnect(self):
         """Schedule a background reconnection attempt after a delay"""
@@ -235,6 +244,9 @@ class LLMController(BaseController):
                     # Keep history manageable
                     if len(self.feedback_history) > 3:
                         self.feedback_history = self.feedback_history[-3:]
+
+                    # Log the feedback to file
+                    self.log_to_file(f"FEEDBACK (Step {self.step_counter}): {feedback}")
                 self.feedback_queue.task_done()
 
             # Check if thread is done
@@ -286,6 +298,11 @@ class LLMController(BaseController):
                 f"Worker thread request data: {json.dumps(request_data, indent=2)}"
             )
 
+            # Log state description to file
+            self.log_to_file(
+                f"STATE DESCRIPTION (Step {self.step_counter}):\n{state_description}"
+            )
+
             # Send request directly to Ollama with a longer timeout
             start_time = time.time()
 
@@ -317,26 +334,40 @@ class LLMController(BaseController):
                             f"Worker thread received LLM response in {end_time - start_time:.2f}s: {content}"
                         )
 
+                        # Log the response to file
+                        self.log_to_file(
+                            f"RESPONSE (Step {self.step_counter}, Time: {end_time - start_time:.2f}s):\n{content}"
+                        )
+                        self.log_to_file("-" * 80)
+
                         # Put the result in the queue
                         result_queue.put(content)
                         return
                     else:
-                        logger.error(f"No 'response' field found in result: {result}")
+                        error_msg = f"No 'response' field found in result: {result}"
+                        logger.error(error_msg)
+                        self.log_to_file(f"ERROR: {error_msg}")
                         print(
                             f"### Worker thread error: No 'response' field in {list(result.keys())}"
                         )
                 except Exception as parse_error:
-                    logger.error(f"Error parsing response: {parse_error}")
+                    error_msg = f"Error parsing response: {parse_error}"
+                    logger.error(error_msg)
+                    self.log_to_file(f"ERROR: {error_msg}")
                     print(f"### Worker thread parse error: {parse_error}")
             else:
-                logger.error(f"LLM request failed with status {response.status_code}")
+                error_msg = f"LLM request failed with status {response.status_code}"
+                logger.error(error_msg)
+                self.log_to_file(f"ERROR: {error_msg}")
                 print(f"### Worker thread request failed: {response.status_code}")
 
             # If we get here, something went wrong
             result_queue.put(None)
 
         except Exception as e:
-            logger.error(f"Worker thread error: {str(e)}")
+            error_msg = f"Worker thread error: {str(e)}"
+            logger.error(error_msg)
+            self.log_to_file(f"ERROR: {error_msg}")
             print(f"### Worker thread exception: {str(e)}")
             logger.error(f"Worker thread traceback: {traceback.format_exc()}")
             result_queue.put(None)

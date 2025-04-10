@@ -140,6 +140,7 @@ swarm-squad-ep1 --help
  ┃ ┣ 📄Xing-paper1.pdf                    // Paper 1
  ┃ ┣ 📄Xing-paper2.pdf                    // Paper 2
  ┃ ┗ 📄Xing-ppt.pdf                       // Presentation
+ ┣ 📂logs                             // Logs
  ┣ 📂src                              // Source Code
  ┃ ┗ 📦swarm_squad                        // Python package
  ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior

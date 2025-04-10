@@ -2,6 +2,7 @@
 GUI for the formation control simulation.
 """
 
+import os
 import re
 import time
 
@@ -352,6 +353,11 @@ class FormationControlGUI(QMainWindow):
         self._add_separator(feedback_layout)
         self._create_perceived_state_section(feedback_layout)
 
+        # Add log file display section if LLM is enabled
+        if config.LLM_ENABLED:
+            self._add_separator(feedback_layout)
+            self._create_log_file_section(feedback_layout)
+
         return feedback_frame
 
     def _create_feedback_title(self, layout):
@@ -456,6 +462,50 @@ class FormationControlGUI(QMainWindow):
         scroll_area.setStyleSheet("border: none; background-color: transparent;")
 
         layout.addWidget(scroll_area, 2)  # Give it more stretch priority
+
+    def _create_log_file_section(self, layout):
+        """Create a section to show the log file path and provide a button to open it."""
+        # Create container for log file info
+        log_container = QWidget()
+        log_layout = QHBoxLayout(log_container)
+        log_layout.setContentsMargins(5, 5, 5, 5)
+
+        # Create label for log file path
+        self.log_file_label = QLabel("LLM Log: Not started yet")
+        self.log_file_label.setWordWrap(True)
+        self.log_file_label.setStyleSheet("color: #333399; font-size: 11px;")
+
+        # Create button to open log file
+        self.open_log_button = QPushButton("Open Log")
+        self.open_log_button.setStyleSheet(
+            "background-color: #6666cc; color: white; border-radius: 5px; padding: 5px;"
+        )
+        self.open_log_button.setEnabled(False)
+        self.open_log_button.clicked.connect(self._open_log_file)
+
+        # Add widgets to layout
+        log_layout.addWidget(self.log_file_label, 3)  # 3:1 ratio
+        log_layout.addWidget(self.open_log_button, 1)
+
+        # Add container to main layout
+        layout.addWidget(log_container)
+
+    def _open_log_file(self):
+        """Open the log file with the system's default text editor."""
+        llm_controller = self._get_llm_controller()
+        if llm_controller and hasattr(llm_controller, "log_file_path"):
+            log_path = llm_controller.log_file_path
+            if os.path.exists(log_path):
+                import platform
+                import subprocess
+
+                # Open the file based on the operating system
+                if platform.system() == "Windows":
+                    os.startfile(log_path)
+                elif platform.system() == "Darwin":  # macOS
+                    subprocess.call(("open", log_path))
+                else:  # Linux and other Unix-like systems
+                    subprocess.call(("xdg-open", log_path))
 
     def on_mode_button_clicked(self, mode):
         """Handle mode button click"""
@@ -801,6 +851,17 @@ class FormationControlGUI(QMainWindow):
 
         # Get latest feedback
         current_feedback = llm_controller.get_last_feedback()
+
+        # Update log file path display if available
+        if hasattr(llm_controller, "log_file_path"):
+            log_path = llm_controller.log_file_path
+            if log_path and os.path.exists(log_path):
+                # Show truncated path to fit in UI
+                truncated_path = log_path
+                if len(log_path) > 40:
+                    truncated_path = f"...{log_path[-40:]}"
+                self.log_file_label.setText(f"LLM Log: {truncated_path}")
+                self.open_log_button.setEnabled(True)
 
         # Check if there's new feedback to display
         if not current_feedback or current_feedback == self.llm_feedback_label.text():
