@@ -16,12 +16,15 @@ import numpy as np
 import requests
 
 from swarm_squad.config import (
+    JAMMING_RADIUS_MULTIPLIER,
     LLM_ENABLED,
     LLM_ENDPOINT,
     LLM_FEEDBACK_INTERVAL,
     LLM_MODEL,
     LLM_SYSTEM_PROMPT,
+    OBSTACLE_MODE,
     PT,
+    ObstacleMode,
 )
 from swarm_squad.controllers.base_controller import BaseController
 from swarm_squad.models.swarm_state import SwarmState
@@ -422,7 +425,7 @@ class LLMController(BaseController):
 
             # Log the raw response for debugging
             logger.info(f"Raw response status: {response.status_code}")
-            logger.info(f"Raw response text: {response.text[:200]}")  # First 200 chars
+            logger.info(f"Raw response text: {response.text}")
 
             response.raise_for_status()
 
@@ -478,40 +481,139 @@ class LLMController(BaseController):
         dest_x = destination_match.group(1) if destination_match else "?"
         dest_y = destination_match.group(2) if destination_match else "?"
 
-        # Get obstacle information
-        obstacles_line = next((line for line in lines if "Obstacles:" in line), None)
+        # Build natural language state description
+        natural_desc = []
 
-        # Determine mission status based on obstacles
+        # Determine mission status and jamming information
         mission_status = "The mission is to reach the destination at coordinates "
         mission_status += f"[{dest_x}, {dest_y}] efficiently while maintaining communication between agents."
 
-        # Check for jamming obstacles
-        if obstacles_line and (
-            "jamming" in obstacles_line.lower()
-            or hasattr(self.swarm_state, "jamming_affected")
-            and np.any(self.swarm_state.jamming_affected)
+        # Check for jamming specifically
+        jamming_detected = False
+        if hasattr(self.swarm_state, "jamming_affected") and np.any(
+            self.swarm_state.jamming_affected
         ):
+            jamming_detected = True
             # Determine jamming type based on obstacle mode
-            jamming_type = (
-                "high-power"
-                if hasattr(self.swarm_state, "agent_status")
-                and not all(self.swarm_state.agent_status)
-                else "low-power"
-            )
-            mission_status += f" There is {jamming_type} jamming in the area that affects communication quality."
+            if OBSTACLE_MODE == ObstacleMode.HIGH_POWER_JAMMING:
+                if not all(self.swarm_state.agent_status):
+                    mission_status += " ALERT: High-power jamming detected! Affected agents are returning to base."
+            elif OBSTACLE_MODE == ObstacleMode.LOW_POWER_JAMMING:
+                mission_status += " ALERT: Low-power jamming detected affecting communication quality."
 
-        # Build natural language state description
-        natural_desc = [f"{mission_status}\n"]
+        natural_desc.append(f"{mission_status}\n")
 
         # Add destination information
         natural_desc.append(
             f"The swarm destination is at coordinates [{dest_x}, {dest_y}].\n"
         )
 
-        # Add obstacle information if present
-        if obstacles_line:
-            simplified_obstacles = re.sub(r"Obstacles: ", "", obstacles_line)
-            natural_desc.append(f"Detected obstacles: {simplified_obstacles}\n")
+        # Add obstacle information if present and visible to agents
+        # Only add physical obstacles or jamming that's actually been encountered
+        if self.swarm_state.obstacles:
+            # Get current active obstacle mode from swarm_state instead of static config
+            current_obstacle_mode = getattr(
+                self.swarm_state, "obstacle_mode", OBSTACLE_MODE
+            )
+
+            # Process different types of obstacles based on current mode
+            if current_obstacle_mode == ObstacleMode.HARD:
+                # For physical obstacles, only report them if agents are close enough to detect them
+                obstacle_descriptions = []
+                # Define a detection radius - how close an agent needs to be to "detect" a physical obstacle
+                detection_radius = (
+                    15.0  # Adjust this value based on desired detection range
+                )
+
+                for i, obstacle in enumerate(self.swarm_state.obstacles, 1):
+                    obstacle_pos = np.array([obstacle[0], obstacle[1]])
+                    # Check if any agent is close enough to detect this obstacle
+                    obstacle_detected = False
+                    closest_agent = -1
+                    closest_distance = float("inf")
+
+                    for agent_idx in range(self.swarm_state.swarm_size):
+                        dist = np.linalg.norm(
+                            self.swarm_state.swarm_position[agent_idx] - obstacle_pos
+                        )
+
+                        # Keep track of closest agent for logging
+                        if dist < closest_distance:
+                            closest_distance = dist
+                            closest_agent = agent_idx
+
+                        if (
+                            dist < detection_radius + obstacle[2]
+                        ):  # Within detection range plus obstacle radius
+                            obstacle_detected = True
+                            # Log first detection of an obstacle
+                            logger.info(
+                                f"Agent {agent_idx} detected physical obstacle {i} at distance {dist:.2f}"
+                            )
+                            break
+
+                    if obstacle_detected:
+                        obstacle_descriptions.append(
+                            f"Obstacle {i}: Position [{obstacle[0]:.1f}, {obstacle[1]:.1f}], Radius {obstacle[2]:.1f}"
+                        )
+                    else:
+                        # Debug log of closest agent to undetected obstacle
+                        logger.debug(
+                            f"Closest agent to obstacle {i} is Agent {closest_agent} at distance {closest_distance:.2f} (detection threshold: {detection_radius + obstacle[2]:.2f})"
+                        )
+
+                if obstacle_descriptions:
+                    natural_desc.append(
+                        f"Detected physical obstacles: {' | '.join(obstacle_descriptions)}\n"
+                    )
+
+            elif (
+                current_obstacle_mode == ObstacleMode.LOW_POWER_JAMMING
+                and jamming_detected
+            ):
+                # For low power jamming, ONLY report jamming fields that agents have actually entered
+                # Count how many agents are actually affected by jamming
+                affected_agents = np.where(self.swarm_state.jamming_affected)[0]
+
+                if len(affected_agents) > 0:
+                    # Only report jamming that's actually affecting agents
+                    jamming_descriptions = []
+                    for i, obstacle in enumerate(self.swarm_state.obstacles, 1):
+                        # Find if any agents are within this specific jamming field's radius
+                        jamming_radius = obstacle[2] * JAMMING_RADIUS_MULTIPLIER
+                        obstacle_pos = np.array([obstacle[0], obstacle[1]])
+
+                        # Check if any agent is within this specific jamming field
+                        agents_in_this_field = False
+                        for agent_idx in affected_agents:
+                            dist = np.linalg.norm(
+                                self.swarm_state.swarm_position[agent_idx]
+                                - obstacle_pos
+                            )
+                            if dist < jamming_radius:
+                                agents_in_this_field = True
+                                break
+
+                        if agents_in_this_field:
+                            jamming_descriptions.append(
+                                f"Jamming Field {i}: Position [{obstacle[0]:.1f}, {obstacle[1]:.1f}], Radius {jamming_radius:.1f}"
+                            )
+
+                    if jamming_descriptions:
+                        natural_desc.append(
+                            f"Encountered low-power jamming: {' | '.join(jamming_descriptions)}\n"
+                        )
+
+            elif (
+                current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING
+                and jamming_detected
+            ):
+                # For high power jamming, don't show exact obstacles but indicate jamming presence
+                affected_count = np.sum(~self.swarm_state.agent_status)
+                if affected_count > 0:
+                    natural_desc.append(
+                        f"WARNING: High-power jamming encountered! {affected_count} agents are returning to base.\n"
+                    )
 
         # Process each agent directly using the swarm state data
         swarm_size = self.swarm_state.swarm_size
@@ -533,9 +635,56 @@ class LLMController(BaseController):
 
             # Start building agent description
             agent_desc = [f"{agent_name} is at position [{pos[0]:.1f}, {pos[1]:.1f}]."]
-            agent_desc.append(
-                f"{agent_name} is {dist_to_dest:.1f} units away from the destination and needs to travel in the {dir_to_dest} direction to reach it."
+
+            # Get current active obstacle mode from swarm_state instead of static config
+            current_obstacle_mode = getattr(
+                self.swarm_state, "obstacle_mode", OBSTACLE_MODE
             )
+
+            # Add jamming information if this agent is affected
+            if (
+                hasattr(self.swarm_state, "jamming_affected")
+                and self.swarm_state.jamming_affected[i]
+            ):
+                if current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING:
+                    agent_desc.append(
+                        f"{agent_name} is affected by high-power jamming and returning to base."
+                    )
+                elif current_obstacle_mode == ObstacleMode.LOW_POWER_JAMMING:
+                    # Get jamming depth if available
+                    jamming_depth = getattr(
+                        self.swarm_state, "jamming_depth", np.zeros(swarm_size)
+                    )[i]
+                    severity = (
+                        "severe"
+                        if jamming_depth > 0.7
+                        else "moderate"
+                        if jamming_depth > 0.3
+                        else "mild"
+                    )
+                    agent_desc.append(
+                        f"{agent_name} is experiencing {severity} communication degradation due to low-power jamming."
+                    )
+                elif (
+                    hasattr(self.swarm_state, "jamming_affected")
+                    and not self.swarm_state.jamming_affected[i]
+                ):
+                    # Only add this message if jamming mode is active but agent is not affected
+                    if (
+                        current_obstacle_mode == ObstacleMode.LOW_POWER_JAMMING
+                        or current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING
+                    ):
+                        agent_desc.append(
+                            f"{agent_name} is currently outside jamming fields and has normal communications."
+                        )
+
+            if not (
+                current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING
+                and not self.swarm_state.agent_status[i]
+            ):
+                agent_desc.append(
+                    f"{agent_name} is {dist_to_dest:.1f} units away from the destination and needs to travel in the {dir_to_dest} direction to reach it."
+                )
 
             # Add communication links with all other agents
             comm_links = []
@@ -543,6 +692,15 @@ class LLMController(BaseController):
                 if i != j:  # Don't include self-connection
                     other_agent = f"Agent-{j}"
                     quality = comm_matrix[i, j]
+
+                    # Skip connection info for high-power jamming affected agents
+                    if current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING:
+                        # Skip if either agent is inactive
+                        if (
+                            not self.swarm_state.agent_status[i]
+                            or not self.swarm_state.agent_status[j]
+                        ):
+                            continue
 
                     # Calculate distance and direction
                     other_pos = positions[j]
@@ -565,9 +723,18 @@ class LLMController(BaseController):
                     quality_desc = "poor" if quality < PT else "good"
                     link_status = "connected" if quality > PT else "disconnected"
 
+                    # Add jamming indication if we're in jamming mode
+                    jamming_indication = ""
+                    if (
+                        current_obstacle_mode == ObstacleMode.LOW_POWER_JAMMING
+                        and self.swarm_state.jamming_affected[i]
+                        and self.swarm_state.jamming_affected[j]
+                    ):
+                        jamming_indication = ", affected by jamming"
+
                     # Format the communication info in natural language
                     comm_links.append(
-                        f"{other_agent} ({distance:.1f} units away to the {direction_text}, {quality:.2f} {quality_desc} quality, {link_status})"
+                        f"{other_agent} ({distance:.1f} units away to the {direction_text}, {quality:.2f} {quality_desc} quality{jamming_indication}, {link_status})"
                     )
 
             if comm_links:

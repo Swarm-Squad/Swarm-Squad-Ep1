@@ -203,9 +203,9 @@ class ControllerFactory:
                     comm_controller = self.controllers[ControllerType.FORMATION]
                     behav_controller = self.controllers[ControllerType.BEHAVIOR]
 
-                    print(
-                        # "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
-                    )
+                    # print(
+                    #     "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
+                    # )
 
                     # Get control inputs from both controllers
                     comm_inputs = comm_controller.compute_control()

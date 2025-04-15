@@ -33,7 +33,7 @@ def test_ollama_connection():
             OLLAMA_URL,
             json=request_data,
             headers={"Content-Type": "application/json"},
-            timeout=15,
+            timeout=300,
         )
 
         # Check status code

@@ -24,6 +24,9 @@ class SwarmState:
         self.swarm_size = self.swarm_position.shape[0]
         self.swarm_control_ui = np.zeros((self.swarm_size, 2))
 
+        # Store current obstacle mode
+        self.obstacle_mode = config.OBSTACLE_MODE
+
         # Store initial positions for return-to-launch behavior
         self.initial_positions = config.INITIAL_SWARM_POSITIONS.copy()
 
@@ -61,6 +64,9 @@ class SwarmState:
         """Reset the swarm state to initial conditions"""
         self.swarm_position = config.INITIAL_SWARM_POSITIONS.copy()
         self.swarm_control_ui = np.zeros((self.swarm_size, 2))
+
+        # Update obstacle mode to current config
+        self.obstacle_mode = config.OBSTACLE_MODE
 
         # Reset agent status
         self.agent_status = np.ones(self.swarm_size, dtype=bool)
@@ -115,7 +121,7 @@ class SwarmState:
         for i in range(self.swarm_size):
             # For high power jamming, completely exclude inactive agents
             if (
-                config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING
+                self.obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING
                 and not self.agent_status[i]
             ):
                 continue
@@ -124,7 +130,7 @@ class SwarmState:
                 if i != j:
                     # For high power jamming, completely exclude inactive agents
                     if (
-                        config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING
+                        self.obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING
                         and not self.agent_status[j]
                     ):
                         continue
@@ -146,7 +152,7 @@ class SwarmState:
         # For low power jamming, apply degradation after calculation
         if (
             self.obstacles
-            and config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING
+            and self.obstacle_mode == config.ObstacleMode.LOW_POWER_JAMMING
         ):
             self.apply_lowpower_jamming()
 
@@ -172,7 +178,7 @@ class SwarmState:
                 dist_to_center = np.linalg.norm(self.swarm_position[i] - obstacle_pos)
 
                 # Apply effects based on obstacle mode
-                if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING:
+                if self.obstacle_mode == config.ObstacleMode.LOW_POWER_JAMMING:
                     if dist_to_center < jamming_radius:
                         # Mark as affected by jamming
                         self.jamming_affected[i] = True
@@ -196,7 +202,7 @@ class SwarmState:
                             self.jamming_depth[i], penetration_depth
                         )
 
-                elif config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
+                elif self.obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING:
                     if dist_to_center < jamming_radius:
                         # Mark agent as returning to launch position
                         self.agent_status[i] = False
@@ -207,12 +213,12 @@ class SwarmState:
         if affected_agents:
             jamming_type = (
                 "Low Power"
-                if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING
+                if self.obstacle_mode == config.ObstacleMode.LOW_POWER_JAMMING
                 else "High Power"
             )
             print(f"DEBUG: {jamming_type} Jamming affects agents: {affected_agents}")
 
-            if config.OBSTACLE_MODE == config.ObstacleMode.LOW_POWER_JAMMING:
+            if self.obstacle_mode == config.ObstacleMode.LOW_POWER_JAMMING:
                 depths = [f"{i}: {self.jamming_depth[i]:.2f}" for i in affected_agents]
                 print(f"      Penetration depths: {', '.join(depths)}")
             else:
@@ -223,7 +229,7 @@ class SwarmState:
         # Reset jamming depths if switching from other modes
         if not hasattr(self, "jamming_depth"):
             self.jamming_depth = np.zeros(self.swarm_size)
-        elif config.OBSTACLE_MODE != config.ObstacleMode.LOW_POWER_JAMMING:
+        elif self.obstacle_mode != config.ObstacleMode.LOW_POWER_JAMMING:
             self.jamming_depth.fill(0)
 
         for i in range(self.swarm_size):
@@ -267,7 +273,7 @@ class SwarmState:
             self.neighbor_agent_matrix,
             config.PT,
             agent_status=self.agent_status
-            if config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING
+            if self.obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING
             else None,
         )
         rn_new = utils.calculate_rn(
@@ -275,7 +281,7 @@ class SwarmState:
             self.neighbor_agent_matrix,
             config.PT,
             agent_status=self.agent_status
-            if config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING
+            if self.obstacle_mode == config.ObstacleMode.HIGH_POWER_JAMMING
             else None,
         )
 

@@ -29,7 +29,7 @@ from swarm_squad.controllers.controller_factory import ControllerFactory, Contro
 from swarm_squad.models.swarm_state import SwarmState
 
 # UI Constants
-BUTTON_WIDTH = 120
+BUTTON_WIDTH = 150
 BUTTON_HEIGHT = 40
 BUTTON_FONT = QFont("Arial", 12)
 BUTTON_SPACING = 10
@@ -522,6 +522,9 @@ class FormationControlGUI(QMainWindow):
         """Update the configuration and status bar with the selected mode."""
         # Update the config
         config.OBSTACLE_MODE = mode
+
+        # Update the swarm_state's obstacle_mode attribute
+        self.swarm_state.obstacle_mode = mode
 
         # Update the status bar
         status = self._get_current_status()
@@ -1038,17 +1041,17 @@ class FormationControlGUI(QMainWindow):
             )
 
             # Color the connection quality info
-            if "poor quality" in colored_line:
-                # Highlight poor quality in red
+            if "poor communication quality" in colored_line:
+                # Highlight poor communication quality in red
                 colored_line = colored_line.replace(
-                    "poor quality",
-                    "<span style='color:#cc0000; font-weight:bold;'>poor quality</span>",
+                    "poor communication quality",
+                    "<span style='color:#cc0000; font-weight:bold;'>poor communication quality</span>",
                 )
-            elif "good quality" in colored_line:
-                # Highlight good quality in green
+            elif "good communication quality" in colored_line:
+                # Highlight good communication quality in green
                 colored_line = colored_line.replace(
-                    "good quality",
-                    "<span style='color:#006600; font-weight:bold;'>good quality</span>",
+                    "good communication quality",
+                    "<span style='color:#006600; font-weight:bold;'>good communication quality</span>",
                 )
 
             # Highlight connection status
