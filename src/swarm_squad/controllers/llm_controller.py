@@ -4,6 +4,7 @@ LLM controller for integration with language models.
 
 import json
 import logging
+import math
 import os
 import queue
 import re
@@ -21,7 +22,6 @@ from swarm_squad.config import (
     LLM_ENDPOINT,
     LLM_FEEDBACK_INTERVAL,
     LLM_MODEL,
-    LLM_SYSTEM_PROMPT,
     OBSTACLE_MODE,
     PT,
     ObstacleMode,
@@ -290,8 +290,84 @@ class LLMController(BaseController):
     def _llm_request_worker(self, state_description, result_queue):
         """Worker function that runs in a separate thread to make LLM requests"""
         try:
+            # Check if there are any jamming fields before sending the request
+            has_jamming = "jamming" in state_description.lower() and (
+                "experiencing" in state_description.lower()
+                or "affected by" in state_description.lower()
+                or "degradation" in state_description.lower()
+            )
+
             # Construct a clear prompt with system instructions and state information
-            prompt = f"{LLM_SYSTEM_PROMPT}\n\nCurrent swarm state:\n{state_description}\n\nProvide tactical advice:"
+            # Adjust the prompt based on whether jamming is present
+            if has_jamming:
+                # Jamming-focused prompt when jamming is detected
+                prompt = f"""You are a tactical advisor for a swarm of autonomous vehicles specializing in ESCAPING JAMMING FIELDS.
+
+IMPORTANT CONTEXT:
+- Communication quality ranges from 0 (no connection) to 1 (perfect quality)
+- Quality above 0.94 is considered "good" and below 0.94 is "poor"
+- Low-power jamming causes gradual degradation of communication quality
+- High-power jamming causes abrupt disconnection and agents return to base
+- JAMMING FIELDS ARE YOUR PRIMARY CONCERN - they must be escaped immediately
+
+YOUR TASK:
+1. Identify agents inside jamming fields (showing communication degradation)
+2. Provide PRECISE directional instructions to escape jamming
+3. Specify EXACT directions using the following system:
+   - Cardinal: north, east, south, west
+   - Ordinal: northeast, southeast, southwest, northwest
+   - Secondary: north-northeast, east-northeast, east-southeast, south-southeast, 
+     south-southwest, west-southwest, west-northwest, north-northwest
+   - Tertiary: north by northeast, northeast by north, northeast by east, east by northeast,
+     east by southeast, southeast by east, southeast by south, south by southeast,
+     south by southwest, southwest by south, southwest by west, west by southwest,
+     west by northwest, northwest by west, northwest by north, north by northwest
+4. Always prioritize MOVING AWAY FROM JAMMING FIELDS over formation integrity
+5. Suggest distance values between 5-10 units for effective escape
+
+FORMAT YOUR RESPONSE as a 30-word tactical instruction with specific agent numbers and EXACT directions:
+Example: "Agent-1: Move 8 units north-northwest to escape jamming. Agent-2: Reposition 10 units west by southwest to exit interference field."
+
+REMEMBER: Focus on EXTRACTING AGENTS FROM JAMMING FIELDS first, maintain formation second.
+
+Current swarm state:
+{state_description}
+
+Provide tactical advice:"""
+            else:
+                # Standard mission-focused prompt when no jamming is present
+                prompt = f"""You are a tactical advisor for a swarm of autonomous vehicles.
+
+IMPORTANT CONTEXT:
+- Communication quality ranges from 0 (no connection) to 1 (perfect quality)
+- Quality above 0.94 is considered "good" and below 0.94 is "poor"
+- The swarm needs to maintain good communication while reaching the destination
+- Physical obstacles should be avoided by all agents
+
+YOUR TASK:
+1. Analyze the formation and communication quality between agents
+2. Provide PRECISE directional instructions for effective movement
+3. Specify EXACT directions using the following system:
+   - Cardinal: north, east, south, west
+   - Ordinal: northeast, southeast, southwest, northwest
+   - Secondary: north-northeast, east-northeast, east-southeast, south-southeast, 
+     south-southwest, west-southwest, west-northwest, north-northwest
+   - Tertiary: north by northeast, northeast by north, northeast by east, east by northeast,
+     east by southeast, southeast by east, southeast by south, south by southeast,
+     south by southwest, southwest by south, southwest by west, west by southwest,
+     west by northwest, northwest by west, northwest by north, north by northwest
+4. Ensure all agents maintain good communication links
+5. Focus on reaching the destination efficiently while maintaining formation
+
+FORMAT YOUR RESPONSE as a 30-word tactical instruction with specific agent numbers and EXACT directions:
+Example: "Agent-1: Move 5 units east by southeast to improve formation. Agent-2: Reposition 4 units north-northeast to maintain optimal spacing."
+
+REMEMBER: Balance between maintaining formation and reaching the destination is key.
+
+Current swarm state:
+{state_description}
+
+Provide tactical advice:"""
 
             # Create request for Ollama API format
             request_data = {"model": self.llm_model, "prompt": prompt, "stream": False}
@@ -572,31 +648,53 @@ class LLMController(BaseController):
                 and jamming_detected
             ):
                 # For low power jamming, ONLY report jamming fields that agents have actually entered
+                # or are close to entering
                 # Count how many agents are actually affected by jamming
                 affected_agents = np.where(self.swarm_state.jamming_affected)[0]
 
-                if len(affected_agents) > 0:
-                    # Only report jamming that's actually affecting agents
+                # Include agents near jamming fields for early warning
+                detection_margin = (
+                    10.0  # How far outside jamming field to start warning
+                )
+                near_jamming_agents = []
+
+                if len(affected_agents) > 0 or len(self.swarm_state.obstacles) > 0:
+                    # Report all jamming fields that have affected agents or are nearby
                     jamming_descriptions = []
                     for i, obstacle in enumerate(self.swarm_state.obstacles, 1):
-                        # Find if any agents are within this specific jamming field's radius
+                        # Find if any agents are within or near this specific jamming field's radius
                         jamming_radius = obstacle[2] * JAMMING_RADIUS_MULTIPLIER
                         obstacle_pos = np.array([obstacle[0], obstacle[1]])
 
-                        # Check if any agent is within this specific jamming field
-                        agents_in_this_field = False
-                        for agent_idx in affected_agents:
+                        # Track agents that are within or near this jamming field
+                        agents_in_this_field = []
+                        agents_near_this_field = []
+
+                        for agent_idx in range(self.swarm_state.swarm_size):
                             dist = np.linalg.norm(
                                 self.swarm_state.swarm_position[agent_idx]
                                 - obstacle_pos
                             )
                             if dist < jamming_radius:
-                                agents_in_this_field = True
-                                break
+                                agents_in_this_field.append(agent_idx)
+                            elif dist < jamming_radius + detection_margin:
+                                agents_near_this_field.append(agent_idx)
+                                if agent_idx not in near_jamming_agents:
+                                    near_jamming_agents.append(agent_idx)
 
+                        # Always report jamming fields whether agents are in them or not
+                        jamming_descriptions.append(
+                            f"Jamming Field {i}: Position [{obstacle[0]:.1f}, {obstacle[1]:.1f}], Radius {jamming_radius:.1f}"
+                        )
+
+                        # Add agent information for this field
                         if agents_in_this_field:
-                            jamming_descriptions.append(
-                                f"Jamming Field {i}: Position [{obstacle[0]:.1f}, {obstacle[1]:.1f}], Radius {jamming_radius:.1f}"
+                            jamming_descriptions[-1] += (
+                                f" (affecting Agents {', '.join(map(str, agents_in_this_field))})"
+                            )
+                        if agents_near_this_field:
+                            jamming_descriptions[-1] += (
+                                f" (approaching Agents {', '.join(map(str, agents_near_this_field))})"
                             )
 
                     if jamming_descriptions:
@@ -665,6 +763,225 @@ class LLMController(BaseController):
                     agent_desc.append(
                         f"{agent_name} is experiencing {severity} communication degradation due to low-power jamming."
                     )
+
+                    # Add specific advice for jamming evasion
+                    # Calculate direction vectors from agent to all obstacles
+                    evasion_directions = []
+                    for obstacle in self.swarm_state.obstacles:
+                        obstacle_pos = np.array([obstacle[0], obstacle[1]])
+                        jamming_radius = obstacle[2] * JAMMING_RADIUS_MULTIPLIER
+                        vector_to_obstacle = obstacle_pos - pos
+                        dist_to_obstacle = np.linalg.norm(vector_to_obstacle)
+
+                        # Only add evasion directions for nearby obstacles
+                        if dist_to_obstacle < jamming_radius * 1.5:
+                            # Direction AWAY from obstacle
+                            evasion_vector = -vector_to_obstacle
+                            # Normalize
+                            if np.linalg.norm(evasion_vector) > 0:
+                                evasion_vector = evasion_vector / np.linalg.norm(
+                                    evasion_vector
+                                )
+
+                            # Get precise direction using helper function
+                            def get_precise_direction(vector):
+                                """Convert a vector to a precise cardinal direction string"""
+                                # Calculate angle in degrees (0 = east, 90 = north, etc.)
+                                angle_rad = math.atan2(vector[1], vector[0])
+                                angle_deg = math.degrees(angle_rad)
+                                if angle_deg < 0:
+                                    angle_deg += 360
+
+                                # Map angles to cardinal directions with finer granularity
+                                directions = {
+                                    # Cardinal directions (4)
+                                    "north": 90,
+                                    "east": 0,
+                                    "south": 270,
+                                    "west": 180,
+                                    # Ordinal directions (4)
+                                    "northeast": 45,
+                                    "southeast": 315,
+                                    "southwest": 225,
+                                    "northwest": 135,
+                                    # Secondary intercardinal directions (8)
+                                    "north-northeast": 67.5,
+                                    "east-northeast": 22.5,
+                                    "east-southeast": 337.5,
+                                    "south-southeast": 292.5,
+                                    "south-southwest": 247.5,
+                                    "west-southwest": 202.5,
+                                    "west-northwest": 157.5,
+                                    "north-northwest": 112.5,
+                                    # Tertiary intercardinal directions (16)
+                                    "north by northeast": 78.75,
+                                    "northeast by north": 56.25,
+                                    "northeast by east": 33.75,
+                                    "east by northeast": 11.25,
+                                    "east by southeast": 348.75,
+                                    "southeast by east": 326.25,
+                                    "southeast by south": 303.75,
+                                    "south by southeast": 281.25,
+                                    "south by southwest": 258.75,
+                                    "southwest by south": 236.25,
+                                    "southwest by west": 213.75,
+                                    "west by southwest": 191.25,
+                                    "west by northwest": 168.75,
+                                    "northwest by west": 146.25,
+                                    "northwest by north": 123.75,
+                                    "north by northwest": 101.25,
+                                }
+
+                                # Find the closest direction by minimizing the angular difference
+                                closest_dir = min(
+                                    directions.items(),
+                                    key=lambda x: min(
+                                        abs(angle_deg - x[1]),
+                                        abs(angle_deg - (x[1] + 360)),
+                                        abs((angle_deg + 360) - x[1]),
+                                    ),
+                                )
+                                return closest_dir[0]
+
+                            # Get precise directional recommendation
+                            precise_direction = get_precise_direction(evasion_vector)
+
+                            # Calculate recommended distance based on depth in jamming field
+                            # More severe jamming = move further
+                            distance = min(10, max(5, int(jamming_depth * 15)))
+
+                            # Skip if it would give confusing advice (too deep inside field)
+                            penetration_distance = jamming_radius - dist_to_obstacle
+                            if penetration_distance > jamming_radius * 0.8:
+                                continue
+
+                            evasion_directions.append((precise_direction, distance))
+
+                    if evasion_directions:
+                        # Take the first (closest) evasion direction
+                        direction, distance = evasion_directions[0]
+                        agent_desc.append(
+                            f"RECOMMENDED EVASION: {agent_name} should move {distance} units {direction} to exit the jamming field."
+                        )
+                elif (
+                    i in near_jamming_agents
+                    if "near_jamming_agents" in locals()
+                    else []
+                ):
+                    # Add warning for agents that are near jamming fields
+                    agent_desc.append(
+                        f"{agent_name} is approaching a jamming field and should change course."
+                    )
+
+                    # Find closest jamming field to this agent
+                    closest_obstacle = None
+                    closest_distance = float("inf")
+
+                    for obstacle in self.swarm_state.obstacles:
+                        obstacle_pos = np.array([obstacle[0], obstacle[1]])
+                        jamming_radius = obstacle[2] * JAMMING_RADIUS_MULTIPLIER
+                        dist_to_obstacle = np.linalg.norm(obstacle_pos - pos)
+
+                        if dist_to_obstacle < closest_distance:
+                            closest_distance = dist_to_obstacle
+                            closest_obstacle = obstacle
+
+                    if closest_obstacle:
+                        # Calculate avoidance direction
+                        obstacle_pos = np.array(
+                            [closest_obstacle[0], closest_obstacle[1]]
+                        )
+                        vector_to_obstacle = obstacle_pos - pos
+                        # Calculate perpendicular vector (to go around)
+                        perp_vector = np.array(
+                            [-vector_to_obstacle[1], vector_to_obstacle[0]]
+                        )
+                        # Normalize
+                        if np.linalg.norm(perp_vector) > 0:
+                            perp_vector = perp_vector / np.linalg.norm(perp_vector)
+
+                        # Get precise direction using helper function
+                        def get_precise_direction(vector):
+                            """Convert a vector to a precise cardinal direction string"""
+                            # Calculate angle in degrees (0 = east, 90 = north, etc.)
+                            angle_rad = math.atan2(vector[1], vector[0])
+                            angle_deg = math.degrees(angle_rad)
+                            if angle_deg < 0:
+                                angle_deg += 360
+
+                            # Map angles to cardinal directions with finer granularity
+                            directions = {
+                                # Cardinal directions (4)
+                                "north": 90,
+                                "east": 0,
+                                "south": 270,
+                                "west": 180,
+                                # Ordinal directions (4)
+                                "northeast": 45,
+                                "southeast": 315,
+                                "southwest": 225,
+                                "northwest": 135,
+                                # Secondary intercardinal directions (8)
+                                "north-northeast": 67.5,
+                                "east-northeast": 22.5,
+                                "east-southeast": 337.5,
+                                "south-southeast": 292.5,
+                                "south-southwest": 247.5,
+                                "west-southwest": 202.5,
+                                "west-northwest": 157.5,
+                                "north-northwest": 112.5,
+                                # Tertiary intercardinal directions (16)
+                                "north by northeast": 78.75,
+                                "northeast by north": 56.25,
+                                "northeast by east": 33.75,
+                                "east by northeast": 11.25,
+                                "east by southeast": 348.75,
+                                "southeast by east": 326.25,
+                                "southeast by south": 303.75,
+                                "south by southeast": 281.25,
+                                "south by southwest": 258.75,
+                                "southwest by south": 236.25,
+                                "southwest by west": 213.75,
+                                "west by southwest": 191.25,
+                                "west by northwest": 168.75,
+                                "northwest by west": 146.25,
+                                "northwest by north": 123.75,
+                                "north by northwest": 101.25,
+                            }
+
+                            # Find the closest direction by minimizing the angular difference
+                            closest_dir = min(
+                                directions.items(),
+                                key=lambda x: min(
+                                    abs(angle_deg - x[1]),
+                                    abs(angle_deg - (x[1] + 360)),
+                                    abs((angle_deg + 360) - x[1]),
+                                ),
+                            )
+                            return closest_dir[0]
+
+                        # Get precise avoidance direction
+                        precise_direction = get_precise_direction(perp_vector)
+
+                        # Calculate distance based on proximity to field
+                        avoidance_distance = int(
+                            min(
+                                10,
+                                max(
+                                    6,
+                                    detection_margin
+                                    - (
+                                        closest_distance
+                                        - closest_obstacle[2]
+                                        * JAMMING_RADIUS_MULTIPLIER
+                                    ),
+                                ),
+                            )
+                        )
+
+                        agent_desc.append(
+                            f"RECOMMENDED AVOIDANCE: {agent_name} should move {avoidance_distance} units {precise_direction} to avoid the jamming field."
+                        )
                 elif (
                     hasattr(self.swarm_state, "jamming_affected")
                     and not self.swarm_state.jamming_affected[i]
@@ -673,7 +990,7 @@ class LLMController(BaseController):
                     if (
                         current_obstacle_mode == ObstacleMode.LOW_POWER_JAMMING
                         or current_obstacle_mode == ObstacleMode.HIGH_POWER_JAMMING
-                    ):
+                    ) and jamming_detected:
                         agent_desc.append(
                             f"{agent_name} is currently outside jamming fields and has normal communications."
                         )

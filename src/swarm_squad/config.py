@@ -65,9 +65,9 @@ WALL_DISTANCE = 10.0  # df parameter
 
 # LLM Integration Parameters
 LLM_ENABLED = True
-LLM_FEEDBACK_INTERVAL = 15  # How often to send updates to LLM (every N simulation steps) - increase for less frequent updates
+LLM_FEEDBACK_INTERVAL = 7  # How often to send updates to LLM (every N simulation steps) - increase for less frequent updates
 LLM_ENDPOINT = "http://localhost:11434/api/generate"  # Ollama direct endpoint
-LLM_MODEL = "llama3.2:3b-instruct-q4_K_M"  # Model to use with Ollama
+LLM_MODEL = "llama3.3:70b-instruct-q4_K_M"  # Model to use with Ollama
 AGENT_NAMES = [
     f"Agent-{i}" for i in range(len(INITIAL_SWARM_POSITIONS))
 ]  # Default agent names
