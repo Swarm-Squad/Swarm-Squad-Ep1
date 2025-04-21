@@ -23,10 +23,13 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-import swarm_squad.config as config
-import swarm_squad.visualization as visualization
-from swarm_squad.controllers.controller_factory import ControllerFactory, ControllerType
-from swarm_squad.models.swarm_state import SwarmState
+import swarm_squad_ep1.config as config
+import swarm_squad_ep1.visualization as visualization
+from swarm_squad_ep1.controllers.controller_factory import (
+    ControllerFactory,
+    ControllerType,
+)
+from swarm_squad_ep1.models.swarm_state import SwarmState
 
 # UI Constants
 BUTTON_WIDTH = 150

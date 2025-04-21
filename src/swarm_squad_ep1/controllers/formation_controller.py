@@ -4,10 +4,10 @@ Communication-aware controller that implements formation control logic.
 
 import numpy as np
 
-import swarm_squad.config as config
-import swarm_squad.utils as utils
-from swarm_squad.controllers.base_controller import BaseController
-from swarm_squad.models.swarm_state import SwarmState
+import swarm_squad_ep1.config as config
+import swarm_squad_ep1.utils as utils
+from swarm_squad_ep1.controllers.base_controller import BaseController
+from swarm_squad_ep1.models.swarm_state import SwarmState
 
 
 class FormationController(BaseController):
@@ -95,7 +95,9 @@ class FormationController(BaseController):
         # from the behavior controller
         if config.OBSTACLE_MODE == config.ObstacleMode.HIGH_POWER_JAMMING:
             # Import here to avoid circular imports
-            from swarm_squad.controllers.behavior_controller import BehaviorController
+            from swarm_squad_ep1.controllers.behavior_controller import (
+                BehaviorController,
+            )
 
             rtl_controller = BehaviorController(self.swarm_state)
 

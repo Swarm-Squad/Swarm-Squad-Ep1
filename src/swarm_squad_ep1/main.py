@@ -14,9 +14,9 @@ matplotlib.use("QtAgg")
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-from swarm_squad.config import LLM_ENABLED, LLM_FEEDBACK_INTERVAL, LLM_MODEL
-from swarm_squad.gui.formation_control_gui import FormationControlGUI
-from swarm_squad.utils import check_ollama_running, get_ollama_api_url
+from swarm_squad_ep1.config import LLM_ENABLED, LLM_FEEDBACK_INTERVAL, LLM_MODEL
+from swarm_squad_ep1.gui.formation_control_gui import FormationControlGUI
+from swarm_squad_ep1.utils import check_ollama_running, get_ollama_api_url
 
 # Set up logging
 logging.basicConfig(
@@ -70,7 +70,7 @@ def run_tests():
 
     # Find the path to the tests directory
     try:
-        test_ollama_spec = find_spec("swarm_squad.tests.test_ollama")
+        test_ollama_spec = find_spec("swarm_squad_ep1.tests.test_ollama")
         if not test_ollama_spec or not test_ollama_spec.origin:
             logger.error("Could not find test_ollama module")
             return 1
@@ -93,7 +93,7 @@ def test_ollama_model(model):
     from importlib.util import find_spec
 
     try:
-        test_ollama_spec = find_spec("swarm_squad.tests.test_ollama")
+        test_ollama_spec = find_spec("swarm_squad_ep1.tests.test_ollama")
         if not test_ollama_spec or not test_ollama_spec.origin:
             logger.error("Could not find test_ollama module")
             return 1

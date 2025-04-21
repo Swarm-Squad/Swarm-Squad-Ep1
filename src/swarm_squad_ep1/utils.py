@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 import requests
 
-from swarm_squad.config import LLM_ENABLED, LLM_ENDPOINT, LLM_MODEL
+from swarm_squad_ep1.config import LLM_ENABLED, LLM_ENDPOINT, LLM_MODEL
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -204,7 +204,7 @@ def format_swarm_state_for_llm(swarm_state, agent_names=None):
     Returns:
         String containing natural language description of swarm state
     """
-    from swarm_squad.config import AGENT_NAMES, PT
+    from swarm_squad_ep1.config import AGENT_NAMES, PT
 
     if agent_names is None:
         agent_names = AGENT_NAMES

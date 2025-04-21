@@ -19,7 +19,7 @@ import requests
 
 # Configuration
 OLLAMA_URL = "http://localhost:11434/v1/chat/completions"
-DEFAULT_MODEL = "llama3.3:70b-instruct-q4_K_M"
+DEFAULT_MODEL = "llama3.2:3b-instruct-q4_K_M"
 
 
 def test_ollama_connection(model_name=DEFAULT_MODEL):

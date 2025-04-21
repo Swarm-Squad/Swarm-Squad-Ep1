@@ -7,8 +7,8 @@ from typing import List, Tuple
 
 import numpy as np
 
-import swarm_squad.config as config
-import swarm_squad.utils as utils
+import swarm_squad_ep1.config as config
+import swarm_squad_ep1.utils as utils
 
 
 class SwarmState:

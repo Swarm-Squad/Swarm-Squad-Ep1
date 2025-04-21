@@ -16,7 +16,7 @@ from datetime import datetime
 import numpy as np
 import requests
 
-from swarm_squad.config import (
+from swarm_squad_ep1.config import (
     JAMMING_RADIUS_MULTIPLIER,
     LLM_ENABLED,
     LLM_ENDPOINT,
@@ -26,9 +26,9 @@ from swarm_squad.config import (
     PT,
     ObstacleMode,
 )
-from swarm_squad.controllers.base_controller import BaseController
-from swarm_squad.models.swarm_state import SwarmState
-from swarm_squad.utils import format_llm_feedback, format_swarm_state_for_llm
+from swarm_squad_ep1.controllers.base_controller import BaseController
+from swarm_squad_ep1.models.swarm_state import SwarmState
+from swarm_squad_ep1.utils import format_llm_feedback, format_swarm_state_for_llm
 
 # Set up logging
 logging.basicConfig(
@@ -717,7 +717,7 @@ Provide tactical advice:"""
         swarm_size = self.swarm_state.swarm_size
         positions = self.swarm_state.swarm_position
         comm_matrix = self.swarm_state.communication_qualities_matrix
-        from swarm_squad.utils import get_direction
+        from swarm_squad_ep1.utils import get_direction
 
         for i in range(swarm_size):
             # Get agent name

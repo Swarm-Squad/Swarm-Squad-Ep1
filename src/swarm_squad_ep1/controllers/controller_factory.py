@@ -8,12 +8,12 @@ from typing import Dict
 
 import numpy as np
 
-import swarm_squad.config as config
-from swarm_squad.controllers.base_controller import BaseController
-from swarm_squad.controllers.behavior_controller import BehaviorController
-from swarm_squad.controllers.formation_controller import FormationController
-from swarm_squad.controllers.llm_controller import LLMController
-from swarm_squad.models.swarm_state import SwarmState
+import swarm_squad_ep1.config as config
+from swarm_squad_ep1.controllers.base_controller import BaseController
+from swarm_squad_ep1.controllers.behavior_controller import BehaviorController
+from swarm_squad_ep1.controllers.formation_controller import FormationController
+from swarm_squad_ep1.controllers.llm_controller import LLMController
+from swarm_squad_ep1.models.swarm_state import SwarmState
 
 
 class ControllerType(Enum):

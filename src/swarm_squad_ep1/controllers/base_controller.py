@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from swarm_squad.models.swarm_state import SwarmState
+from swarm_squad_ep1.models.swarm_state import SwarmState
 
 
 class BaseController(ABC):

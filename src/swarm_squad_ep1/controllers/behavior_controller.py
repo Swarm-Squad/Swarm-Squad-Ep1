@@ -5,9 +5,9 @@ and destination control behaviors.
 
 import numpy as np
 
-import swarm_squad.config as config
-from swarm_squad.controllers.base_controller import BaseController
-from swarm_squad.models.swarm_state import SwarmState
+import swarm_squad_ep1.config as config
+from swarm_squad_ep1.controllers.base_controller import BaseController
+from swarm_squad_ep1.models.swarm_state import SwarmState
 
 
 class BehaviorController(BaseController):

@@ -8,7 +8,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 
-import swarm_squad.config as config
+import swarm_squad_ep1.config as config
 
 
 def parse_llm_movement_advice(feedback_text):
