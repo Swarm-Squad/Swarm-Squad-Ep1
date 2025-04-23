@@ -138,6 +138,7 @@ def plot_formation_scene(
     agent_status=None,
     jamming_affected=None,
     llm_feedback=None,
+    llm_controlled_agents=None,
 ):
     """
     Plot the formation scene.
@@ -154,6 +155,7 @@ def plot_formation_scene(
         agent_status: Status of each agent (active or returning)
         jamming_affected: Whether agents are affected by jamming
         llm_feedback: LLM feedback text with movement recommendations
+        llm_controlled_agents: List of agent indices that are currently being controlled by the LLM
     """
     ax.set_title("Formation Scene")
     ax.set_xlabel("$x$")
@@ -167,10 +169,13 @@ def plot_formation_scene(
         # Get status if provided
         is_active = True
         is_jammed = False
+        is_llm_controlled = False
         if agent_status is not None:
             is_active = agent_status[i]
         if jamming_affected is not None:
             is_jammed = jamming_affected[i]
+        if llm_controlled_agents is not None:
+            is_llm_controlled = i in llm_controlled_agents
 
         # Change marker for returning agents
         if not is_active:
@@ -180,6 +185,11 @@ def plot_formation_scene(
         if is_jammed:
             # Draw outer ring for jamming-affected agents
             ax.scatter(*swarm_position[i], s=100, color="yellow", alpha=0.3)
+
+        # Add special indicator for LLM-controlled agents
+        if is_llm_controlled:
+            # Draw a distinctive square outline for LLM-controlled agents
+            ax.scatter(*swarm_position[i], s=150, color="purple", alpha=0.3, marker="s")
 
         # Draw the agent marker
         ax.scatter(*swarm_position[i], color=node_colors[i], marker=marker_style)
@@ -330,6 +340,7 @@ def plot_swarm_trajectories(
     swarm_destination,
     agent_status=None,
     jamming_affected=None,
+    llm_controlled_agents=None,
 ):
     """
     Plot the swarm trajectories.
@@ -343,6 +354,7 @@ def plot_swarm_trajectories(
         swarm_destination: The destination of the swarm
         agent_status: Status of each agent (active or returning)
         jamming_affected: Whether agents are affected by jamming
+        llm_controlled_agents: List of agent indices that are currently being controlled by the LLM
     """
     ax.set_title("Swarm Trajectories")
     ax.set_xlabel("$x$")
@@ -360,10 +372,13 @@ def plot_swarm_trajectories(
             # Get status if provided
             is_active = True
             is_jammed = False
+            is_llm_controlled = False
             if agent_status is not None:
                 is_active = agent_status[i]
             if jamming_affected is not None:
                 is_jammed = jamming_affected[i]
+            if llm_controlled_agents is not None:
+                is_llm_controlled = i in llm_controlled_agents
 
             # Change marker for returning agents
             if not is_active:
@@ -373,6 +388,13 @@ def plot_swarm_trajectories(
             if is_jammed:
                 # Draw outer ring for jamming-affected agents
                 ax.scatter(*swarm_position[i], s=100, color="yellow", alpha=0.3)
+
+            # Add special indicator for LLM-controlled agents
+            if is_llm_controlled:
+                # Draw a distinctive square outline for LLM-controlled agents
+                ax.scatter(
+                    *swarm_position[i], s=150, color="purple", alpha=0.3, marker="s"
+                )
 
             # Draw the agent marker
             ax.scatter(*swarm_position[i], color=node_colors[i], marker=marker_style)
@@ -568,8 +590,11 @@ def plot_all_figures(
 
     # Get LLM feedback for visualization
     llm_feedback = None
+    llm_controlled_agents = None
     if llm_controller:
         llm_feedback = llm_controller.get_last_feedback()
+        if hasattr(llm_controller, "llm_affected_agents"):
+            llm_controlled_agents = llm_controller.llm_affected_agents
 
     # Plot formation scene
     plot_formation_scene(
@@ -584,6 +609,7 @@ def plot_all_figures(
         agent_status,
         jamming_affected,
         llm_feedback,
+        llm_controlled_agents,
     )
 
     # Plot swarm trajectories
@@ -596,6 +622,7 @@ def plot_all_figures(
         swarm_destination,
         agent_status,
         jamming_affected,
+        llm_controlled_agents,
     )
 
     # Plot Jn performance

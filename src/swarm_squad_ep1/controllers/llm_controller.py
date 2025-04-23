@@ -18,10 +18,12 @@ import requests
 
 from swarm_squad_ep1.config import (
     JAMMING_RADIUS_MULTIPLIER,
+    LLM_ALTERNATE_PROMPT,
     LLM_ENABLED,
     LLM_ENDPOINT,
     LLM_FEEDBACK_INTERVAL,
     LLM_MODEL,
+    LLM_NORMAL_PROMPT,
     OBSTACLE_MODE,
     PT,
     ObstacleMode,
@@ -87,6 +89,12 @@ class LLMController(BaseController):
         # Set up logging to file
         self._setup_file_logging()
 
+        # Store parsed LLM control inputs
+        self.llm_control_inputs = None
+        self.llm_affected_agents = []
+        self.llm_control_expiry = 0  # Time when the current control inputs expire
+        self.llm_control_lifetime = 10  # Number of steps a control input remains active
+
     def _setup_file_logging(self):
         """Set up dedicated file logging for LLM responses"""
         # Create logs directory if it doesn't exist
@@ -121,12 +129,6 @@ class LLMController(BaseController):
         """Log a message to the dedicated LLM response log file"""
         self.file_logger.info(message)
 
-    def schedule_reconnect(self):
-        """Schedule a background reconnection attempt after a delay"""
-        logger.info("Scheduling background reconnection attempt in 15 seconds...")
-        self.reconnect_time = time.time() + 15
-        self.should_reconnect = True
-
     def try_reconnect(self):
         """Try to reconnect to the LLM service"""
         if not hasattr(self, "should_reconnect") or not self.should_reconnect:
@@ -159,8 +161,8 @@ class LLMController(BaseController):
         Calculate control inputs using LLM-guided decisions.
 
         This method first gets control inputs from the default controller,
-        then periodically updates LLM feedback, and in the future will
-        modify control inputs based on LLM reasoning.
+        then periodically updates LLM feedback, and will modify control
+        inputs based on LLM reasoning only when abnormal conditions exist.
 
         Returns:
             A numpy array of shape (swarm_size, 2) containing the control
@@ -193,6 +195,14 @@ class LLMController(BaseController):
 
         # Check for completed LLM request in queue
         self._check_feedback_queue()
+
+        # Process any new feedback into control inputs
+        if (
+            self.current_feedback
+            and self.current_feedback != self._last_processed_feedback
+        ):
+            self._parse_llm_feedback_to_control_inputs()
+            self._last_processed_feedback = self.current_feedback
 
         # Only proceed with LLM requests if enabled
         if not self.enabled:
@@ -228,9 +238,187 @@ class LLMController(BaseController):
                 f"Skipping LLM request at step {self.step_counter}: last request was {time_since_last_request:.1f}s ago"
             )
 
-        # In the future, we'll modify control_inputs based on LLM reasoning here
+        # Only apply LLM control inputs when abnormal conditions exist
+        if (
+            self.llm_control_inputs is not None
+            and self.step_counter < self.llm_control_expiry
+        ):
+            # Check for abnormal conditions that would warrant LLM intervention
+            abnormal_conditions, condition_severity = (
+                self._check_for_abnormal_conditions()
+            )
+
+            if abnormal_conditions:
+                # Apply LLM control inputs to the affected agents
+                for agent_idx in self.llm_affected_agents:
+                    if agent_idx < self.swarm_state.swarm_size:
+                        # Get the jamming severity for this specific agent
+                        agent_severity = self._get_agent_severity(agent_idx)
+
+                        # Calculate weights based on severity
+                        # More severe conditions = more LLM control, less destination control
+                        llm_weight = min(0.95, 0.7 + agent_severity * 0.25)
+                        base_weight = 1.0 - llm_weight
+
+                        # Apply weighted control with reduced base control for jamming-affected agents
+                        control_inputs[agent_idx] = (
+                            llm_weight * self.llm_control_inputs[agent_idx]
+                            + base_weight * control_inputs[agent_idx]
+                        )
+                        logger.info(
+                            f"Applied LLM control to agent {agent_idx}: {self.llm_control_inputs[agent_idx]} "
+                            f"(weights: LLM={llm_weight:.2f}, base={base_weight:.2f})"
+                        )
+
+                # Also apply avoidance behaviors to agents near affected agents
+                self._apply_avoidance_to_nearby_agents(control_inputs)
+            else:
+                logger.debug("Normal conditions detected, not applying LLM control")
 
         return control_inputs
+
+    def _get_agent_severity(self, agent_idx):
+        """
+        Get the severity of abnormal conditions for a specific agent.
+
+        Returns:
+            float: Severity value from 0.0 (normal) to 1.0 (severe)
+        """
+        # Check if agent is affected by jamming
+        if (
+            hasattr(self.swarm_state, "jamming_affected")
+            and self.swarm_state.jamming_affected[agent_idx]
+        ):
+            # If we have jamming depth info, use it for severity
+            if hasattr(self.swarm_state, "jamming_depth"):
+                return self.swarm_state.jamming_depth[agent_idx]
+            return 0.5  # Default severity if depth not available
+
+        # Check poor communication quality for this agent
+        comm_qualities = self.swarm_state.communication_qualities_matrix[agent_idx]
+        # Calculate severity based on how far below threshold the worst connection is
+        if np.any(comm_qualities > 0) and np.any(comm_qualities < PT):
+            # Find the worst quality that's still active
+            active_comms = comm_qualities[comm_qualities > 0]
+            worst_quality = np.min(active_comms)
+            # Calculate severity as how far below threshold
+            if worst_quality < PT:
+                severity = (PT - worst_quality) / PT
+                return min(1.0, severity)
+
+        return 0.0  # No abnormal conditions for this agent
+
+    def _apply_avoidance_to_nearby_agents(self, control_inputs):
+        """
+        Apply avoidance behavior to agents near affected agents.
+
+        Args:
+            control_inputs: The control inputs array to modify
+        """
+        # Identify agents that are affected by jamming
+        if not hasattr(self.swarm_state, "jamming_affected"):
+            return
+
+        jamming_affected = np.where(self.swarm_state.jamming_affected)[0]
+        if len(jamming_affected) == 0:
+            return
+
+        # Get positions of all agents
+        positions = self.swarm_state.swarm_position
+
+        # Define influence radius - how far should awareness extend beyond affected agents
+        influence_radius = 15.0
+
+        # For each non-affected agent, check if it's near an affected agent
+        for agent_idx in range(self.swarm_state.swarm_size):
+            if (
+                agent_idx in self.llm_affected_agents
+                or self.swarm_state.jamming_affected[agent_idx]
+            ):
+                continue  # Skip already affected agents
+
+            # Check distance to all affected agents
+            for affected_idx in jamming_affected:
+                dist = np.linalg.norm(positions[agent_idx] - positions[affected_idx])
+
+                # If close enough to be influenced
+                if dist < influence_radius:
+                    # Calculate influence strength (stronger when closer)
+                    influence = max(0, (influence_radius - dist) / influence_radius)
+
+                    # Find direction AWAY from affected agent
+                    direction = positions[agent_idx] - positions[affected_idx]
+                    if np.linalg.norm(direction) > 0:
+                        direction = direction / np.linalg.norm(direction)
+
+                    # Calculate avoidance vector - stronger when closer
+                    avoidance = direction * influence * 0.5
+
+                    # Apply avoidance vector, blended with original control
+                    avoidance_weight = min(0.6, influence * 0.8)
+                    control_inputs[agent_idx] = (1 - avoidance_weight) * control_inputs[
+                        agent_idx
+                    ] + avoidance_weight * avoidance
+
+                    logger.info(
+                        f"Applied avoidance to agent {agent_idx} near jamming-affected agent {affected_idx}"
+                    )
+
+    def _check_for_abnormal_conditions(self):
+        """
+        Check if there are abnormal conditions that would warrant LLM intervention.
+
+        Abnormal conditions include:
+        - Poor communication quality between agents
+        - Jamming affecting agents
+        - Obstacles in the path
+
+        Returns:
+            tuple: (bool, float) - Whether abnormal conditions exist and the severity (0-1)
+        """
+        severity = 0.0
+
+        # Check if any agent is affected by jamming
+        if hasattr(self.swarm_state, "jamming_affected") and np.any(
+            self.swarm_state.jamming_affected
+        ):
+            # Count how many agents are affected to determine severity
+            affected_count = np.sum(self.swarm_state.jamming_affected)
+            severity = max(
+                severity, min(1.0, affected_count / self.swarm_state.swarm_size)
+            )
+            logger.info(
+                f"Abnormal condition: Jamming detected, affecting {affected_count} agents"
+            )
+            return True, severity
+
+        # Check if any agent has poor communication quality
+        comm_matrix = self.swarm_state.communication_qualities_matrix
+        # Find pairs where communication exists but is below threshold
+        poor_comm = (comm_matrix > 0) & (comm_matrix < PT)
+        if np.any(poor_comm):
+            # Count poor connections to determine severity
+            poor_count = np.sum(poor_comm)
+            total_connections = np.sum(comm_matrix > 0)
+            if total_connections > 0:
+                severity = max(severity, min(1.0, poor_count / total_connections))
+            logger.info(
+                f"Abnormal condition: Poor communication quality detected ({poor_count} connections)"
+            )
+            return True, severity
+
+        # Check for formation issues (agents too far apart)
+        if len(self.swarm_state.Jn) > 0 and self.swarm_state.Jn[-1] < 0.9:
+            # Calculate severity based on how low Jn is
+            jn_severity = max(0, 0.9 - self.swarm_state.Jn[-1]) / 0.9
+            severity = max(severity, jn_severity)
+            logger.info(
+                f"Abnormal condition: Low Jn value ({self.swarm_state.Jn[-1]:.4f})"
+            )
+            return True, severity
+
+        # No abnormal conditions detected
+        return False, 0.0
 
     def _check_feedback_queue(self):
         """Check if any feedback is available in the queue and process it"""
@@ -250,6 +438,9 @@ class LLMController(BaseController):
 
                     # Log the feedback to file
                     self.log_to_file(f"FEEDBACK (Step {self.step_counter}): {feedback}")
+
+                    # Set attribute to track when feedback was last processed into control
+                    self._last_processed_feedback = None
                 self.feedback_queue.task_done()
 
             # Check if thread is done
@@ -301,69 +492,14 @@ class LLMController(BaseController):
             # Adjust the prompt based on whether jamming is present
             if has_jamming:
                 # Jamming-focused prompt when jamming is detected
-                prompt = f"""You are a tactical advisor for a swarm of autonomous vehicles specializing in ESCAPING JAMMING FIELDS.
-
-IMPORTANT CONTEXT:
-- Communication quality ranges from 0 (no connection) to 1 (perfect quality)
-- Quality above 0.94 is considered "good" and below 0.94 is "poor"
-- Low-power jamming causes gradual degradation of communication quality
-- High-power jamming causes abrupt disconnection and agents return to base
-- JAMMING FIELDS ARE YOUR PRIMARY CONCERN - they must be escaped immediately
-
-YOUR TASK:
-1. Identify agents inside jamming fields (showing communication degradation)
-2. Provide PRECISE directional instructions to escape jamming
-3. Specify EXACT directions using the following system:
-   - Cardinal: north, east, south, west
-   - Ordinal: northeast, southeast, southwest, northwest
-   - Secondary: north-northeast, east-northeast, east-southeast, south-southeast, 
-     south-southwest, west-southwest, west-northwest, north-northwest
-   - Tertiary: north by northeast, northeast by north, northeast by east, east by northeast,
-     east by southeast, southeast by east, southeast by south, south by southeast,
-     south by southwest, southwest by south, southwest by west, west by southwest,
-     west by northwest, northwest by west, northwest by north, north by northwest
-4. Always prioritize MOVING AWAY FROM JAMMING FIELDS over formation integrity
-5. Suggest distance values between 5-10 units for effective escape
-
-FORMAT YOUR RESPONSE as a 30-word tactical instruction with specific agent numbers and EXACT directions:
-Example: "Agent-1: Move 8 units north-northwest to escape jamming. Agent-2: Reposition 10 units west by southwest to exit interference field."
-
-REMEMBER: Focus on EXTRACTING AGENTS FROM JAMMING FIELDS first, maintain formation second.
-
+                prompt = f"""{LLM_ALTERNATE_PROMPT}
 Current swarm state:
 {state_description}
 
 Provide tactical advice:"""
             else:
                 # Standard mission-focused prompt when no jamming is present
-                prompt = f"""You are a tactical advisor for a swarm of autonomous vehicles.
-
-IMPORTANT CONTEXT:
-- Communication quality ranges from 0 (no connection) to 1 (perfect quality)
-- Quality above 0.94 is considered "good" and below 0.94 is "poor"
-- The swarm needs to maintain good communication while reaching the destination
-- Physical obstacles should be avoided by all agents
-
-YOUR TASK:
-1. Analyze the formation and communication quality between agents
-2. Provide PRECISE directional instructions for effective movement
-3. Specify EXACT directions using the following system:
-   - Cardinal: north, east, south, west
-   - Ordinal: northeast, southeast, southwest, northwest
-   - Secondary: north-northeast, east-northeast, east-southeast, south-southeast, 
-     south-southwest, west-southwest, west-northwest, north-northwest
-   - Tertiary: north by northeast, northeast by north, northeast by east, east by northeast,
-     east by southeast, southeast by east, southeast by south, south by southeast,
-     south by southwest, southwest by south, southwest by west, west by southwest,
-     west by northwest, northwest by west, northwest by north, north by northwest
-4. Ensure all agents maintain good communication links
-5. Focus on reaching the destination efficiently while maintaining formation
-
-FORMAT YOUR RESPONSE as a 30-word tactical instruction with specific agent numbers and EXACT directions:
-Example: "Agent-1: Move 5 units east by southeast to improve formation. Agent-2: Reposition 4 units north-northeast to maintain optimal spacing."
-
-REMEMBER: Balance between maintaining formation and reaching the destination is key.
-
+                prompt = f"""{LLM_NORMAL_PROMPT}
 Current swarm state:
 {state_description}
 
@@ -1117,21 +1253,121 @@ Provide tactical advice:"""
 
         return "\n".join(result)
 
-    # Methods for future LLM-based control implementation
-    def analyze_situation(self):
+    def _parse_llm_feedback_to_control_inputs(self):
         """
-        Analyze the current swarm state and formulate a query for the LLM.
-        This method extracts relevant information from the swarm state
-        to create context for the LLM decision.
-        """
-        # This will be implemented when we expand LLM control capabilities
-        pass
+        Parse the LLM feedback into actual control inputs.
 
-    def interpret_llm_response(self, response):
+        This function extracts directional commands from the LLM feedback and
+        converts them into vector control inputs for the affected agents.
         """
-        Interpret the LLM's response and convert it to control actions.
-        This parses text or structured output from the LLM into
-        specific control parameters.
-        """
-        # This will be implemented when we expand LLM control capabilities
-        pass
+        if not self.current_feedback:
+            return
+
+        # Initialize control inputs if necessary
+        if self.llm_control_inputs is None:
+            self.llm_control_inputs = np.zeros((self.swarm_state.swarm_size, 2))
+
+        # Reset affected agents list
+        self.llm_affected_agents = []
+
+        # Parse feedback to extract agent commands
+        # Example format: "Agent-1: Move 8 units north-northwest to escape jamming."
+        feedback = self.current_feedback
+
+        # Regular expression to match agent instructions
+        # Matches: Agent-X: Move/Reposition Y units DIRECTION
+        # Now handles "to" after the direction (e.g., "Move 8 units north to escape jamming")
+        agent_instruction_pattern = r"Agent-(\d+):\s+(?:Move|Reposition)\s+(\d+)\s+units\s+([\w\-\s]+?)(?:\s+to\s+.*?)?(?:\.|\s|$)"
+
+        # Direction to vector mapping
+        direction_to_vector = {
+            # Cardinal directions
+            "north": (0, 1),
+            "east": (1, 0),
+            "south": (0, -1),
+            "west": (-1, 0),
+            # Ordinal directions
+            "northeast": (0.7071, 0.7071),
+            "southeast": (0.7071, -0.7071),
+            "southwest": (-0.7071, -0.7071),
+            "northwest": (-0.7071, 0.7071),
+            # Secondary directions
+            "north-northeast": (0.3827, 0.9239),
+            "east-northeast": (0.9239, 0.3827),
+            "east-southeast": (0.9239, -0.3827),
+            "south-southeast": (0.3827, -0.9239),
+            "south-southwest": (-0.3827, -0.9239),
+            "west-southwest": (-0.9239, -0.3827),
+            "west-northwest": (-0.9239, 0.3827),
+            "north-northwest": (-0.3827, 0.9239),
+            # Tertiary directions
+            "north by northeast": (0.1951, 0.9808),
+            "northeast by north": (0.5556, 0.8315),
+            "northeast by east": (0.8315, 0.5556),
+            "east by northeast": (0.9808, 0.1951),
+            "east by southeast": (0.9808, -0.1951),
+            "southeast by east": (0.8315, -0.5556),
+            "southeast by south": (0.5556, -0.8315),
+            "south by southeast": (0.1951, -0.9808),
+            "south by southwest": (-0.1951, -0.9808),
+            "southwest by south": (-0.5556, -0.8315),
+            "southwest by west": (-0.8315, -0.5556),
+            "west by southwest": (-0.9808, -0.1951),
+            "west by northwest": (-0.9808, 0.1951),
+            "northwest by west": (-0.8315, 0.5556),
+            "northwest by north": (-0.5556, 0.8315),
+            "north by northwest": (-0.1951, 0.9808),
+        }
+
+        # Find all agent instructions in the feedback
+        agent_instructions = re.findall(agent_instruction_pattern, feedback)
+
+        if not agent_instructions:
+            logger.info("No agent control instructions found in LLM feedback")
+            return
+
+        # Process each instruction
+        for agent_idx_str, distance_str, direction in agent_instructions:
+            try:
+                agent_idx = int(agent_idx_str)
+                distance = float(distance_str)
+
+                # Clean up the direction - remove any trailing "to" and strip whitespace
+                clean_direction = direction.lower().strip()
+
+                # Remove any trailing particles like "to" if they exist
+                if " to" in clean_direction:
+                    clean_direction = clean_direction.split(" to")[0].strip()
+
+                # Look up the vector for this direction
+                if clean_direction in direction_to_vector:
+                    vector = direction_to_vector[clean_direction]
+
+                    # Scale the vector by the distance
+                    scaled_vector = (
+                        vector[0] * distance * 0.1,
+                        vector[1] * distance * 0.1,
+                    )
+
+                    # Store the control input for this agent
+                    if agent_idx < self.swarm_state.swarm_size:
+                        self.llm_control_inputs[agent_idx] = scaled_vector
+                        self.llm_affected_agents.append(agent_idx)
+
+                        logger.info(
+                            f"Parsed LLM control for agent {agent_idx}: direction={clean_direction}, distance={distance}, vector={scaled_vector}"
+                        )
+                else:
+                    logger.warning(
+                        f"Unknown direction '{clean_direction}' in LLM feedback"
+                    )
+
+            except (ValueError, IndexError) as e:
+                logger.error(f"Error parsing agent instruction: {e}")
+
+        # Set expiry for these control inputs
+        self.llm_control_expiry = self.step_counter + self.llm_control_lifetime
+
+        logger.info(
+            f"LLM control inputs will be active until step {self.llm_control_expiry}"
+        )

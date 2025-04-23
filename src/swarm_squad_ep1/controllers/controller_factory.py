@@ -161,8 +161,8 @@ class ControllerFactory:
         # print(f"### Controller Factory step() at iteration {self.swarm_state.iteration}, getting LLM controller")
 
         # Call LLM controller's compute_control method to let it process feedback
-        # This is separate from actual control execution
-        _ = llm_controller.compute_control()
+        # and get any LLM-guided control inputs
+        llm_control_inputs = llm_controller.compute_control()
 
         # Special case for combined controller
         if self.active_controller_type == ControllerType.COMBINED:
@@ -187,6 +187,21 @@ class ControllerFactory:
                     # Combine control inputs (weighted sum)
                     control_inputs = 0.3 * comm_inputs + 0.7 * behav_inputs
 
+                    # Let the LLM controller decide if its inputs should be applied
+                    # based on abnormal conditions
+                    if (
+                        hasattr(llm_controller, "llm_affected_agents")
+                        and llm_controller.llm_affected_agents
+                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
+                        and llm_controller._check_for_abnormal_conditions()[0]
+                    ):
+                        for agent_idx in llm_controller.llm_affected_agents:
+                            if agent_idx < self.swarm_state.swarm_size:
+                                # Use the LLM control inputs directly since they already consider base control
+                                control_inputs[agent_idx] = llm_control_inputs[
+                                    agent_idx
+                                ]
+
                     # Apply combined control inputs using the base method
                     self.swarm_state.swarm_control_ui = control_inputs
                     self.swarm_state.swarm_position += control_inputs
@@ -203,16 +218,27 @@ class ControllerFactory:
                     comm_controller = self.controllers[ControllerType.FORMATION]
                     behav_controller = self.controllers[ControllerType.BEHAVIOR]
 
-                    # print(
-                    #     "DEBUG: Using BOTH controllers (formation + behavior) after convergence"
-                    # )
-
                     # Get control inputs from both controllers
                     comm_inputs = comm_controller.compute_control()
                     behav_inputs = behav_controller.compute_control()
 
                     # Combine control inputs (weighted sum)
                     control_inputs = 0.3 * comm_inputs + 0.7 * behav_inputs
+
+                    # Let the LLM controller decide if its inputs should be applied
+                    # based on abnormal conditions
+                    if (
+                        hasattr(llm_controller, "llm_affected_agents")
+                        and llm_controller.llm_affected_agents
+                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
+                        and llm_controller._check_for_abnormal_conditions()[0]
+                    ):
+                        for agent_idx in llm_controller.llm_affected_agents:
+                            if agent_idx < self.swarm_state.swarm_size:
+                                # Use the LLM control inputs directly since they already consider base control
+                                control_inputs[agent_idx] = llm_control_inputs[
+                                    agent_idx
+                                ]
 
                     # Apply combined control inputs using the base method
                     self.swarm_state.swarm_control_ui = control_inputs
@@ -222,6 +248,22 @@ class ControllerFactory:
                     comm_controller = self.controllers[ControllerType.FORMATION]
                     # print("DEBUG: Using ONLY formation controller before convergence")
                     control_inputs = comm_controller.compute_control()
+
+                    # Let the LLM controller decide if its inputs should be applied
+                    # based on abnormal conditions
+                    if (
+                        hasattr(llm_controller, "llm_affected_agents")
+                        and llm_controller.llm_affected_agents
+                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
+                        and llm_controller._check_for_abnormal_conditions()[0]
+                    ):
+                        for agent_idx in llm_controller.llm_affected_agents:
+                            if agent_idx < self.swarm_state.swarm_size:
+                                # Use the LLM control inputs directly since they already consider base control
+                                control_inputs[agent_idx] = llm_control_inputs[
+                                    agent_idx
+                                ]
+
                     comm_controller.apply_control(control_inputs)
 
             # Update performance metrics
@@ -236,10 +278,34 @@ class ControllerFactory:
         # For single controllers
         elif self.active_controller_type == ControllerType.FORMATION:
             self.controllers[ControllerType.FORMATION].update_swarm_state()
+        elif self.active_controller_type == ControllerType.LLM:
+            # Special case when LLM is the active controller
+            self.swarm_state.update_matrices()
+            control_inputs = (
+                llm_control_inputs  # Use the already computed LLM control inputs
+            )
+            self.controllers[self.active_controller_type].apply_control(control_inputs)
+            self.swarm_state.update_performance_metrics()
+            self.swarm_state.update_swarm_paths()
+            self.swarm_state.iteration += 1
         else:
             # For other controllers without specific update methods
             self.swarm_state.update_matrices()
             control_inputs = self.compute_control()
+
+            # Let the LLM controller decide if its inputs should be applied
+            # based on abnormal conditions
+            if (
+                hasattr(llm_controller, "llm_affected_agents")
+                and llm_controller.llm_affected_agents
+                and hasattr(llm_controller, "_check_for_abnormal_conditions")
+                and llm_controller._check_for_abnormal_conditions()[0]
+            ):
+                for agent_idx in llm_controller.llm_affected_agents:
+                    if agent_idx < self.swarm_state.swarm_size:
+                        # Use the LLM control inputs directly since they already consider base control
+                        control_inputs[agent_idx] = llm_control_inputs[agent_idx]
+
             self.controllers[self.active_controller_type].apply_control(control_inputs)
             self.swarm_state.update_performance_metrics()
             self.swarm_state.update_swarm_paths()

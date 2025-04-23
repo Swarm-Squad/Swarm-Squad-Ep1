@@ -1077,7 +1077,3 @@ class FormationControlGUI(QMainWindow):
     def _format_mission_line(self, line):
         """Format a mission information line."""
         return f"<span style='color:#663399; font-weight:bold;'>{line}</span>"
-
-    def resizeEvent(self, event):
-        """Handle resize events"""
-        super().resizeEvent(event)
