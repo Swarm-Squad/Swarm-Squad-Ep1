@@ -23,13 +23,13 @@ This project builds upon our previous research in formation control and swarm in
   </tr>
   <tr>
     <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="lib/img/cover_paper.png?raw=true" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Li-paper.pdf"><img src="lib/img/cover_paper.png?raw=true" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
     </td>
     <td align="center">
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_ppt.png?raw=true" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_video.png?raw=true" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_ppt.png?raw=true" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="lib/img/cover_video.png?raw=true" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
     </td>
   </tr>
