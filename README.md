@@ -10,7 +10,7 @@
 
 This project builds upon our previous research in formation control and swarm intelligence:
 
-<a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/gui.png" width="100%" /></a>
+<img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/gui.png" width="100%" />
 
 
 - 🚗 **Low-Level Controller:** Vehicle agents equipped with behavior-based and communication-aware formation control<br/>
@@ -26,13 +26,13 @@ This project builds upon our previous research in formation control and swarm in
   </tr>
   <tr>
     <td align="center">
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Li-paper.pdf"><img src="lib/img/cover_paper.png?raw=true" /></a>
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Li-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-paper.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_paper.png" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
     </td>
     <td align="center">
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="lib/img/cover_ppt.png?raw=true" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_ppt.png" /></a>
           <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>   
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="lib/img/cover_video.png?raw=true" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_video.png" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
     </td>
   </tr>
@@ -41,11 +41,9 @@ This project builds upon our previous research in formation control and swarm in
 
 <h2 align="center">🚀 Getting Started</h2>
 
-Get [uv](https://docs.astral.sh/uv/getting-started/installation/) and create a virtual environment.
+It is recommended to use [uv](https://docs.astral.sh/uv/getting-started/installation/) to create a virtual environment and install the following package.
 ```bash
-uv venv --python 3.10
-source .venv/bin/activate
-uv pip install swarm-squad-ep1
+pip install swarm-squad-ep1
 ```
 
 To run the application, simply type:
