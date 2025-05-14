@@ -79,7 +79,13 @@ class FormationControlGUI(QMainWindow):
     formation control simulation.
     """
 
-    def __init__(self, parent=None, llm_model=None, llm_feedback_interval=None):
+    def __init__(
+        self,
+        parent=None,
+        llm_model=None,
+        llm_feedback_interval=None,
+        cli_obstacles=None,
+    ):
         """
         Initialize the GUI.
 
@@ -87,6 +93,7 @@ class FormationControlGUI(QMainWindow):
             parent: The parent widget (optional)
             llm_model: Custom LLM model to use (overrides config)
             llm_feedback_interval: Custom LLM feedback interval (overrides config)
+            cli_obstacles: List of obstacles from command line (x, y, radius)
         """
         super().__init__(parent)
 
@@ -97,6 +104,9 @@ class FormationControlGUI(QMainWindow):
             if llm_feedback_interval is not None
             else config.LLM_FEEDBACK_INTERVAL
         )
+
+        # Store CLI obstacles
+        self.cli_obstacles = cli_obstacles or []
 
         self.setWindowTitle("Formation Control Simulation")
 
@@ -158,6 +168,16 @@ class FormationControlGUI(QMainWindow):
     def _initialize_state(self):
         """Initialize simulation state and variables."""
         self.swarm_state = SwarmState()
+
+        # Add CLI obstacles if provided
+        if self.cli_obstacles:
+            # Clear any predefined obstacles from config
+            self.swarm_state.obstacles = []
+
+            # Add CLI obstacles
+            for obs in self.cli_obstacles:
+                self.swarm_state.add_obstacle(obs[0], obs[1], obs[2])
+
         self.controller_factory = ControllerFactory(
             self.swarm_state,
             llm_model=self.llm_model,
@@ -676,6 +696,15 @@ class FormationControlGUI(QMainWindow):
 
         # Reset the swarm state
         self.swarm_state.reset()
+
+        # Re-add CLI obstacles if provided
+        if self.cli_obstacles:
+            # Clear any predefined obstacles from config
+            self.swarm_state.obstacles = []
+
+            # Add CLI obstacles
+            for obs in self.cli_obstacles:
+                self.swarm_state.add_obstacle(obs[0], obs[1], obs[2])
 
         # Update the plot
         self.update_plot()

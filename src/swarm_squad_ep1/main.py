@@ -1,5 +1,18 @@
 """
 Main entry point for the formation control simulation.
+
+Examples:
+    # Run with default settings
+    python -m swarm_squad_ep1.main
+
+    # Run with custom LLM model and feedback interval
+    python -m swarm_squad_ep1.main -m llama3.3:70b-instruct-q4_K_M -i 10
+
+    # Run with predefined obstacles
+    python -m swarm_squad_ep1.main -o 20,50,10 -o 50,80,8
+
+    # Run tests
+    python -m swarm_squad_ep1.main -t
 """
 
 import argparse
@@ -43,6 +56,14 @@ def parse_arguments():
         type=int,
         default=LLM_FEEDBACK_INTERVAL,
         help=f"LLM feedback interval in simulation steps (default: {LLM_FEEDBACK_INTERVAL})",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--obstacle",
+        action="append",
+        help="Define an obstacle in format x,y,radius. Can be used multiple times. Example: -o 20,50,10 -o 50,80,8",
+        dest="obstacles",
     )
 
     # Testing options
@@ -125,6 +146,27 @@ def main():
     model = args.model
     interval = args.interval
 
+    # Process obstacle arguments if provided
+    cli_obstacles = []
+    if args.obstacles:
+        for obstacle_str in args.obstacles:
+            try:
+                # Split by comma and convert to float
+                x, y, radius = map(float, obstacle_str.split(","))
+                cli_obstacles.append((x, y, radius))
+            except ValueError:
+                print(
+                    f"Warning: Invalid obstacle format '{obstacle_str}'. Expected format is 'x,y,radius'."
+                )
+                continue
+
+        if cli_obstacles:
+            logger.info(f"Using {len(cli_obstacles)} obstacles from command line")
+            for i, obs in enumerate(cli_obstacles):
+                logger.info(
+                    f"  Obstacle {i + 1}: Position [{obs[0]}, {obs[1]}], Radius {obs[2]}"
+                )
+
     app = QApplication(sys.argv)
 
     # Check if Ollama is running if LLM is enabled
@@ -140,8 +182,10 @@ def main():
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
-    # Start the GUI with custom LLM settings
-    gui = FormationControlGUI(llm_model=model, llm_feedback_interval=interval)
+    # Start the GUI with custom LLM settings and obstacles
+    gui = FormationControlGUI(
+        llm_model=model, llm_feedback_interval=interval, cli_obstacles=cli_obstacles
+    )
     gui.show()
     sys.exit(app.exec_())
 

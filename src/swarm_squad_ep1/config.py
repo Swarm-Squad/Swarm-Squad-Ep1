@@ -31,25 +31,9 @@ LOWPOWER_JAMMING_DEGRADATION = 0.8  # Base factor for low power jamming (higher 
 # If list is empty, no obstacles will be pre-drawn
 PREDEFINED_OBSTACLES = [
     # Example: (x, y, radius)
-    # (20, 50, 10),  # Large obstacle between agents and destination
-    # (50, 80, 8),  # Another obstacle closer to destination
+    # (20, 50, 10),
+    # (20, 70, 20),
 ]
-
-# Example obstacle configurations for evaluation scenarios (uncomment as needed):
-# Scenario 1: Single large obstacle in the path
-# PREDEFINED_OBSTACLES = [(35, 75, 15)]
-
-# Scenario 2: Narrow passage with two obstacles
-# PREDEFINED_OBSTACLES = [(20, 75, 15), (50, 75, 15)]
-
-# Scenario 3: Complex field with multiple obstacles
-# PREDEFINED_OBSTACLES = [(20, 50, 10), (50, 80, 8), (10, 100, 12), (60, 120, 10)]
-
-# Scenario 4: Jamming field evaluation (best with LOW_POWER_JAMMING mode)
-# PREDEFINED_OBSTACLES = [(35, 60, 20)]
-
-# Scenario 5: Complete blockage test (best with HIGH_POWER_JAMMING mode)
-# PREDEFINED_OBSTACLES = [(35, 40, 30)]
 
 
 # Simulation parameters
@@ -63,7 +47,7 @@ PT = 0.94
 
 # Initial swarm positions
 INITIAL_SWARM_POSITIONS = np.array(
-    [[-5, 14], [-5, -19], [0, 0], [35, -4], [68, 0], [72, 13], [72, -18]],
+    [[-5, 4], [-5, -9], [0, -10], [35, -14], [68, -10], [72, 3], [72, -8]],
     dtype=float,
 )
 
@@ -90,13 +74,14 @@ WALL_FOLLOWING_MAGNITUDE = 2.0  # af parameter
 WALL_DISTANCE = 10.0  # df parameter
 
 # LLM Integration Parameters
-LLM_ENABLED = False
+LLM_ENABLED = True
 LLM_FEEDBACK_INTERVAL = 5  # How often to send updates to LLM (every N simulation steps) - increase for less frequent updates
 LLM_ENDPOINT = "http://localhost:11434/api/generate"  # Ollama direct endpoint
 LLM_MODEL = "llama3.3:70b-instruct-q4_K_M"  # Model to use with Ollama
 AGENT_NAMES = [
     f"Agent-{i}" for i in range(len(INITIAL_SWARM_POSITIONS))
 ]  # Default agent names
+
 LLM_NORMAL_PROMPT = """You are a tactical advisor for a swarm of autonomous vehicles.
 
 IMPORTANT CONTEXT:

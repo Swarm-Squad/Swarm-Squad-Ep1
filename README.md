@@ -14,7 +14,7 @@ This project builds upon our previous research in formation control and swarm in
 - 🤖 **High-Level Controller:** LLM agents processing simulation data to provide strategic guidance<br/>
 - 🎯 **Goal:** Enable swarm resilience and mission completion in challenging environments with jamming/obstacles
 
-<h3 align="center">Supplementary Materials</h3>
+<!-- <h3 align="center">Supplementary Materials</h3>
 
 <table>
   <tr>
@@ -33,7 +33,7 @@ This project builds upon our previous research in formation control and swarm in
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>     
     </td>
   </tr>
-</table>
+</table> -->
 
 
 <h2 align="center">🚀 Getting Started</h2>
