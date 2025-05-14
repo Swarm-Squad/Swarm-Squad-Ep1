@@ -10,6 +10,9 @@
 
 This project builds upon our previous research in formation control and swarm intelligence:
 
+<a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/gui.png" width="100%" /></a>
+
+
 - 🚗 **Low-Level Controller:** Vehicle agents equipped with behavior-based and communication-aware formation control<br/>
 - 🤖 **High-Level Controller:** LLM agents processing simulation data to provide strategic guidance<br/>
 - 🎯 **Goal:** Enable swarm resilience and mission completion in challenging environments with jamming/obstacles

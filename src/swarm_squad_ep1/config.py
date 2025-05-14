@@ -32,7 +32,7 @@ LOWPOWER_JAMMING_DEGRADATION = 0.8  # Base factor for low power jamming (higher 
 PREDEFINED_OBSTACLES = [
     # Example: (x, y, radius)
     # (20, 50, 10),
-    # (20, 70, 20),
+    # (-10, 70, 25),
 ]
 
 
