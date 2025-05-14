@@ -55,7 +55,7 @@ def test_ollama_connection(model_name=DEFAULT_MODEL):
             return False
 
         # Print raw response for debugging
-        print(f"Raw response text (first 500 chars):\n{response.text[:500]}...")
+        print(f"Response:{json.dumps(response.json(), indent=2)}")
 
         # Try to parse JSON response
         try:

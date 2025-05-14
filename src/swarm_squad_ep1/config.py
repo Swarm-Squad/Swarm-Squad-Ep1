@@ -26,6 +26,32 @@ LOWPOWER_JAMMING_DEGRADATION = 0.8  # Base factor for low power jamming (higher 
 # At the edge: degradation_factor = LOWPOWER_JAMMING_DEGRADATION (mild effect)
 # Deep inside: degradation_factor approaches 0.2 (severe effect)
 
+# Predefined obstacles
+# Format: List of tuples (x, y, radius)
+# If list is empty, no obstacles will be pre-drawn
+PREDEFINED_OBSTACLES = [
+    # Example: (x, y, radius)
+    # (20, 50, 10),  # Large obstacle between agents and destination
+    # (50, 80, 8),  # Another obstacle closer to destination
+]
+
+# Example obstacle configurations for evaluation scenarios (uncomment as needed):
+# Scenario 1: Single large obstacle in the path
+# PREDEFINED_OBSTACLES = [(35, 75, 15)]
+
+# Scenario 2: Narrow passage with two obstacles
+# PREDEFINED_OBSTACLES = [(20, 75, 15), (50, 75, 15)]
+
+# Scenario 3: Complex field with multiple obstacles
+# PREDEFINED_OBSTACLES = [(20, 50, 10), (50, 80, 8), (10, 100, 12), (60, 120, 10)]
+
+# Scenario 4: Jamming field evaluation (best with LOW_POWER_JAMMING mode)
+# PREDEFINED_OBSTACLES = [(35, 60, 20)]
+
+# Scenario 5: Complete blockage test (best with HIGH_POWER_JAMMING mode)
+# PREDEFINED_OBSTACLES = [(35, 40, 30)]
+
+
 # Simulation parameters
 MAX_ITER = 1000
 ALPHA = 10 ** (-5)
@@ -64,7 +90,7 @@ WALL_FOLLOWING_MAGNITUDE = 2.0  # af parameter
 WALL_DISTANCE = 10.0  # df parameter
 
 # LLM Integration Parameters
-LLM_ENABLED = True
+LLM_ENABLED = False
 LLM_FEEDBACK_INTERVAL = 5  # How often to send updates to LLM (every N simulation steps) - increase for less frequent updates
 LLM_ENDPOINT = "http://localhost:11434/api/generate"  # Ollama direct endpoint
 LLM_MODEL = "llama3.3:70b-instruct-q4_K_M"  # Model to use with Ollama

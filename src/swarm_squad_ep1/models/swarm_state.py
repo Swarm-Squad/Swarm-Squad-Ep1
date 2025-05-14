@@ -55,6 +55,11 @@ class SwarmState:
         self.swarm_paths = []
         self.obstacles: List[Tuple[float, float, float]] = []  # (x, y, radius)
 
+        # Load predefined obstacles from config
+        if hasattr(config, "PREDEFINED_OBSTACLES") and config.PREDEFINED_OBSTACLES:
+            for obs in config.PREDEFINED_OBSTACLES:
+                self.obstacles.append(obs)
+
         # Simulation state
         self.iteration = 0
         self.Jn_converged = False
@@ -87,6 +92,12 @@ class SwarmState:
 
         # Reset paths
         self.swarm_paths = []
+
+        # Reset obstacles and load predefined ones from config
+        self.obstacles = []
+        if hasattr(config, "PREDEFINED_OBSTACLES") and config.PREDEFINED_OBSTACLES:
+            for obs in config.PREDEFINED_OBSTACLES:
+                self.obstacles.append(obs)
 
         # Reset simulation state
         self.iteration = 0

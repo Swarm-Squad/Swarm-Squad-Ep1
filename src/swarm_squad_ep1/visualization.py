@@ -159,7 +159,7 @@ def plot_formation_scene(
     """
     ax.set_title("Formation Scene")
     ax.set_xlabel("$x$")
-    ax.set_ylabel("$y$", rotation=0)
+    ax.set_ylabel("$y$", rotation=0, labelpad=20)
 
     # Plot the nodes with status indicators
     for i in range(swarm_position.shape[0]):
@@ -358,7 +358,7 @@ def plot_swarm_trajectories(
     """
     ax.set_title("Swarm Trajectories")
     ax.set_xlabel("$x$")
-    ax.set_ylabel("$y$", rotation=0)
+    ax.set_ylabel("$y$", rotation=0, labelpad=20)
 
     swarm_size = swarm_position.shape[0]
 
