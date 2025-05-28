@@ -41,7 +41,7 @@ This project builds upon our previous research in formation control and swarm in
 It is recommended to use [uv](https://docs.astral.sh/uv/getting-started/installation/) to create a virtual environment and install the following package.
 
 ```bash
-pip install swarm-squad-ep1
+uv pip install swarm-squad-ep1
 ```
 
 To run the application, simply type:
