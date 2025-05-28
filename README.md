@@ -132,7 +132,7 @@ swarm-squad-ep1 --help
  ┃ ┗ 📄ppt.pdf                            // Presentation
  ┣ 📂logs                             // SimulationLogs
  ┣ 📂src                              // Source Code
- ┃ ┗ 📦swarm_squad                        // Python package
+ ┃ ┗ 📦swarm_squad_ep1                    // Python package
  ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior
  ┃ ┃ ┃ ┣ 📄base_controller.py                   // Base controller interface
  ┃ ┃ ┃ ┣ 📄behavior_controller.py               // Behavior-based controller
