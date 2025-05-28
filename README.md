@@ -7,7 +7,7 @@
 
 <h2 align="center">🔬 Research Evolution</h2>
 
-This project builds upon our previous research in formation control and swarm intelligence:
+This project builds upon our [previous research](https://github.com/speccoud/Swarm-Control) in formation control and swarm intelligence:
 
 <img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/gui.png" width="100%" />
 
