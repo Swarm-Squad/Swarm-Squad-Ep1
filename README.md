@@ -127,11 +127,10 @@ swarm-squad-ep1 --help
  ┣ 📂lib                              // Supplementary materials
  ┃ ┣ 📂img                                // Readme Assets
  ┃ ┣ 📂old                                // Original old code
- ┃ ┣ 📄Li-paper.pdf                       // Original paper
- ┃ ┣ 📄Xing-paper1.pdf                    // Paper 1
- ┃ ┣ 📄Xing-paper2.pdf                    // Paper 2
- ┃ ┗ 📄Xing-ppt.pdf                       // Presentation
- ┣ 📂logs                             // Logs
+ ┃ ┣ 📄demo.mp4                           // Demo Video
+ ┃ ┣ 📄paper.pdf                          // Paper
+ ┃ ┗ 📄ppt.pdf                            // Presentation
+ ┣ 📂logs                             // SimulationLogs
  ┣ 📂src                              // Source Code
  ┃ ┗ 📦swarm_squad                        // Python package
  ┃ ┃ ┣ 📂controllers                         // Controllers for swarm behavior
@@ -152,7 +151,6 @@ swarm-squad-ep1 --help
  ┃ ┃ ┗ 📄visualization.py                    // Visualization functions
  ┣ 📄.gitignore
  ┣ 📄.pre-commit-config.yaml
- ┣ 📄.pre-commit-msg_template.py
  ┣ 📄.python-version
  ┣ 📄LICENSE
  ┣ 📄README.md
