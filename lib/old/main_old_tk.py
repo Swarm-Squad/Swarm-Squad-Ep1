@@ -6,8 +6,9 @@ import tkinter as tk
 
 import matplotlib.pyplot as plt
 import numpy as np
-import utils_old as utils
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+import lib.old.utils_old_tk as utils
 
 
 class FormationControlGUI:
