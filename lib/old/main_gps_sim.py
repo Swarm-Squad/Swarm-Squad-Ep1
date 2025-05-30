@@ -13,7 +13,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (
     QApplication,
-    QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -238,185 +237,291 @@ class GPSLocalizationGUI(QMainWindow):
         """Create information panel showing vehicle status."""
         info_widget = QWidget()
         info_widget.setFixedWidth(350)
+        info_widget.setStyleSheet("""
+            QWidget {
+                background-color: #2b2b2b;
+                color: #ffffff;
+            }
+        """)
         info_layout = QVBoxLayout(info_widget)
-
+        info_layout.setSpacing(8)
+        info_layout.setContentsMargins(8, 8, 8, 8)
+        
         # Title
         title_label = QLabel("Vehicle Status")
         title_label.setStyleSheet("""
             QLabel {
                 font-size: 16px;
                 font-weight: bold;
-                color: #333;
-                padding: 10px;
-                background-color: #f0f0f0;
-                border-radius: 5px;
-                margin-bottom: 10px;
+                color: #ffffff;
+                padding: 8px;
+                background-color: #404040;
+                border-radius: 6px;
+                border: 1px solid #555555;
             }
         """)
         info_layout.addWidget(title_label)
-
-        # Instructions
-        instructions = QLabel("""
-        Instructions:
-        • Click and drag to draw GPS-denied areas
-        • Vehicles lose GPS when entering red areas
-        • Green circles show trilateration estimates
-        • Start simulation to see real-time tracking
-        """)
+        
+        # Instructions - more compact but readable
+        instructions = QLabel("• Click/drag: GPS-denied areas\n• Red areas: GPS loss\n• Green stars: Estimates\n• Need ≥3 GPS for trilateration")
         instructions.setStyleSheet("""
             QLabel {
                 font-size: 11px;
-                color: #666;
-                padding: 10px;
-                background-color: #f9f9f9;
-                border-radius: 5px;
-                margin-bottom: 15px;
+                color: #cccccc;
+                padding: 8px;
+                background-color: #353535;
+                border-radius: 4px;
+                border: 1px solid #555555;
+                font-weight: 500;
             }
         """)
         instructions.setWordWrap(True)
         info_layout.addWidget(instructions)
-
-        # Vehicle info labels
+        
+        # Vehicle info labels - readable size
         self.vehicle_info_labels = {}
         for vehicle in self.vehicles:
-            frame = QFrame()
-            frame.setFrameStyle(QFrame.Box)
-            frame.setLineWidth(1)
-            frame_layout = QVBoxLayout(frame)
-
-            # Vehicle header
+            # Create a compact horizontal layout for each vehicle
+            vehicle_widget = QWidget()
+            vehicle_widget.setStyleSheet(f"""
+                QWidget {{
+                    background-color: #333333;
+                    border: 2px solid {vehicle.color};
+                    border-radius: 6px;
+                    margin: 3px;
+                    padding: 6px;
+                }}
+            """)
+            vehicle_layout = QVBoxLayout(vehicle_widget)
+            vehicle_layout.setSpacing(4)
+            vehicle_layout.setContentsMargins(6, 6, 6, 6)
+            
+            # Vehicle header - readable size
             header = QLabel(f"{vehicle.id}")
             header.setStyleSheet(f"""
                 QLabel {{
-                    font-size: 14px;
+                    font-size: 13px;
                     font-weight: bold;
                     color: {vehicle.color};
-                    padding: 5px;
+                    padding: 3px;
+                    background-color: #404040;
+                    border-radius: 3px;
                 }}
             """)
-            frame_layout.addWidget(header)
-
-            # Status labels
-            gps_label = QLabel("GPS: Available")
-            pos_label = QLabel("Position: (0.0, 0.0)")
-            est_label = QLabel("Estimated: N/A")
-            error_label = QLabel("Error: 0.0m")
-
-            for label in [gps_label, pos_label, est_label, error_label]:
-                label.setStyleSheet("""
-                    QLabel {
-                        font-size: 10px;
-                        padding: 2px;
-                        color: #444;
-                    }
-                """)
-                frame_layout.addWidget(label)
-
+            vehicle_layout.addWidget(header)
+            
+            # Create compact status display
+            status_widget = QWidget()
+            status_layout = QVBoxLayout(status_widget)
+            status_layout.setSpacing(3)
+            status_layout.setContentsMargins(0, 0, 0, 0)
+            
+            # GPS status and position in one line
+            gps_pos_widget = QWidget()
+            gps_pos_layout = QHBoxLayout(gps_pos_widget)
+            gps_pos_layout.setContentsMargins(0, 0, 0, 0)
+            gps_pos_layout.setSpacing(8)
+            
+            gps_label = QLabel("GPS: OK")
+            gps_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    padding: 2px 4px;
+                    font-weight: bold;
+                    border-radius: 3px;
+                }
+            """)
+            
+            pos_label = QLabel("Pos: (0,0)")
+            pos_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    padding: 2px;
+                    color: #cccccc;
+                    font-weight: 500;
+                }
+            """)
+            
+            gps_pos_layout.addWidget(gps_label)
+            gps_pos_layout.addWidget(pos_label)
+            gps_pos_layout.addStretch()
+            
+            # Estimated position and error in one line
+            est_err_widget = QWidget()
+            est_err_layout = QHBoxLayout(est_err_widget)
+            est_err_layout.setContentsMargins(0, 0, 0, 0)
+            est_err_layout.setSpacing(8)
+            
+            est_label = QLabel("Est: N/A")
+            est_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    padding: 2px;
+                    color: #aaaaaa;
+                    font-weight: 500;
+                }
+            """)
+            
+            error_label = QLabel("Err: 0m")
+            error_label.setStyleSheet("""
+                QLabel {
+                    font-size: 10px;
+                    padding: 2px 4px;
+                    font-weight: bold;
+                    border-radius: 3px;
+                }
+            """)
+            
+            est_err_layout.addWidget(est_label)
+            est_err_layout.addWidget(error_label)
+            est_err_layout.addStretch()
+            
+            status_layout.addWidget(gps_pos_widget)
+            status_layout.addWidget(est_err_widget)
+            vehicle_layout.addWidget(status_widget)
+            
             self.vehicle_info_labels[vehicle.id] = {
                 "gps": gps_label,
                 "position": pos_label,
                 "estimated": est_label,
                 "error": error_label,
             }
-
-            info_layout.addWidget(frame)
-
-        # Simulation status
+            
+            info_layout.addWidget(vehicle_widget)
+        
+        # Simulation status - readable
         self.sim_status_label = QLabel("Simulation: Stopped")
         self.sim_status_label.setStyleSheet("""
             QLabel {
                 font-size: 12px;
                 font-weight: bold;
-                color: #666;
-                padding: 10px;
-                background-color: #f0f0f0;
-                border-radius: 5px;
-                margin-top: 15px;
+                color: #ffffff;
+                padding: 6px;
+                background-color: #404040;
+                border-radius: 4px;
+                border: 1px solid #555555;
             }
         """)
         info_layout.addWidget(self.sim_status_label)
-
-        info_layout.addStretch()
+        
+        # Add some space but not too much
+        info_layout.addStretch(1)
         main_layout.addWidget(info_widget)
-
+    
     def update_info_panel(self):
         """Update the information panel with current vehicle status."""
         for vehicle in self.vehicles:
             labels = self.vehicle_info_labels[vehicle.id]
-
-            # GPS status
-            gps_status = "Available" if vehicle.has_gps else "DENIED"
-            gps_color = "green" if vehicle.has_gps else "red"
+            
+            # GPS status - dark mode colors
+            gps_status = "OK" if vehicle.has_gps else "DENIED"
+            if vehicle.has_gps:
+                gps_color = "#000000"
+                gps_bg = "#4CAF50"  # Green
+            else:
+                gps_color = "#ffffff"
+                gps_bg = "#f44336"  # Red
+            
             labels["gps"].setText(f"GPS: {gps_status}")
             labels["gps"].setStyleSheet(f"""
                 QLabel {{
                     font-size: 10px;
-                    padding: 2px;
+                    padding: 2px 4px;
                     color: {gps_color};
                     font-weight: bold;
+                    background-color: {gps_bg};
+                    border-radius: 3px;
                 }}
             """)
-
-            # Position
-            pos_text = utils.format_coordinates(vehicle.position)
-            labels["position"].setText(f"True Pos: {pos_text}")
-
-            # Estimated position
+            
+            # Position - dark mode
+            pos_text = f"({vehicle.position[0]:.1f},{vehicle.position[1]:.1f})"
+            labels["position"].setText(f"Pos: {pos_text}")
+            
+            # Estimated position - dark mode
             if vehicle.estimated_position:
-                est_text = utils.format_coordinates(vehicle.estimated_position)
-                labels["estimated"].setText(f"Estimated: {est_text}")
-            else:
-                labels["estimated"].setText("Estimated: N/A")
-
-            # Error
-            if vehicle.position_error != float("inf"):
-                labels["error"].setText(f"Error: {vehicle.position_error:.2f}m")
-                error_color = (
-                    "red"
-                    if vehicle.position_error > 2.0
-                    else "orange"
-                    if vehicle.position_error > 1.0
-                    else "green"
-                )
-                labels["error"].setStyleSheet(f"""
-                    QLabel {{
-                        font-size: 10px;
-                        padding: 2px;
-                        color: {error_color};
-                        font-weight: bold;
-                    }}
-                """)
-            else:
-                labels["error"].setText("Error: N/A")
-                labels["error"].setStyleSheet("""
+                est_text = f"({vehicle.estimated_position[0]:.1f},{vehicle.estimated_position[1]:.1f})"
+                labels["estimated"].setText(f"Est: {est_text}")
+                labels["estimated"].setStyleSheet("""
                     QLabel {
                         font-size: 10px;
                         padding: 2px;
-                        color: #666;
+                        color: #64B5F6;
+                        font-weight: 500;
                     }
                 """)
-
-        # Simulation status
+            else:
+                labels["estimated"].setText("Est: N/A")
+                labels["estimated"].setStyleSheet("""
+                    QLabel {
+                        font-size: 10px;
+                        padding: 2px;
+                        color: #aaaaaa;
+                        font-weight: 500;
+                    }
+                """)
+            
+            # Error - dark mode with color coding
+            if vehicle.position_error != float("inf"):
+                error_text = f"{vehicle.position_error:.1f}m"
+                if vehicle.position_error > 2.0:
+                    error_color = "#ffffff"
+                    error_bg = "#f44336"  # Red
+                elif vehicle.position_error > 1.0:
+                    error_color = "#000000"
+                    error_bg = "#FF9800"  # Orange
+                else:
+                    error_color = "#000000"
+                    error_bg = "#4CAF50"  # Green
+                
+                labels["error"].setText(f"Err: {error_text}")
+                labels["error"].setStyleSheet(f"""
+                    QLabel {{
+                        font-size: 10px;
+                        padding: 2px 4px;
+                        color: {error_color};
+                        font-weight: bold;
+                        background-color: {error_bg};
+                        border-radius: 3px;
+                    }}
+                """)
+            else:
+                labels["error"].setText("Err: Need≥3GPS")
+                labels["error"].setStyleSheet("""
+                    QLabel {
+                        font-size: 10px;
+                        padding: 2px 4px;
+                        color: #cccccc;
+                        font-weight: 500;
+                        background-color: #555555;
+                        border-radius: 3px;
+                    }
+                """)
+        
+        # Simulation status - dark mode
         if self.running:
-            status = f"Running (t={self.simulation_time:.1f}s)"
-            color = "green"
+            status = f"Running ({self.simulation_time:.1f}s)"
+            color = "#4CAF50"
+            bg_color = "#2E7D32"
         elif self.paused:
             status = "Paused"
-            color = "orange"
+            color = "#FF9800"
+            bg_color = "#E65100"
         else:
             status = "Stopped"
-            color = "red"
-
-        self.sim_status_label.setText(f"Simulation: {status}")
+            color = "#f44336"
+            bg_color = "#C62828"
+        
+        self.sim_status_label.setText(f"Sim: {status}")
         self.sim_status_label.setStyleSheet(f"""
             QLabel {{
                 font-size: 12px;
                 font-weight: bold;
                 color: {color};
-                padding: 10px;
-                background-color: #f0f0f0;
-                border-radius: 5px;
-                margin-top: 15px;
+                padding: 6px;
+                background-color: {bg_color};
+                border-radius: 4px;
+                border: 1px solid {color};
             }}
         """)
 
