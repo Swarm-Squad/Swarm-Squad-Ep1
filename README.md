@@ -117,7 +117,7 @@ swarm-squad-ep1 --help
 
 3. **Run the application:**
    ```bash
-   uv run src/swarm_squad/main.py
+   uv run src/swarm_squad_ep1/main.py
    ```
 
 <h2 align="center">📁 File Tree</h2>
