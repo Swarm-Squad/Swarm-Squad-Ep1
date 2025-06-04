@@ -707,7 +707,10 @@ class GPSLocalizationGUI(QMainWindow):
 
         self.drawing_area = True
         self.area_start = (event.xdata, event.ydata)
-
+        
+        # Store current simulation state before pausing
+        self.was_running = self.running
+        
         # Pause simulation while drawing
         if self.running:
             self.pause_simulation()
@@ -752,6 +755,11 @@ class GPSLocalizationGUI(QMainWindow):
 
         # Update plot
         self.update_plot()
+        
+        # Resume simulation if it was running before drawing
+        if hasattr(self, 'was_running') and self.was_running:
+            self.start_simulation()
+            self.was_running = False
 
     def start_simulation(self):
         """Start the simulation."""
