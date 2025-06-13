@@ -122,27 +122,6 @@ def calculate_position_error(
     """Calculate the error between true and estimated positions."""
     return euclidean_distance(true_pos, estimated_pos)
 
-
-def format_coordinates(pos: Tuple[float, float]) -> str:
-    """Format coordinates for display."""
-    return f"({pos[0]:.2f}, {pos[1]:.2f})"
-
-
-def generate_random_trajectory(
-    start_pos: Tuple[float, float], speed: float = 0.5, noise: float = 0.1
-) -> Tuple[float, float]:
-    """Generate next position in a random walk trajectory."""
-    # Random direction change
-    angle = random.uniform(0, 2 * math.pi)
-    dx = speed * math.cos(angle) + random.gauss(0, noise)
-    dy = speed * math.sin(angle) + random.gauss(0, noise)
-
-    new_x = start_pos[0] + dx
-    new_y = start_pos[1] + dy
-
-    return (new_x, new_y)
-
-
 def generate_circular_trajectory(
     center: Tuple[float, float],
     radius: float,
@@ -195,17 +174,6 @@ def calculate_dilution_of_precision(
         return gdop
     except np.linalg.LinAlgError:
         return float("inf")  # Singular matrix
-
-
-def add_rtk_noise(true_distance: float, rtk_accuracy: float = 0.02) -> float:
-    """Add realistic RTK GPS noise to distance measurement."""
-    # RTK typically has cm-level accuracy
-    return true_distance + random.gauss(0, rtk_accuracy)
-
-
-def simulate_communication_range(distance: float, max_range: float = 100.0) -> bool:
-    """Simulate whether two agents can communicate based on distance."""
-    return distance <= max_range
 
 
 def estimate_velocity(
