@@ -122,6 +122,7 @@ def calculate_position_error(
     """Calculate the error between true and estimated positions."""
     return euclidean_distance(true_pos, estimated_pos)
 
+
 def generate_circular_trajectory(
     center: Tuple[float, float],
     radius: float,

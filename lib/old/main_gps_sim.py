@@ -246,7 +246,7 @@ class GPSLocalizationGUI(QMainWindow):
         info_layout = QVBoxLayout(info_widget)
         info_layout.setSpacing(8)
         info_layout.setContentsMargins(8, 8, 8, 8)
-        
+
         # Title
         title_label = QLabel("Vehicle Status")
         title_label.setStyleSheet("""
@@ -261,9 +261,11 @@ class GPSLocalizationGUI(QMainWindow):
             }
         """)
         info_layout.addWidget(title_label)
-        
+
         # Instructions - more compact but readable
-        instructions = QLabel("• Click/drag: GPS-denied areas\n• Red areas: GPS loss\n• Green stars: Estimates\n• Need ≥3 GPS for trilateration")
+        instructions = QLabel(
+            "• Click/drag: GPS-denied areas\n• Red areas: GPS loss\n• Green stars: Estimates\n• Need ≥3 GPS for trilateration"
+        )
         instructions.setStyleSheet("""
             QLabel {
                 font-size: 11px;
@@ -277,7 +279,7 @@ class GPSLocalizationGUI(QMainWindow):
         """)
         instructions.setWordWrap(True)
         info_layout.addWidget(instructions)
-        
+
         # Vehicle info labels - readable size
         self.vehicle_info_labels = {}
         for vehicle in self.vehicles:
@@ -295,7 +297,7 @@ class GPSLocalizationGUI(QMainWindow):
             vehicle_layout = QVBoxLayout(vehicle_widget)
             vehicle_layout.setSpacing(4)
             vehicle_layout.setContentsMargins(6, 6, 6, 6)
-            
+
             # Vehicle header - readable size
             header = QLabel(f"{vehicle.id}")
             header.setStyleSheet(f"""
@@ -309,19 +311,19 @@ class GPSLocalizationGUI(QMainWindow):
                 }}
             """)
             vehicle_layout.addWidget(header)
-            
+
             # Create compact status display
             status_widget = QWidget()
             status_layout = QVBoxLayout(status_widget)
             status_layout.setSpacing(3)
             status_layout.setContentsMargins(0, 0, 0, 0)
-            
+
             # GPS status and position in one line
             gps_pos_widget = QWidget()
             gps_pos_layout = QHBoxLayout(gps_pos_widget)
             gps_pos_layout.setContentsMargins(0, 0, 0, 0)
             gps_pos_layout.setSpacing(8)
-            
+
             gps_label = QLabel("GPS: OK")
             gps_label.setStyleSheet("""
                 QLabel {
@@ -331,7 +333,7 @@ class GPSLocalizationGUI(QMainWindow):
                     border-radius: 3px;
                 }
             """)
-            
+
             pos_label = QLabel("Pos: (0,0)")
             pos_label.setStyleSheet("""
                 QLabel {
@@ -341,17 +343,17 @@ class GPSLocalizationGUI(QMainWindow):
                     font-weight: 500;
                 }
             """)
-            
+
             gps_pos_layout.addWidget(gps_label)
             gps_pos_layout.addWidget(pos_label)
             gps_pos_layout.addStretch()
-            
+
             # Estimated position and error in one line
             est_err_widget = QWidget()
             est_err_layout = QHBoxLayout(est_err_widget)
             est_err_layout.setContentsMargins(0, 0, 0, 0)
             est_err_layout.setSpacing(8)
-            
+
             est_label = QLabel("Est: N/A")
             est_label.setStyleSheet("""
                 QLabel {
@@ -361,7 +363,7 @@ class GPSLocalizationGUI(QMainWindow):
                     font-weight: 500;
                 }
             """)
-            
+
             error_label = QLabel("Err: 0m")
             error_label.setStyleSheet("""
                 QLabel {
@@ -371,24 +373,24 @@ class GPSLocalizationGUI(QMainWindow):
                     border-radius: 3px;
                 }
             """)
-            
+
             est_err_layout.addWidget(est_label)
             est_err_layout.addWidget(error_label)
             est_err_layout.addStretch()
-            
+
             status_layout.addWidget(gps_pos_widget)
             status_layout.addWidget(est_err_widget)
             vehicle_layout.addWidget(status_widget)
-            
+
             self.vehicle_info_labels[vehicle.id] = {
                 "gps": gps_label,
                 "position": pos_label,
                 "estimated": est_label,
                 "error": error_label,
             }
-            
+
             info_layout.addWidget(vehicle_widget)
-        
+
         # Simulation status - readable
         self.sim_status_label = QLabel("Simulation: Stopped")
         self.sim_status_label.setStyleSheet("""
@@ -403,16 +405,16 @@ class GPSLocalizationGUI(QMainWindow):
             }
         """)
         info_layout.addWidget(self.sim_status_label)
-        
+
         # Add some space but not too much
         info_layout.addStretch(1)
         main_layout.addWidget(info_widget)
-    
+
     def update_info_panel(self):
         """Update the information panel with current vehicle status."""
         for vehicle in self.vehicles:
             labels = self.vehicle_info_labels[vehicle.id]
-            
+
             # GPS status - dark mode colors
             gps_status = "OK" if vehicle.has_gps else "DENIED"
             if vehicle.has_gps:
@@ -421,7 +423,7 @@ class GPSLocalizationGUI(QMainWindow):
             else:
                 gps_color = "#ffffff"
                 gps_bg = "#f44336"  # Red
-            
+
             labels["gps"].setText(f"GPS: {gps_status}")
             labels["gps"].setStyleSheet(f"""
                 QLabel {{
@@ -433,11 +435,11 @@ class GPSLocalizationGUI(QMainWindow):
                     border-radius: 3px;
                 }}
             """)
-            
+
             # Position - dark mode
             pos_text = f"({vehicle.position[0]:.1f},{vehicle.position[1]:.1f})"
             labels["position"].setText(f"Pos: {pos_text}")
-            
+
             # Estimated position - dark mode
             if vehicle.estimated_position:
                 est_text = f"({vehicle.estimated_position[0]:.1f},{vehicle.estimated_position[1]:.1f})"
@@ -460,7 +462,7 @@ class GPSLocalizationGUI(QMainWindow):
                         font-weight: 500;
                     }
                 """)
-            
+
             # Error - dark mode with color coding
             if vehicle.position_error != float("inf"):
                 error_text = f"{vehicle.position_error:.1f}m"
@@ -473,7 +475,7 @@ class GPSLocalizationGUI(QMainWindow):
                 else:
                     error_color = "#000000"
                     error_bg = "#4CAF50"  # Green
-                
+
                 labels["error"].setText(f"Err: {error_text}")
                 labels["error"].setStyleSheet(f"""
                     QLabel {{
@@ -497,7 +499,7 @@ class GPSLocalizationGUI(QMainWindow):
                         border-radius: 3px;
                     }
                 """)
-        
+
         # Simulation status - dark mode
         if self.running:
             status = f"Running ({self.simulation_time:.1f}s)"
@@ -511,7 +513,7 @@ class GPSLocalizationGUI(QMainWindow):
             status = "Stopped"
             color = "#f44336"
             bg_color = "#C62828"
-        
+
         self.sim_status_label.setText(f"Sim: {status}")
         self.sim_status_label.setStyleSheet(f"""
             QLabel {{
@@ -707,10 +709,10 @@ class GPSLocalizationGUI(QMainWindow):
 
         self.drawing_area = True
         self.area_start = (event.xdata, event.ydata)
-        
+
         # Store current simulation state before pausing
         self.was_running = self.running
-        
+
         # Pause simulation while drawing
         if self.running:
             self.pause_simulation()
@@ -755,9 +757,9 @@ class GPSLocalizationGUI(QMainWindow):
 
         # Update plot
         self.update_plot()
-        
+
         # Resume simulation if it was running before drawing
-        if hasattr(self, 'was_running') and self.was_running:
+        if hasattr(self, "was_running") and self.was_running:
             self.start_simulation()
             self.was_running = False
 
