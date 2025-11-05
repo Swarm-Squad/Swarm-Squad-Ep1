@@ -8,6 +8,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
     "matplotlib>=3.10.1",
+    "pathfinding3d>=0.7.2",
     "pyqt5>=5.15.11",
     "pytest>=8.3.5",
     "requests>=2.32.3",

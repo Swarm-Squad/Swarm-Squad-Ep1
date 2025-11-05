@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 
 [[package]]
@@ -478,6 +478,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pathfinding3d"
+version = "0.7.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/c1/67dcddcc647f8cef6c9096e9d249f9e3255918046e25fbdd3e6aa4fc9053/pathfinding3d-0.7.2.tar.gz", hash = "sha256:5dfa91b2d248357f41d451f5167d2079901156c0bb8a1193d2cf630d7e8810e8", size = 30039, upload-time = "2024-03-21T13:18:34.562Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/2c/1972b527e0120ca32540ab389b82dabd787fd4221fcb991aee51473e9695/pathfinding3d-0.7.2-py3-none-any.whl", hash = "sha256:e7c9286a504607a12e89f5c43d6e973480a3ed81952e148f7934f0a9b3a0bbc9", size = 31470, upload-time = "2024-03-21T13:18:33.251Z" },
+]
+
+[[package]]
 name = "pillow"
 version = "11.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -767,6 +779,7 @@ version = "0.2.3"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
+    { name = "pathfinding3d" },
     { name = "pyqt5" },
     { name = "pytest" },
     { name = "requests" },
@@ -781,6 +794,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.1" },
+    { name = "pathfinding3d", specifier = ">=0.7.2" },
     { name = "pyqt5", specifier = ">=5.15.11" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "requests", specifier = ">=2.32.3" },
