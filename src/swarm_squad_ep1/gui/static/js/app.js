@@ -29,11 +29,10 @@ const App = {
   llmAssistanceEnabled: true, // LLM assistance on by default
   cryptoAuthEnabled: false,
   trailLength: "short", // "short" or "all" for trail visualization
-  beginnerMode: false,
   debugTelemetryEnabled: false,
-  educationPresets: {},
-  defaultPreset: "intro_baseline",
   bootstrapSimulationStatus: null,
+  simulationConfig: null,
+  simulationConfigRefreshTick: 0,
 
   /**
    * Initialize the application
@@ -43,7 +42,7 @@ const App = {
 
     this.applyDebugTelemetryGate();
     await this.fetchAppConfig();
-    this.applyBeginnerMode();
+    await this.fetchSimulationConfig(true);
 
     // Initialize 3D scene
     const sceneContainer = document.getElementById("scene-container");
@@ -102,10 +101,7 @@ const App = {
       const response = await fetch("/app_config");
       if (!response.ok) return;
       const data = await response.json();
-      this.beginnerMode = !!data.beginner_mode;
       this.debugTelemetryEnabled = !!data.enable_debug_telemetry;
-      this.educationPresets = data.education_presets || {};
-      this.defaultPreset = data.default_preset || "intro_baseline";
       window.__SWARM_DEBUG_TELEMETRY__ = this.debugTelemetryEnabled;
       this.bootstrapSimulationStatus = data.simulation || null;
       window.__SWARM_BOOTSTRAP_STATUS__ = this.bootstrapSimulationStatus;
@@ -119,18 +115,83 @@ const App = {
     }
   },
 
-  applyBeginnerMode() {
-    const panel = document.getElementById("beginner-content-wrapper");
-    if (!panel) return;
-    panel.classList.toggle("hidden", !this.beginnerMode);
+  async fetchSimulationConfig(force = false) {
+    // Refresh on demand or every ~5 seconds during polling.
+    if (!force) {
+      this.simulationConfigRefreshTick += 1;
+      if (this.simulationConfigRefreshTick % 10 !== 0) return;
+    }
+    try {
+      const response = await fetch("/simulation/config");
+      if (!response.ok) return;
+      const config = await response.json();
+      this.simulationConfig = config;
+      this.applySimulationConfig(config);
+    } catch (error) {
+      console.warn("[App] Failed to load simulation config:", error);
+    }
+  },
 
-    if (this.beginnerMode) {
-      const status = document.getElementById("beginner-status");
-      if (status) status.textContent = "Beginner mode active.";
-      const msg = document.getElementById("beginner-default-preset");
-      if (msg && this.educationPresets[this.defaultPreset]) {
-        msg.textContent = `Default preset: ${this.educationPresets[this.defaultPreset].title}`;
-      }
+  applySimulationConfig(config) {
+    if (!config) return;
+
+    const formationSelect = document.getElementById("formation-select");
+    const pathAlgoSelect = document.getElementById("path-algo-select");
+    const commModelSelect = document.getElementById("comm-model-select");
+
+    const formations = [
+      "communication_aware",
+      ...(Array.isArray(config.formations) ? config.formations : []),
+    ];
+    this.setSelectOptions(formationSelect, formations, {
+      selected: formationSelect?.value || "communication_aware",
+      labels: { communication_aware: "Communication-Aware" },
+    });
+
+    const pathAlgorithms = Array.isArray(config.path_algorithms)
+      ? config.path_algorithms
+      : [];
+    this.setSelectOptions(pathAlgoSelect, pathAlgorithms, {
+      selected: pathAlgoSelect?.value || "astar",
+      labels: config.path_algorithm_labels || {},
+    });
+
+    const commModels = Array.isArray(config.comm_models)
+      ? config.comm_models
+      : ["v2v_channel", "legacy"];
+    this.setSelectOptions(commModelSelect, commModels, {
+      selected: commModelSelect?.value || "v2v_channel",
+      labels: {
+        v2v_channel: "V2V Channel (LOS/NLOS)",
+        legacy: "Legacy (Distance-Only)",
+      },
+    });
+  },
+
+  setSelectOptions(selectEl, values, options = {}) {
+    if (!selectEl || !Array.isArray(values) || values.length === 0) return;
+
+    const uniqueValues = [...new Set(values)];
+    const previous = options.selected || selectEl.value;
+    const labels = options.labels || {};
+
+    const nextHtml = uniqueValues
+      .map((value) => {
+        const label =
+          labels[value] ||
+          value.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase());
+        return `<option value="${value}">${label}</option>`;
+      })
+      .join("");
+
+    if (selectEl.innerHTML !== nextHtml) {
+      selectEl.innerHTML = nextHtml;
+    }
+
+    if (uniqueValues.includes(previous)) {
+      selectEl.value = previous;
+    } else {
+      selectEl.value = uniqueValues[0];
     }
   },
 
@@ -252,6 +313,7 @@ const App = {
     this.fetchProtocolStats();
     this.fetchLLMContext();
     this.fetchAttackMetrics();
+    this.fetchSimulationConfig(true);
 
     this.updateInterval = setInterval(() => {
       this.fetchAgents();
@@ -267,6 +329,7 @@ const App = {
       }
       this.fetchLLMContext();
       this.fetchAttackMetrics();
+      this.fetchSimulationConfig();
     }, 500);
   },
 
@@ -1590,38 +1653,6 @@ async function resetSimulation() {
   }
 }
 
-async function loadEducationPreset(presetId) {
-  const statusEl = document.getElementById("beginner-status");
-  try {
-    if (statusEl) statusEl.textContent = `Loading preset: ${presetId}...`;
-    const response = await fetch("/education/load_preset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ preset: presetId }),
-    });
-    const data = await response.json();
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "Failed to load preset");
-    }
-
-    await Promise.all([
-      App.fetchAgents(),
-      App.fetchJammingZones(),
-      App.fetchSpoofingZones(),
-      syncLLMAssistanceState(),
-      syncCryptoAuthState(),
-    ]);
-
-    const presetName = App.educationPresets[presetId]?.title || presetId;
-    if (statusEl) {
-      statusEl.textContent = `${presetName} loaded (jam zones: ${data.jamming_zones}, spoof zones: ${data.spoofing_zones}).`;
-    }
-  } catch (error) {
-    console.error("[App] Failed to load education preset:", error);
-    if (statusEl) statusEl.textContent = `Preset load failed: ${error.message}`;
-  }
-}
-
 // ============================================================================
 // LLM ASSISTANCE CONTROL
 // ============================================================================
@@ -2844,4 +2875,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.App = App;
 window.MiniMap = MiniMap;
-window.loadEducationPreset = loadEducationPreset;

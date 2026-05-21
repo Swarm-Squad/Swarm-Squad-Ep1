@@ -925,64 +925,6 @@
           </div>
         </div>
 
-        <!-- Beginner Guide Panel -->
-        <div
-          class="border-b border-border hidden"
-          id="beginner-content-wrapper"
-        >
-          <button
-            onclick="togglePanel('beginner')"
-            class="w-full px-4 py-3 flex items-center justify-between hover:bg-secondary/50 transition-colors"
-          >
-            <div class="flex items-center gap-2">
-              <i
-                data-lucide="graduation-cap"
-                class="icon-sm text-emerald-400"
-              ></i>
-              <span class="font-medium text-sm">Beginner Guide</span>
-            </div>
-            <i
-              data-lucide="chevron-down"
-              class="icon-sm text-muted-foreground transition-transform rotate-180"
-              id="beginner-chevron"
-            ></i>
-          </button>
-          <div class="px-3 pb-3 space-y-2 text-xs" id="beginner-content">
-            <p class="text-muted-foreground" id="beginner-default-preset">
-              Load a guided classroom preset.
-            </p>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                onclick="loadEducationPreset('intro_baseline')"
-                class="h-8 rounded-md border border-border hover:bg-secondary transition-colors"
-              >
-                Baseline
-              </button>
-              <button
-                onclick="loadEducationPreset('intro_jamming')"
-                class="h-8 rounded-md border border-border hover:bg-secondary transition-colors"
-              >
-                Jamming
-              </button>
-              <button
-                onclick="loadEducationPreset('intro_spoofing')"
-                class="h-8 rounded-md border border-border hover:bg-secondary transition-colors"
-              >
-                Spoofing
-              </button>
-              <button
-                onclick="loadEducationPreset('intro_combined')"
-                class="h-8 rounded-md border border-border hover:bg-secondary transition-colors"
-              >
-                Combined
-              </button>
-            </div>
-            <div id="beginner-status" class="text-muted-foreground/80">
-              Beginner mode active.
-            </div>
-          </div>
-        </div>
-
         <!-- Chat Panel (takes remaining space) -->
         <div class="flex-1 flex flex-col min-h-0">
           <div class="px-4 py-3 flex items-center gap-2 border-b border-border">

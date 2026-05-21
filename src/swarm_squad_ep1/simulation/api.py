@@ -18,7 +18,13 @@ from swarm_squad_ep1.algo.formation import FORMATION_TYPES
 from swarm_squad_ep1.algo.jamming_response import JAMMING_STRATEGIES
 from swarm_squad_ep1.algo.llm_controller import get_llm_controller
 from swarm_squad_ep1.algo.mavlink import get_mavlink_bus, reset_mavlink_bus
-from swarm_squad_ep1.algo.path_planning import PATH_ALGORITHMS
+from swarm_squad_ep1.algo.path_planning import (
+    get_available_path_algorithms,
+    get_path_algorithm_labels,
+    list_registered_path_algorithms,
+    register_path_algorithm,
+    unregister_path_algorithm,
+)
 from swarm_squad_ep1.algo.spoofing import (
     SpoofingZone,
     SpoofType,
@@ -1064,13 +1070,69 @@ async def get_attack_metrics():
 @app.get("/simulation/config")
 async def get_simulation_config():
     """Get available simulation configuration options."""
+    path_algorithms = get_available_path_algorithms()
     return {
         "formations": FORMATION_TYPES,
-        "path_algorithms": PATH_ALGORITHMS,
+        "path_algorithms": path_algorithms,
+        "path_algorithm_labels": get_path_algorithm_labels(),
+        "custom_path_algorithms": list_registered_path_algorithms(),
         "jamming_strategies": JAMMING_STRATEGIES,
+        "comm_models": ["v2v_channel", "legacy"],
         "current": {
             "running": simulation_running,
         },
+    }
+
+
+@app.get("/simulation/custom_algorithms")
+async def get_custom_algorithms():
+    """List registered custom path algorithms."""
+    algorithms = list_registered_path_algorithms()
+    return {
+        "count": len(algorithms),
+        "algorithms": algorithms,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+@app.post("/simulation/custom_algorithms")
+async def create_custom_algorithm(data: dict[str, Any]):
+    """Register a user-provided custom path algorithm by import path."""
+    try:
+        entry = register_path_algorithm(
+            name=str(data.get("name", "")),
+            import_path=str(data.get("import_path", "")),
+            description=str(data.get("description", "")),
+            mode=str(data.get("mode", "waypoint")),
+            replace=bool(data.get("replace", False)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return {
+        "success": True,
+        "algorithm": entry,
+        "path_algorithms": get_available_path_algorithms(),
+    }
+
+
+@app.delete("/simulation/custom_algorithms/{name}")
+async def delete_custom_algorithm(name: str):
+    """Unregister a custom path algorithm."""
+    removed = unregister_path_algorithm(name)
+    if removed is None:
+        raise HTTPException(
+            status_code=404, detail=f"Custom algorithm '{name}' not found"
+        )
+
+    controller = get_controller()
+    if controller.path_algorithm == removed["name"]:
+        controller.set_path_algorithm("direct")
+
+    return {
+        "success": True,
+        "removed": removed,
+        "path_algorithms": get_available_path_algorithms(),
     }
 
 
@@ -1120,7 +1182,10 @@ async def start_simulation(config: dict[str, Any], background_tasks: BackgroundT
     if "formation" in config:
         controller.set_formation_type(config["formation"])
     if "path_algorithm" in config:
-        controller.set_path_algorithm(config["path_algorithm"])
+        try:
+            controller.set_path_algorithm(config["path_algorithm"])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
     if "default_obstacle_type" in config:
         default_obstacle_type = config["default_obstacle_type"]
         print(f"[SIM API] Default obstacle type set to: {default_obstacle_type}")
@@ -1194,7 +1259,10 @@ async def update_algorithm(config: dict[str, Any]):
         controller.set_formation_type(config["formation"])
         changed["formation"] = config["formation"]
     if "path_algorithm" in config:
-        controller.set_path_algorithm(config["path_algorithm"])
+        try:
+            controller.set_path_algorithm(config["path_algorithm"])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
         changed["path_algorithm"] = config["path_algorithm"]
     if "default_obstacle_type" in config:
         default_obstacle_type = config["default_obstacle_type"]

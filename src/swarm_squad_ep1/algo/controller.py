@@ -31,7 +31,11 @@ from swarm_squad_ep1.algo.base import (
 )
 from swarm_squad_ep1.algo.formation import FORMATION_TYPES, FormationGenerator
 from swarm_squad_ep1.algo.jamming_response import JammingResponse
-from swarm_squad_ep1.algo.path_planning import PATH_ALGORITHMS, PathPlanner
+from swarm_squad_ep1.algo.path_planning import (
+    PathPlanner,
+    get_available_path_algorithms,
+    is_waypoint_path_algorithm,
+)
 from swarm_squad_ep1.algo.v2v_channel import V2VChannelModel, get_channel_model
 
 # Try to import config parameters
@@ -524,15 +528,7 @@ class UnifiedController(MultiVehicleController):
         #
         # OPTIMIZATION: Use SWARM CENTER for A* instead of individual agents
         # This reduces computation from N * A* to just 1 * A*
-        if self.path_algorithm in [
-            "astar",
-            "theta_star",
-            "bi_astar",
-            "dijkstra",
-            "bfs",
-            "greedy",
-            "msp",
-        ]:
+        if is_waypoint_path_algorithm(self.path_algorithm):
             if not self.formation_converged:
                 # Formation phase - no path planning yet, ensure no stale paths shown
                 self.path_planner.clear_all_paths()
@@ -628,15 +624,7 @@ class UnifiedController(MultiVehicleController):
                 # This ensures vehicles actually follow the planned path that avoids obstacles
                 effective_target = dest  # Default: final destination
 
-                if self.path_algorithm in [
-                    "astar",
-                    "theta_star",
-                    "bi_astar",
-                    "dijkstra",
-                    "bfs",
-                    "greedy",
-                    "msp",
-                ]:
+                if is_waypoint_path_algorithm(self.path_algorithm):
                     # Get swarm center position
                     swarm_center = np.mean(positions, axis=0)
 
@@ -1654,10 +1642,14 @@ class UnifiedController(MultiVehicleController):
 
     def set_path_algorithm(self, algorithm: str):
         """Change path planning algorithm."""
-        if algorithm in PATH_ALGORITHMS:
-            self.path_algorithm = algorithm
-            self.path_planner.set_algorithm(algorithm)
-            print(f"[Controller] Path algorithm changed to: {algorithm}")
+        available = get_available_path_algorithms()
+        if algorithm not in available:
+            raise ValueError(
+                f"Unknown algorithm: {algorithm}. Available path algorithms: {available}"
+            )
+        self.path_algorithm = algorithm
+        self.path_planner.set_algorithm(algorithm)
+        print(f"[Controller] Path algorithm changed to: {algorithm}")
 
 
 # Singleton controller instance

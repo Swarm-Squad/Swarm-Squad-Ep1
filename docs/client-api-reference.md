@@ -52,6 +52,10 @@ client = SwarmSquadClient(
 
 - Returns current aggregated mission and metric summaries.
 
+`simulate_step()`
+
+- Advances one simulation tick manually (useful for script-driven control loops).
+
 ## Algorithm and motion control
 
 `set_algorithm(formation=None, path_algorithm=None, default_obstacle_type=None)`
@@ -62,6 +66,28 @@ client = SwarmSquadClient(
 `move_agent(agent, x, y, z=0.0)`
 
 - Directly moves one agent target position through the API.
+
+`run_script_control_loop(controller, steps=100, step_interval_s=0.0, auto_simulate_step=True)`
+
+- Runs a user-defined Python control callback each step and optionally calls
+  `simulate_step()` after each command batch.
+- Intended for custom, script-owned algorithm development with live GUI visualization.
+
+## Custom path algorithm plugin methods
+
+`register_custom_algorithm(name, import_path, description="", replace=False, mode="waypoint")`
+
+- Registers a custom path algorithm callable by import path.
+- `import_path` format: `"module:function"` (or `"module.function"`).
+- The module can come from your own project code, not only Swarm Squad sources.
+
+`list_custom_algorithms()`
+
+- Lists registered custom path algorithms.
+
+`remove_custom_algorithm(name)`
+
+- Removes one custom path algorithm.
 
 ## Jamming zone controls
 
@@ -110,6 +136,20 @@ client = SwarmSquadClient(
 
 - Returns current crypto auth state.
 
+`set_v2v_channel(enabled, params=None)`
+
+- Enables/disables the V2V communication model and optionally updates channel params.
+
+`v2v_channel_status()`
+
+- Returns V2V link summaries and current channel parameters.
+
+`set_comm_model(model)`
+
+- Convenience wrapper for comm model switching:
+  - `"v2v_channel"` -> enables V2V channel model
+  - `"legacy"` -> disables V2V channel model
+
 `set_llm_assistance(enabled)`
 
 - Enables/disables LLM guidance support.
@@ -122,11 +162,27 @@ client = SwarmSquadClient(
 
 - Returns communication protocol counters (sent/received/dropped/spoof/rejected).
 
+`attack_metrics()`
+
+- Returns spoof-detection metrics (TP/FP/FN/TN + derived rates).
+
 ## Visualization and entity pulls
 
 `agents()`
 
 - Returns current per-agent state payload.
+
+`agent(agent_id)`
+
+- Returns one agent state payload.
+
+`add_agent(x, y, z=0.0)`
+
+- Adds a new agent at explicit coordinates.
+
+`remove_agent(agent_id)`
+
+- Removes one agent.
 
 `visualization(trail_length="short")`
 
@@ -180,6 +236,30 @@ client.set_llm_assistance(True)
 client.start_simulation()
 print(client.simulation_state())
 print(client.protocol_stats())
+```
+
+## Example: custom algorithm + script loop
+
+```python
+from swarm_squad_ep1.client import SwarmSquadClient
+
+client = SwarmSquadClient()
+client.register_custom_algorithm(
+    name="midpoint_demo",
+    import_path="examples.custom_algorithms.midpoint_path:midpoint_path",
+    description="Midpoint demo path",
+    replace=True,
+)
+client.set_algorithm(path_algorithm="midpoint_demo")
+
+first_agent = next(iter(client.agents()["agents"]))
+
+def controller(state, step):
+    pos = state["agents"][first_agent]["position"]
+    return [{"agent": first_agent, "x": pos[0] + 1.0, "y": pos[1], "z": pos[2]}]
+
+trace = client.run_script_control_loop(controller, steps=10, step_interval_s=0.1)
+print(len(trace))
 ```
 
 ## Error handling guidance

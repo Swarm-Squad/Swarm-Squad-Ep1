@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -41,11 +43,26 @@ class SwarmSquadClient:
     def agents(self) -> dict[str, Any]:
         return self._request("GET", "/agents")
 
+    def agent(self, agent_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/agents/{agent_id}")
+
+    def add_agent(self, x: float, y: float, z: float = 0.0) -> dict[str, Any]:
+        return self._request("POST", "/agents", {"x": x, "y": y, "z": z})
+
+    def remove_agent(self, agent_id: str) -> dict[str, Any]:
+        return self._request("DELETE", f"/agents/{agent_id}")
+
     def simulation_state(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/state")
 
     def simulation_config(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/config")
+
+    def path_algorithms(self) -> list[str]:
+        return list(self.simulation_config().get("path_algorithms", []))
+
+    def custom_path_algorithms(self) -> list[dict[str, Any]]:
+        return list(self.simulation_config().get("custom_path_algorithms", []))
 
     def visualization(self, trail_length: str = "short") -> dict[str, Any]:
         return self._request("GET", f"/visualization?trail_length={trail_length}")
@@ -92,6 +109,9 @@ class SwarmSquadClient:
 
     def simulation_results(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/results")
+
+    def simulate_step(self) -> dict[str, Any]:
+        return self._request("POST", "/simulate_step")
 
     def move_agent(
         self, agent: str, x: float, y: float, z: float = 0.0
@@ -158,6 +178,26 @@ class SwarmSquadClient:
     def clear_spoofing_zones(self) -> dict[str, Any]:
         return self._request("DELETE", "/spoofing_zones")
 
+    def v2v_channel_status(self) -> dict[str, Any]:
+        return self._request("GET", "/simulation/v2v_channel")
+
+    def set_v2v_channel(
+        self, enabled: bool, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"enabled": bool(enabled)}
+        if params:
+            payload["params"] = params
+        return self._request("POST", "/simulation/v2v_channel", payload)
+
+    def set_comm_model(self, model: str) -> dict[str, Any]:
+        model = model.strip().lower()
+        if model not in {"v2v_channel", "legacy"}:
+            return {
+                "success": False,
+                "error": f"Unknown comm model '{model}'. Expected 'v2v_channel' or 'legacy'.",
+            }
+        return self.set_v2v_channel(enabled=model == "v2v_channel")
+
     def set_crypto_auth(
         self, enabled: bool, algorithm: str = "hmac_sha256"
     ) -> dict[str, Any]:
@@ -173,6 +213,9 @@ class SwarmSquadClient:
     def protocol_stats(self) -> dict[str, Any]:
         return self._request("GET", "/protocol_stats")
 
+    def attack_metrics(self) -> dict[str, Any]:
+        return self._request("GET", "/simulation/attack_metrics")
+
     def set_llm_assistance(self, enabled: bool) -> dict[str, Any]:
         return self._request(
             "POST", "/simulation/llm_assistance", {"enabled": bool(enabled)}
@@ -180,6 +223,33 @@ class SwarmSquadClient:
 
     def llm_assistance_status(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/llm_assistance")
+
+    def list_custom_algorithms(self) -> dict[str, Any]:
+        return self._request("GET", "/simulation/custom_algorithms")
+
+    def register_custom_algorithm(
+        self,
+        *,
+        name: str,
+        import_path: str,
+        description: str = "",
+        replace: bool = False,
+        mode: str = "waypoint",
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            "/simulation/custom_algorithms",
+            {
+                "name": name,
+                "import_path": import_path,
+                "description": description,
+                "replace": replace,
+                "mode": mode,
+            },
+        )
+
+    def remove_custom_algorithm(self, name: str) -> dict[str, Any]:
+        return self._request("DELETE", f"/simulation/custom_algorithms/{name}")
 
     def apply_preset(self, preset: str, seed: int = 0) -> dict[str, Any]:
         """Reset live simulation and configure attack/defense state from a preset."""
@@ -240,3 +310,51 @@ class SwarmSquadClient:
     ) -> Result:
         scenario = build_education_scenario(preset, seed=seed)
         return run_scenario(scenario, keep_trace=keep_trace, verbose=verbose)
+
+    # ------------------------------------------------------------------
+    # Script-driven algorithm loop helper
+    # ------------------------------------------------------------------
+    def run_script_control_loop(
+        self,
+        controller: Callable[[dict[str, Any], int], Sequence[dict[str, Any]]],
+        *,
+        steps: int = 100,
+        step_interval_s: float = 0.0,
+        auto_simulate_step: bool = True,
+    ) -> list[dict[str, Any]]:
+        """
+        Run a script-defined control loop while visualizing in the GUI.
+
+        The controller callback receives the latest simulation state and current
+        step index. It should return command dicts like:
+        {"agent": "agent1", "x": 10.0, "y": 5.0, "z": 1.0}.
+        """
+        trace: list[dict[str, Any]] = []
+        for step_idx in range(steps):
+            state = self.simulation_state()
+            commands = controller(state, step_idx) or []
+
+            applied = []
+            for command in commands:
+                agent = command.get("agent")
+                if agent is None:
+                    continue
+                result = self.move_agent(
+                    str(agent),
+                    float(command.get("x", 0.0)),
+                    float(command.get("y", 0.0)),
+                    float(command.get("z", 0.0)),
+                )
+                applied.append({"command": command, "result": result})
+
+            step_result = self.simulate_step() if auto_simulate_step else None
+            trace.append(
+                {
+                    "step": step_idx,
+                    "commands_applied": applied,
+                    "simulate_step": step_result,
+                }
+            )
+            if step_interval_s > 0:
+                time.sleep(step_interval_s)
+        return trace

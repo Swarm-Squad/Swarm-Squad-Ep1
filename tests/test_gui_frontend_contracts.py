@@ -14,6 +14,7 @@ def test_dashboard_shell_and_static_assets(chat_client):
     assert "/static/js/scene3d.js" in html
     assert "/static/js/chat.js" in html
     assert "/static/js/app.js" in html
+    assert "Beginner Guide" not in html
 
     assets = [
         "/static/js/app.js",

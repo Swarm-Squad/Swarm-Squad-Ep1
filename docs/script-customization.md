@@ -99,6 +99,49 @@ Run scripts with:
 uv run python your_script.py
 ```
 
+If you previously ran plain `uv sync` and noticed test tooling missing, reinstall
+development dependencies with:
+
+```bash
+uv sync --extra dev
+```
+
+### Template D: script-defined control loop (GUI updates live)
+
+```python
+from swarm_squad_ep1.client import SwarmSquadClient
+
+client = SwarmSquadClient()
+client.reset_simulation()
+
+first_agent = next(iter(client.agents()["agents"]))
+
+def policy(state, step_idx):
+    # Replace this with your own algorithm logic.
+    pos = state["agents"][first_agent]["position"]
+    return [{"agent": first_agent, "x": pos[0] + 1.0, "y": pos[1], "z": pos[2]}]
+
+trace = client.run_script_control_loop(policy, steps=20, step_interval_s=0.1)
+print("loop steps:", len(trace))
+```
+
+### Template E: register a custom path algorithm plugin
+
+```python
+from swarm_squad_ep1.client import SwarmSquadClient
+
+client = SwarmSquadClient()
+
+client.register_custom_algorithm(
+    name="midpoint_demo",
+    import_path="examples.custom_algorithms.midpoint_path:midpoint_path",
+    description="Midpoint demo path",
+    replace=True,
+)
+client.set_algorithm(path_algorithm="midpoint_demo")
+client.start_simulation(path_algorithm="midpoint_demo")
+```
+
 ## Core `SwarmSquadClient` method groups
 
 Simulation lifecycle:
@@ -108,11 +151,16 @@ Simulation lifecycle:
 - `reset_simulation()`
 - `simulation_state()`
 - `simulation_results()`
+- `simulate_step()`
 
 Algorithms and control:
 
 - `set_algorithm(formation=..., path_algorithm=..., default_obstacle_type=...)`
 - `move_agent(agent, x, y, z)`
+- `run_script_control_loop(controller, steps=..., step_interval_s=...)`
+- `register_custom_algorithm(...)`
+- `list_custom_algorithms()`
+- `remove_custom_algorithm(name)`
 
 Jamming controls:
 
@@ -132,6 +180,9 @@ Defense and comms toggles:
 
 - `set_crypto_auth(enabled, algorithm=...)`
 - `crypto_auth_status()`
+- `set_v2v_channel(enabled, params=...)`
+- `v2v_channel_status()`
+- `set_comm_model("v2v_channel" | "legacy")`
 - `set_llm_assistance(enabled)`
 - `llm_assistance_status()`
 - `protocol_stats()`
@@ -140,6 +191,9 @@ Visualization/state pulls:
 
 - `status()`
 - `agents()`
+- `agent(agent_id)`
+- `add_agent(x, y, z)`
+- `remove_agent(agent_id)`
 - `visualization(trail_length="short" | "all")`
 - `simulation_config()`
 

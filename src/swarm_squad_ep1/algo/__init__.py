@@ -26,7 +26,14 @@ from swarm_squad_ep1.algo.mavlink import (
     get_mavlink_bus,
     reset_mavlink_bus,
 )
-from swarm_squad_ep1.algo.path_planning import PATH_ALGORITHMS, PathPlanner
+from swarm_squad_ep1.algo.path_planning import (
+    PATH_ALGORITHMS,
+    PathPlanner,
+    get_available_path_algorithms,
+    list_registered_path_algorithms,
+    register_path_algorithm,
+    unregister_path_algorithm,
+)
 from swarm_squad_ep1.algo.spoofing import (
     SpoofingEngine,
     SpoofingZone,
@@ -58,6 +65,10 @@ __all__ = [
     # Path Planning
     "PathPlanner",
     "PATH_ALGORITHMS",
+    "get_available_path_algorithms",
+    "list_registered_path_algorithms",
+    "register_path_algorithm",
+    "unregister_path_algorithm",
     # Jamming
     "JammingResponse",
     "JAMMING_STRATEGIES",

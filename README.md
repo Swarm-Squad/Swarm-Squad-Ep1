@@ -68,6 +68,14 @@ uv run swarm-squad-ep1 research smoke
 
 ## Development
 
+Install dev/test dependencies first:
+
+```bash
+uv sync --extra dev
+```
+
+Then run tests:
+
 ```bash
 uv run pytest -q
 ```

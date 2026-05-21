@@ -8,6 +8,12 @@ from swarm_squad_ep1.config import X_RANGE, Y_RANGE, Z_RANGE
 pytestmark = pytest.mark.api
 
 
+def scripted_test_path(start, goal, jamming_zones, **kwargs):
+    """Simple custom path algorithm used for endpoint/registry tests."""
+    mid = (start + goal) / 2
+    return [start, mid, goal]
+
+
 def _first_agent_id(sim_client) -> str:
     agents = sim_client.get("/agents").json()["agents"]
     assert agents, "expected at least one initialized agent"
@@ -198,3 +204,62 @@ def test_simulate_step_moves_agent_toward_llm_target(sim_client):
     assert stepped.status_code == 200
     moved = stepped.json()["moved_agents"]
     assert any(item["agent_id"] == agent_id for item in moved)
+
+
+def test_simulation_config_includes_dynamic_algorithm_fields(sim_client):
+    response = sim_client.get("/simulation/config")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "path_algorithms" in payload
+    assert "path_algorithm_labels" in payload
+    assert "custom_path_algorithms" in payload
+    assert "comm_models" in payload
+    assert "astar" in payload["path_algorithms"]
+
+
+def test_custom_algorithm_registry_endpoints(sim_client):
+    listed = sim_client.get("/simulation/custom_algorithms")
+    assert listed.status_code == 200
+    assert "algorithms" in listed.json()
+
+    create = sim_client.post(
+        "/simulation/custom_algorithms",
+        json={
+            "name": "scripted_midpoint",
+            "import_path": "tests.test_simulation_api:scripted_test_path",
+            "description": "Scripted midpoint path",
+        },
+    )
+    assert create.status_code == 200
+    create_payload = create.json()
+    assert create_payload["success"] is True
+    assert "scripted_midpoint" in create_payload["path_algorithms"]
+
+    config = sim_client.get("/simulation/config").json()
+    assert "scripted_midpoint" in config["path_algorithms"]
+    assert (
+        config["path_algorithm_labels"]["scripted_midpoint"] == "Scripted midpoint path"
+    )
+
+    update_algo = sim_client.post(
+        "/simulation/algorithm", json={"path_algorithm": "scripted_midpoint"}
+    )
+    assert update_algo.status_code == 200
+    assert update_algo.json()["success"] is True
+
+    remove = sim_client.delete("/simulation/custom_algorithms/scripted_midpoint")
+    assert remove.status_code == 200
+    assert remove.json()["success"] is True
+    assert "scripted_midpoint" not in remove.json()["path_algorithms"]
+
+
+def test_invalid_path_algorithm_is_rejected(sim_client):
+    bad_start = sim_client.post(
+        "/simulation/start",
+        json={
+            "formation": "communication_aware",
+            "path_algorithm": "not_a_real_algorithm",
+        },
+    )
+    assert bad_start.status_code == 400
+    assert "Unknown algorithm" in bad_start.json()["detail"]

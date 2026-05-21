@@ -14,11 +14,19 @@ Available algorithms:
 - Minimum Spanning Tree (MSP)
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
 from swarm_squad_ep1.algo.base import JammingZone, ObstacleType
+from swarm_squad_ep1.algo.custom_path_algorithms import (
+    get_custom_path_algorithm,
+    get_custom_path_callable,
+    has_custom_path_algorithm,
+    list_custom_path_algorithms,
+    register_custom_path_algorithm,
+    unregister_custom_path_algorithm,
+)
 
 # Try to import PathPlanner3D, fallback to simple implementation if not available
 try:
@@ -42,6 +50,17 @@ PATH_ALGORITHMS = [
     "msp",
 ]
 
+# Built-in algorithms that use grid/waypoint planning behavior.
+GRID_PATH_ALGORITHMS = [
+    "astar",
+    "theta_star",
+    "dijkstra",
+    "bfs",
+    "greedy",
+    "bi_astar",
+    "msp",
+]
+
 # Algorithm display names
 ALGORITHM_NAMES = {
     "direct": "Direct (Default)",
@@ -53,6 +72,59 @@ ALGORITHM_NAMES = {
     "bi_astar": "Bidirectional A*",
     "msp": "Minimum Spanning Tree",
 }
+
+
+def get_available_path_algorithms() -> list[str]:
+    """Return built-in algorithms plus registered custom algorithm names."""
+    custom_names = [item["name"] for item in list_custom_path_algorithms()]
+    extras = [name for name in custom_names if name not in PATH_ALGORITHMS]
+    return [*PATH_ALGORITHMS, *extras]
+
+
+def get_path_algorithm_labels() -> dict[str, str]:
+    """Return label mapping for built-in + custom algorithms."""
+    labels = dict(ALGORITHM_NAMES)
+    for item in list_custom_path_algorithms():
+        label = item.get("description") or item["name"].replace("_", " ")
+        labels[item["name"]] = label
+    return labels
+
+
+def is_waypoint_path_algorithm(algorithm: str) -> bool:
+    """Whether algorithm should follow precomputed waypoints."""
+    if algorithm in GRID_PATH_ALGORITHMS:
+        return True
+    custom = get_custom_path_algorithm(algorithm)
+    return bool(custom and custom.mode == "waypoint")
+
+
+def register_path_algorithm(
+    *,
+    name: str,
+    import_path: str,
+    description: str = "",
+    mode: str = "waypoint",
+    replace: bool = False,
+) -> dict[str, str]:
+    """Register a custom path algorithm callable by import path."""
+    return register_custom_path_algorithm(
+        name=name,
+        import_path=import_path,
+        description=description,
+        mode=mode,
+        replace=replace,
+        reserved_names=PATH_ALGORITHMS,
+    )
+
+
+def list_registered_path_algorithms() -> list[dict[str, str]]:
+    """List all registered custom path algorithms."""
+    return list_custom_path_algorithms()
+
+
+def unregister_path_algorithm(name: str) -> Optional[dict[str, str]]:
+    """Remove a registered custom path algorithm."""
+    return unregister_custom_path_algorithm(name)
 
 
 class PathPlanner:
@@ -106,10 +178,7 @@ class PathPlanner:
         if self._planner_initialized:
             return
 
-        if PATHFINDING3D_AVAILABLE and self.algorithm not in [
-            "potential_field",
-            "direct",
-        ]:
+        if PATHFINDING3D_AVAILABLE and self.algorithm in GRID_PATH_ALGORITHMS:
             try:
                 # Use larger voxel size for slower algorithms
                 voxel = self.voxel_size
@@ -200,6 +269,14 @@ class PathPlanner:
         # Update obstacles
         self.update_obstacles_from_jamming(jamming_zones)
 
+        # Custom plugin algorithms are resolved and executed first.
+        if has_custom_path_algorithm(self.algorithm):
+            path = self._run_custom_algorithm(start, goal, jamming_zones, agent_id)
+            if path:
+                self.paths[agent_id] = path
+                self.current_waypoints[agent_id] = 0
+                return path
+
         # Use PathPlanner3D for grid-based algorithms
         if self._planner3d is not None and self.algorithm not in [
             "potential_field",
@@ -233,6 +310,80 @@ class PathPlanner:
             self.current_waypoints[agent_id] = 0
 
         return path
+
+    def _run_custom_algorithm(
+        self,
+        start: np.ndarray,
+        goal: np.ndarray,
+        jamming_zones: list[JammingZone],
+        agent_id: str,
+    ) -> Optional[list[np.ndarray]]:
+        fn = get_custom_path_callable(self.algorithm)
+        if fn is None:
+            return None
+
+        try:
+            raw_path = fn(
+                start=np.array(start, dtype=float).copy(),
+                goal=np.array(goal, dtype=float).copy(),
+                jamming_zones=list(jamming_zones),
+                agent_id=agent_id,
+                planner=self,
+            )
+        except TypeError:
+            # Backward-compatible fallback for simpler call signatures.
+            raw_path = fn(
+                np.array(start, dtype=float).copy(),
+                np.array(goal, dtype=float).copy(),
+                list(jamming_zones),
+            )
+        except Exception as exc:
+            print(
+                f"[PathPlanner] {agent_id}: custom algorithm failed ({self.algorithm}): {exc}"
+            )
+            return None
+
+        path = self._normalize_custom_path(raw_path, start, goal)
+        if path is None:
+            print(f"[PathPlanner] {agent_id}: custom algorithm returned no valid path")
+            return None
+        print(
+            f"[PathPlanner] {agent_id}: custom algorithm {self.algorithm} generated {len(path)} waypoints"
+        )
+        return path
+
+    def _normalize_custom_path(
+        self,
+        raw_path: Any,
+        start: np.ndarray,
+        goal: np.ndarray,
+    ) -> Optional[list[np.ndarray]]:
+        if raw_path is None:
+            return None
+
+        points: list[np.ndarray] = []
+        try:
+            for point in raw_path:
+                arr = np.array(point, dtype=float).reshape(-1)
+                if arr.size < 3:
+                    continue
+                points.append(arr[:3])
+        except TypeError:
+            return None
+
+        if not points:
+            return None
+
+        start_arr = np.array(start, dtype=float)
+        goal_arr = np.array(goal, dtype=float)
+        if not np.allclose(points[0], start_arr):
+            points.insert(0, start_arr.copy())
+        if not np.allclose(points[-1], goal_arr):
+            points.append(goal_arr.copy())
+
+        if len(points) < 2:
+            return None
+        return self._smooth_path(points)
 
     def get_all_paths(self) -> dict[str, list[list[float]]]:
         """
@@ -411,10 +562,9 @@ class PathPlanner:
 
     def set_algorithm(self, algorithm: str):
         """Change path planning algorithm."""
-        if algorithm not in PATH_ALGORITHMS:
-            raise ValueError(
-                f"Unknown algorithm: {algorithm}. Available: {PATH_ALGORITHMS}"
-            )
+        available = get_available_path_algorithms()
+        if algorithm not in available:
+            raise ValueError(f"Unknown algorithm: {algorithm}. Available: {available}")
 
         self.algorithm = algorithm
 
