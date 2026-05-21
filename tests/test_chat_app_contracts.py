@@ -38,6 +38,17 @@ class _DummyAsyncClient:
         return _DummyResponse({"success": True})
 
 
+class _ErrorAsyncClient:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+    async def get(self, url: str, timeout: float = 5.0, params=None):
+        raise RuntimeError("sim backend unavailable")
+
+
 def test_tools_catalog_contract(chat_client):
     response = chat_client.get("/tools")
     assert response.status_code == 200
@@ -98,3 +109,13 @@ def test_representative_proxy_route(monkeypatch, chat_client):
     response = chat_client.get("/simulation/state")
     assert response.status_code == 200
     assert response.json()["running"] is False
+
+
+def test_attack_metrics_proxy_fallback_when_backend_unavailable(monkeypatch, chat_client):
+    monkeypatch.setattr(chat_module.httpx, "AsyncClient", _ErrorAsyncClient)
+
+    response = chat_client.get("/simulation/attack_metrics")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "chat_fallback"
+    assert {"tp", "fp", "fn", "tn", "detection_rate"} <= payload.keys()

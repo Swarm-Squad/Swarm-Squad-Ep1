@@ -89,6 +89,28 @@ def _default_status_payload() -> dict:
     }
 
 
+def _default_attack_metrics_payload(error: str | None = None) -> dict:
+    """Stable fallback for attack-metrics polling when sim API is unavailable."""
+    payload = {
+        "crypto_enabled": False,
+        "crypto_algorithm": "-",
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "detection_rate": 0.0,
+        "false_positive_rate": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "active_attacks_by_type": {},
+        "source": "chat_fallback",
+        "timestamp": datetime.now().isoformat(),
+    }
+    if error:
+        payload["error"] = error
+    return payload
+
+
 async def _fetch_simulation_status(timeout: float = 5.0) -> dict:
     """Fetch simulation status and enforce expected bootstrap keys."""
     async with httpx.AsyncClient() as client:
@@ -894,11 +916,16 @@ async def proxy_attack_metrics():
             response = await client.get(
                 f"{SIMULATION_API_URL}/simulation/attack_metrics", timeout=5.0
             )
-            return JSONResponse(
-                content=response.json(), status_code=response.status_code
-            )
+            if response.status_code >= 400:
+                return _default_attack_metrics_payload(
+                    f"simulation_api_status={response.status_code}"
+                )
+            payload = response.json()
+            payload.setdefault("timestamp", datetime.now().isoformat())
+            payload.setdefault("source", "simulation_api")
+            return payload
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=502)
+        return _default_attack_metrics_payload(str(e))
 
 
 # ============================================================================
