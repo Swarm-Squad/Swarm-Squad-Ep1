@@ -4,17 +4,18 @@ Unified Controller for Multi-Vehicle Coordination.
 Uses communication-aware formation control as the default formation algorithm,
 integrating path planning and jamming response.
 
-The formation control uses communication quality metrics (aij, gij, rho_ij) 
+The formation control uses communication quality metrics (aij, gij, rho_ij)
 to maintain optimal inter-agent distances.
 
-Supports behavior-based obstacle avoidance as well as grid-based path planning 
+Supports behavior-based obstacle avoidance as well as grid-based path planning
 algorithms from pathfinding3d.
 """
+
 from typing import Optional
 
 import numpy as np
 
-from .base import (
+from swarm_squad_ep1.algo.base import (
     FormationRole,
     FormationState,
     JammingZone,
@@ -28,18 +29,19 @@ from .base import (
     calculate_rho_ij,
     calculate_rn,
 )
-from .formation import FORMATION_TYPES, FormationGenerator
-from .jamming_response import JammingResponse
-from .path_planning import PATH_ALGORITHMS, PathPlanner
-from .v2v_channel import V2VChannelModel, get_channel_model
+from swarm_squad_ep1.algo.formation import FORMATION_TYPES, FormationGenerator
+from swarm_squad_ep1.algo.jamming_response import JammingResponse
+from swarm_squad_ep1.algo.path_planning import PATH_ALGORITHMS, PathPlanner
+from swarm_squad_ep1.algo.v2v_channel import V2VChannelModel, get_channel_model
 
 # Try to import config parameters
 try:
-    from ..config import (
+    from swarm_squad_ep1.config import (
         DEFAULT_FORMATION,
         get_behavior_params,
         get_formation_params,
     )
+
     CONFIG_AVAILABLE = True
 except ImportError:
     CONFIG_AVAILABLE = False
@@ -52,10 +54,10 @@ class UnifiedController(MultiVehicleController):
       based on communication quality metrics
     - Path planning (avoid obstacles, reach destination)
     - Jamming response (detect, avoid, recover)
-    
+
     The communication-aware formation uses:
     - aij: Communication quality in antenna far-field
-    - gij: Communication quality in antenna near-field  
+    - gij: Communication quality in antenna near-field
     - rho_ij: Derivative of phi_ij for gradient-based control
     - Formation converges when Jn (avg comm quality) stabilizes
     """
@@ -81,7 +83,7 @@ class UnifiedController(MultiVehicleController):
     ):
         """
         Initialize unified controller.
-        
+
         Args:
             formation_type: "communication_aware" (default) or geometric types
             path_algorithm: "direct" (default), "astar", etc.
@@ -111,11 +113,29 @@ class UnifiedController(MultiVehicleController):
             v = v if v is not None else form_params["v"]
             PT = PT if PT is not None else form_params["PT"]
 
-            attraction_magnitude = attraction_magnitude if attraction_magnitude is not None else behav_params["attraction_magnitude"]
-            distance_threshold = distance_threshold if distance_threshold is not None else behav_params["distance_threshold"]
-            avoidance_magnitude = avoidance_magnitude if avoidance_magnitude is not None else behav_params["avoidance_magnitude"]
-            buffer_zone = buffer_zone if buffer_zone is not None else behav_params["buffer_zone"]
-            wall_follow_zone = wall_follow_zone if wall_follow_zone is not None else behav_params["wall_follow_zone"]
+            attraction_magnitude = (
+                attraction_magnitude
+                if attraction_magnitude is not None
+                else behav_params["attraction_magnitude"]
+            )
+            distance_threshold = (
+                distance_threshold
+                if distance_threshold is not None
+                else behav_params["distance_threshold"]
+            )
+            avoidance_magnitude = (
+                avoidance_magnitude
+                if avoidance_magnitude is not None
+                else behav_params["avoidance_magnitude"]
+            )
+            buffer_zone = (
+                buffer_zone if buffer_zone is not None else behav_params["buffer_zone"]
+            )
+            wall_follow_zone = (
+                wall_follow_zone
+                if wall_follow_zone is not None
+                else behav_params["wall_follow_zone"]
+            )
         else:
             # Hardcoded defaults
             formation_type = formation_type or "communication_aware"
@@ -125,9 +145,15 @@ class UnifiedController(MultiVehicleController):
             r0 = r0 if r0 is not None else 5.0
             v = v if v is not None else 3.0
             PT = PT if PT is not None else 0.94
-            attraction_magnitude = attraction_magnitude if attraction_magnitude is not None else 0.7
-            distance_threshold = distance_threshold if distance_threshold is not None else 1.0
-            avoidance_magnitude = avoidance_magnitude if avoidance_magnitude is not None else 3.5
+            attraction_magnitude = (
+                attraction_magnitude if attraction_magnitude is not None else 0.7
+            )
+            distance_threshold = (
+                distance_threshold if distance_threshold is not None else 1.0
+            )
+            avoidance_magnitude = (
+                avoidance_magnitude if avoidance_magnitude is not None else 3.5
+            )
             buffer_zone = buffer_zone if buffer_zone is not None else 8.0
             wall_follow_zone = wall_follow_zone if wall_follow_zone is not None else 4.0
 
@@ -151,20 +177,23 @@ class UnifiedController(MultiVehicleController):
 
         # Initialize sub-controllers
         self.geometric_formation = FormationGenerator(
-            formation_type if formation_type != "communication_aware" else "v_formation",
-            spacing
+            formation_type
+            if formation_type != "communication_aware"
+            else "v_formation",
+            spacing,
         )
 
         # Get bounds from config if available
         try:
-            from ..config import X_RANGE, Y_RANGE, Z_RANGE
+            from swarm_squad_ep1.config import X_RANGE, Y_RANGE, Z_RANGE
+
             # Keep z bounds at 0 or above - vehicles shouldn't go underground
             bounds_min = [X_RANGE[0], Y_RANGE[0], max(0, Z_RANGE[0])]
             bounds_max = [X_RANGE[1], Y_RANGE[1], Z_RANGE[1]]
         except ImportError:
             bounds_min = [-50, -50, 0]
             bounds_max = [50, 150, 50]
-        
+
         # Store bounds for position clamping
         self.bounds_min = np.array(bounds_min)
         self.bounds_max = np.array(bounds_max)
@@ -179,14 +208,16 @@ class UnifiedController(MultiVehicleController):
 
         # V2V channel model (LOS/NLOS, path loss, fading)
         self._channel_model: V2VChannelModel = get_channel_model()
-        self.use_v2v_channel = True  # Toggle: True = realistic model, False = legacy aij*gij
+        self.use_v2v_channel = (
+            True  # Toggle: True = realistic model, False = legacy aij*gij
+        )
 
         # State tracking
         self.formation_converged = False
         self.convergence_threshold = 20  # iterations of stable Jn
         self.Jn_history: list[float] = []
         self.rn_history: list[float] = []
-        
+
         # Visualization state
         self._last_avoidance_vectors: dict = {}
 
@@ -208,7 +239,9 @@ class UnifiedController(MultiVehicleController):
         # (Realistic: agents detect jamming when comm quality < PT)
         self._comm_quality_history: dict[str, list[float]] = {}
         self._baseline_comm_quality: dict[str, float] = {}
-        self._baseline_samples: int = 10  # Samples to establish baseline before jamming detection
+        self._baseline_samples: int = (
+            10  # Samples to establish baseline before jamming detection
+        )
 
         # Control inputs (accumulated per step)
         self._control_inputs: Optional[np.ndarray] = None
@@ -223,13 +256,19 @@ class UnifiedController(MultiVehicleController):
 
         # Deadlock detection - track swarm center history
         self._swarm_center_history: list[np.ndarray] = []
-        self._deadlock_boost: float = 1.0  # Multiplier for destination control when stuck
+        self._deadlock_boost: float = (
+            1.0  # Multiplier for destination control when stuck
+        )
         self._deadlock_check_window: int = 50  # Check last N steps
         self._deadlock_threshold: float = 2.0  # If moved less than this, consider stuck
 
-        print(f"[Controller] Initialized: formation={formation_type}, path={path_algorithm}")
+        print(
+            f"[Controller] Initialized: formation={formation_type}, path={path_algorithm}"
+        )
         if formation_type == "communication_aware":
-            print(f"[Controller] Comm-aware params: alpha={alpha}, delta={delta}, r0={r0}, v={v}, PT={PT}")
+            print(
+                f"[Controller] Comm-aware params: alpha={alpha}, delta={delta}, r0={r0}, v={v}, PT={PT}"
+            )
 
     def compute_commands(
         self,
@@ -241,12 +280,12 @@ class UnifiedController(MultiVehicleController):
     ) -> dict[str, VehicleCommand]:
         """
         Compute movement commands for all agents using communication-aware formation control.
-        
+
         The algorithm:
         1. Compute pairwise communication quality metrics
         2. Apply formation control: rho_ij * eij for each neighbor pair
         3. After convergence, add destination control with jamming avoidance
-        
+
         Args:
             agents: Current state of all agents
             destination: Target destination [x, y, z]
@@ -254,7 +293,7 @@ class UnifiedController(MultiVehicleController):
             dt: Time step
             perceived_positions: MAVLink-mediated positions (may include spoofed data).
                                  When None, uses ground-truth positions from agents dict.
-            
+
         Returns:
             Dictionary mapping agent_id to VehicleCommand
         """
@@ -266,25 +305,42 @@ class UnifiedController(MultiVehicleController):
 
         # Use MAVLink-perceived positions if available, otherwise ground truth
         if perceived_positions is not None:
-            positions = np.array([
-                perceived_positions.get(aid, agents[aid].position if hasattr(agents[aid], 'position')
-                                        else agents[aid].get('position', [0, 0, 0]))
-                for aid in agent_ids
-            ])
+            positions = np.array(
+                [
+                    perceived_positions.get(
+                        aid,
+                        agents[aid].position
+                        if hasattr(agents[aid], "position")
+                        else agents[aid].get("position", [0, 0, 0]),
+                    )
+                    for aid in agent_ids
+                ]
+            )
         else:
-            positions = np.array([
-                agents[aid].position if hasattr(agents[aid], 'position')
-                else agents[aid].get('position', [0, 0, 0])
-                for aid in agent_ids
-            ])
+            positions = np.array(
+                [
+                    agents[aid].position
+                    if hasattr(agents[aid], "position")
+                    else agents[aid].get("position", [0, 0, 0])
+                    for aid in agent_ids
+                ]
+            )
 
         # =====================================================================
         # OBSTACLE VISIBILITY: Physical obstacles are visible, jamming is invisible
         # =====================================================================
         # Physical obstacles can be seen and avoided proactively
         # Jamming zones (LOW_JAM, HIGH_JAM) are invisible until discovered via comm degradation
-        visible_obstacles = [z for z in jamming_zones if z.active and z.obstacle_type == ObstacleType.PHYSICAL]
-        invisible_jamming = [z for z in jamming_zones if z.active and z.obstacle_type != ObstacleType.PHYSICAL]
+        visible_obstacles = [
+            z
+            for z in jamming_zones
+            if z.active and z.obstacle_type == ObstacleType.PHYSICAL
+        ]
+        invisible_jamming = [
+            z
+            for z in jamming_zones
+            if z.active and z.obstacle_type != ObstacleType.PHYSICAL
+        ]
 
         # Initialize matrices
         self._comm_matrix = np.zeros((n, n))
@@ -303,13 +359,6 @@ class UnifiedController(MultiVehicleController):
         # PHYSICAL blockers (force NLOS) from LOW_JAM/HIGH_JAM (in-beam
         # attenuation only).
         obstacle_specs = [zone.to_v2v_spec() for zone in jamming_zones if zone.active]
-        # Keep legacy arrays as a fallback for the rare path planner code
-        # that still wants raw arrays.
-        _obs_centers = [spec.center.tolist() for spec in obstacle_specs]
-        _obs_radii = [spec.radius for spec in obstacle_specs]
-        obs_centers_arr = np.array(_obs_centers) if _obs_centers else np.empty((0, 3))
-        obs_radii_arr = np.array(_obs_radii) if _obs_radii else np.empty(0)
-
         if self.formation_type == "communication_aware":
             for i in range(n):
                 for j in range(n):
@@ -321,14 +370,20 @@ class UnifiedController(MultiVehicleController):
                     # --- V2V Channel Model (realistic) or legacy aij*gij ---
                     if self.use_v2v_channel:
                         channel_quality = self._channel_model.compute_pairwise_quality(
-                            i, j, positions[i], positions[j],
-                            positions, obstacle_specs,
+                            i,
+                            j,
+                            positions[i],
+                            positions[j],
+                            positions,
+                            obstacle_specs,
                         )
                         # Use channel quality as the base communication metric
                         aij = channel_quality
                         gij = 1.0  # Absorbed into channel model
                     else:
-                        aij = calculate_aij(self.alpha, self.delta, rij, self.r0, self.v)
+                        aij = calculate_aij(
+                            self.alpha, self.delta, rij, self.r0, self.v
+                        )
                         gij = calculate_gij(rij, self.r0)
 
                     # rho_ij (derivative for gradient-based formation control)
@@ -341,7 +396,9 @@ class UnifiedController(MultiVehicleController):
                         # neighbor-quality deficit vs PT. This is stable under
                         # stochastic fading and preserves the original sign
                         # convention (pull i toward j when connected).
-                        rho_ij = 0.2 * max(0.0, aij - self.PT) if aij >= self.PT else 0.0
+                        rho_ij = (
+                            0.2 * max(0.0, aij - self.PT) if aij >= self.PT else 0.0
+                        )
                     else:
                         if aij >= self.PT:
                             rho_ij = calculate_rho_ij(self.beta, self.v, rij, self.r0)
@@ -379,39 +436,41 @@ class UnifiedController(MultiVehicleController):
             # Use geometric formation (v_formation, line, circle, etc.)
             # Calculate formation center (centroid of all agents)
             current_center = np.mean(positions, axis=0)
-            
+
             # Direction to destination for heading calculation
             dest_array = np.array(destination)
             to_dest = dest_array - current_center
             dist_to_dest = np.linalg.norm(to_dest)
-            
+
             if dist_to_dest > 0.1:
                 # Normalize direction
                 direction = to_dest / dist_to_dest
                 formation_heading = float(np.arctan2(to_dest[1], to_dest[0]))
-                
+
                 # Move formation center toward destination
                 # The target center advances toward destination each step
-                move_speed = min(self.v * dt * 10, dist_to_dest)  # Move at reasonable speed
+                move_speed = min(
+                    self.v * dt * 10, dist_to_dest
+                )  # Move at reasonable speed
                 target_center = current_center + direction * move_speed
             else:
                 formation_heading = 0.0
                 target_center = current_center
-            
+
             # Get target positions around the moving target center
             # Args order: center, num_agents, heading
             target_positions = self.geometric_formation.get_target_positions(
                 target_center.tolist(), n, formation_heading
             )
-            
+
             # Apply formation control - move each agent toward its target position
             formation_gain = 1.2  # Control gain for formation keeping
-            
+
             for i in range(n):
                 target_pos = np.array(target_positions.get(i, positions[i]))
                 error = target_pos - positions[i]
                 control_inputs[i] += formation_gain * error
-            
+
             # Also calculate communication matrices for monitoring
             for i in range(n):
                 for j in range(n):
@@ -421,13 +480,19 @@ class UnifiedController(MultiVehicleController):
 
                     if self.use_v2v_channel:
                         channel_quality = self._channel_model.compute_pairwise_quality(
-                            i, j, positions[i], positions[j],
-                            positions, obstacle_specs,
+                            i,
+                            j,
+                            positions[i],
+                            positions[j],
+                            positions,
+                            obstacle_specs,
                         )
                         aij = channel_quality
                         gij = 1.0
                     else:
-                        aij = calculate_aij(self.alpha, self.delta, rij, self.r0, self.v)
+                        aij = calculate_aij(
+                            self.alpha, self.delta, rij, self.r0, self.v
+                        )
                         gij = calculate_gij(rij, self.r0)
 
                     D_i = 1.0
@@ -456,50 +521,64 @@ class UnifiedController(MultiVehicleController):
         # =====================================================================
         # Path planning only starts AFTER formation has converged
         # During formation phase, agents focus on communication-aware positioning
-        # 
+        #
         # OPTIMIZATION: Use SWARM CENTER for A* instead of individual agents
         # This reduces computation from N * A* to just 1 * A*
-        if self.path_algorithm in ["astar", "theta_star", "bi_astar", "dijkstra", "bfs", "greedy", "msp"]:
+        if self.path_algorithm in [
+            "astar",
+            "theta_star",
+            "bi_astar",
+            "dijkstra",
+            "bfs",
+            "greedy",
+            "msp",
+        ]:
             if not self.formation_converged:
                 # Formation phase - no path planning yet, ensure no stale paths shown
                 self.path_planner.clear_all_paths()
             else:
                 # Formation converged - now do path planning toward destination
                 dest = np.array(destination)
-                
+
                 # Calculate SWARM CENTER - single path for the whole swarm
                 swarm_center = np.mean(positions, axis=0)
-                
+
                 # Collect obstacles for path planning:
                 # 1. Physical obstacles (always visible/known)
                 # 2. Discovered jamming zones (from comm degradation detection)
-                obstacles_for_planning = list(visible_obstacles)  # Physical always known
+                obstacles_for_planning = list(
+                    visible_obstacles
+                )  # Physical always known
                 all_known_ids = set(z.id for z in visible_obstacles)
-                
+
                 # Add discovered jamming zones from all agents (swarm knowledge sharing)
                 for agent_id in agent_ids:
                     for zone in self._discovered_obstacles.get(agent_id, []):
                         if zone.id not in all_known_ids:
                             obstacles_for_planning.append(zone)
                             all_known_ids.add(zone.id)
-                
+
                 # Check if swarm center path needs planning
                 existing_path = self.path_planner.paths.get("swarm_center")
                 needs_replan = existing_path is None or len(existing_path) == 0
-                
+
                 if needs_replan:
                     n_physical = len(visible_obstacles)
                     n_discovered = len(obstacles_for_planning) - n_physical
-                    print(f"[Controller] SWARM CENTER needs path planning, avoiding {n_physical} physical + {n_discovered} discovered obstacles")
+                    print(
+                        f"[Controller] SWARM CENTER needs path planning, avoiding {n_physical} physical + {n_discovered} discovered obstacles"
+                    )
                     # Plan ONE path from swarm center to destination
                     path = self.path_planner.plan_path(
                         start=swarm_center,
                         goal=dest,
                         agent_id="swarm_center",
-                        jamming_zones=obstacles_for_planning
+                        jamming_zones=obstacles_for_planning,
                     )
                     if path:
-                        print(f"[Controller] Planned swarm center path: {len(path)} waypoints")
+                        print(
+                            f"[Controller] Planned swarm center path: {len(path)} waypoints"
+                        )
                     else:
                         print("[Controller] FAILED to plan swarm center path")
 
@@ -508,7 +587,7 @@ class UnifiedController(MultiVehicleController):
         # =====================================================================
         # Clear avoidance vectors from previous frame
         self._last_avoidance_vectors = {}
-        
+
         # Compute avoidance vectors even before convergence for visualization
         # This helps show obstacle avoidance behavior during the entire simulation
         if True:  # Always compute avoidance for visualization
@@ -536,7 +615,7 @@ class UnifiedController(MultiVehicleController):
                         if zone.id not in discovered_ids:
                             all_discovered_jamming.append(zone)
                             discovered_ids.add(zone.id)
-                
+
                 # Combine obstacles the agent knows about:
                 # 1. Physical obstacles (always visible/known)
                 # 2. ALL discovered jamming zones from swarm (shared knowledge)
@@ -548,16 +627,24 @@ class UnifiedController(MultiVehicleController):
                 # When using A*/grid-based path planning, follow waypoints instead of going directly to destination
                 # This ensures vehicles actually follow the planned path that avoids obstacles
                 effective_target = dest  # Default: final destination
-                
-                if self.path_algorithm in ["astar", "theta_star", "bi_astar", "dijkstra", "bfs", "greedy", "msp"]:
+
+                if self.path_algorithm in [
+                    "astar",
+                    "theta_star",
+                    "bi_astar",
+                    "dijkstra",
+                    "bfs",
+                    "greedy",
+                    "msp",
+                ]:
                     # Get swarm center position
                     swarm_center = np.mean(positions, axis=0)
-                    
+
                     # Get next waypoint from planned path
                     next_waypoint = self.path_planner.get_next_waypoint(
                         swarm_center, "swarm_center", threshold=5.0
                     )
-                    
+
                     if next_waypoint is not None:
                         # Use waypoint as target instead of final destination
                         effective_target = np.array(next_waypoint)
@@ -565,8 +652,10 @@ class UnifiedController(MultiVehicleController):
 
                 # Destination control with obstacle/jamming avoidance
                 # Only avoid obstacles the agent KNOWS about (physical + discovered jamming)
-                dest_control, avoidance_vec = self._compute_destination_control_with_avoidance(
-                    pos, effective_target, known_obstacles, is_jammed
+                dest_control, avoidance_vec = (
+                    self._compute_destination_control_with_avoidance(
+                        pos, effective_target, known_obstacles, is_jammed
+                    )
                 )
 
                 # Apply jamming response if jammed
@@ -578,7 +667,7 @@ class UnifiedController(MultiVehicleController):
                 # Only apply destination control after convergence
                 if self.formation_converged:
                     control_inputs[i] += dest_control
-                
+
                 # Store NET control vector for visualization (only when avoidance is active)
                 # This shows the actual direction the vehicle will move, not just avoidance
                 if avoidance_vec is not None and np.linalg.norm(avoidance_vec) > 0.01:
@@ -586,8 +675,10 @@ class UnifiedController(MultiVehicleController):
                     net_magnitude = np.linalg.norm(net_control)
                     if net_magnitude > 0.01:
                         self._last_avoidance_vectors[agent_id] = {
-                            'direction': (net_control / (net_magnitude + 1e-6)).tolist(),
-                            'magnitude': float(net_magnitude),
+                            "direction": (
+                                net_control / (net_magnitude + 1e-6)
+                            ).tolist(),
+                            "magnitude": float(net_magnitude),
                         }
 
         # Update formation state
@@ -599,29 +690,42 @@ class UnifiedController(MultiVehicleController):
         # Track swarm center to detect if swarm is stuck
         swarm_center = np.mean(positions, axis=0)
         self._swarm_center_history.append(swarm_center.copy())
-        
+
         # Keep only recent history
         if len(self._swarm_center_history) > self._deadlock_check_window * 2:
-            self._swarm_center_history = self._swarm_center_history[-self._deadlock_check_window:]
-        
+            self._swarm_center_history = self._swarm_center_history[
+                -self._deadlock_check_window :
+            ]
+
         # Check for deadlock after formation converges
-        if self.formation_converged and len(self._swarm_center_history) >= self._deadlock_check_window:
+        if (
+            self.formation_converged
+            and len(self._swarm_center_history) >= self._deadlock_check_window
+        ):
             # Compare current position to position N steps ago
             old_center = self._swarm_center_history[-self._deadlock_check_window]
             movement = np.linalg.norm(swarm_center - old_center)
-            
+
             if movement < self._deadlock_threshold:
                 # STUCK! Boost destination control
-                self._deadlock_boost = min(3.0, self._deadlock_boost + 0.1)  # Gradual increase
-                print(f"[Controller] DEADLOCK DETECTED: moved only {movement:.2f} units in {self._deadlock_check_window} steps, boost={self._deadlock_boost:.2f}")
-                
+                self._deadlock_boost = min(
+                    3.0, self._deadlock_boost + 0.1
+                )  # Gradual increase
+                print(
+                    f"[Controller] DEADLOCK DETECTED: moved only {movement:.2f} units in {self._deadlock_check_window} steps, boost={self._deadlock_boost:.2f}"
+                )
+
                 # Apply boost to all control inputs toward destination
                 dest = np.array(destination)
                 for i in range(n):
                     to_dest = dest - positions[i]
                     dist_to_dest = np.linalg.norm(to_dest)
                     if dist_to_dest > 1.0:
-                        boost_control = (to_dest / dist_to_dest) * self.attraction_magnitude * (self._deadlock_boost - 1.0)
+                        boost_control = (
+                            (to_dest / dist_to_dest)
+                            * self.attraction_magnitude
+                            * (self._deadlock_boost - 1.0)
+                        )
                         control_inputs[i] += boost_control
             else:
                 # Moving fine, reduce boost
@@ -633,91 +737,109 @@ class UnifiedController(MultiVehicleController):
         # Agents detect jamming when comm quality drops below PT (same threshold as LLM assistance)
         # This is the ONLY way to discover invisible jamming zones - no prior knowledge!
         # Use GLOBAL tracking to avoid duplicate obstacle detection from multiple agents
-        if not hasattr(self, '_global_discovered_positions'):
+        if not hasattr(self, "_global_discovered_positions"):
             self._global_discovered_positions = set()
-        
+
         for i, agent_id in enumerate(agent_ids):
             current = self._agent_comm_quality.get(agent_id, 1.0)
-            
+
             # Only detect after baseline is established (first N samples)
             history = self._comm_quality_history.get(agent_id, [])
             if len(history) <= self._baseline_samples:
                 continue
-            
+
             # Detect jamming when comm quality < PT (same threshold as LLM assistance)
             # This unifies detection - both path replanning AND LLM assistance trigger at same point
             if current > 0 and current < self.PT:
                 # Round position to LARGER grid (20 units) to reduce duplicates
                 # This means obstacles within 20 units of each other are considered the same
                 grid_size = 20
-                pos_rounded = (round(positions[i][0] / grid_size) * grid_size,
-                               round(positions[i][1] / grid_size) * grid_size,
-                               round(positions[i][2] / grid_size) * grid_size)
-                
+                pos_rounded = (
+                    round(positions[i][0] / grid_size) * grid_size,
+                    round(positions[i][1] / grid_size) * grid_size,
+                    round(positions[i][2] / grid_size) * grid_size,
+                )
+
                 # Check GLOBAL set - if any agent already detected this area, skip
                 # Limit total discovered obstacles to prevent runaway detection
                 max_obstacles = 10
-                total_obstacles = sum(len(obs) for obs in self._discovered_obstacles.values())
-                
-                if pos_rounded not in self._global_discovered_positions and total_obstacles < max_obstacles:
-                    print(f"[Controller] {agent_id} DETECTED JAMMING via comm quality < PT: "
-                          f"quality={current:.3f} (PT={self.PT:.3f})")
-                    
+                total_obstacles = sum(
+                    len(obs) for obs in self._discovered_obstacles.values()
+                )
+
+                if (
+                    pos_rounded not in self._global_discovered_positions
+                    and total_obstacles < max_obstacles
+                ):
+                    print(
+                        f"[Controller] {agent_id} DETECTED JAMMING via comm quality < PT: "
+                        f"quality={current:.3f} (PT={self.PT:.3f})"
+                    )
+
                     # Mark a SMALL obstacle at detected position
                     # The agent doesn't know the exact zone size/center, so we use a conservative estimate
-                    # IMPORTANT: Use small radius to avoid blocking paths - the obstacle is just a "waypoint" 
+                    # IMPORTANT: Use small radius to avoid blocking paths - the obstacle is just a "waypoint"
                     # indicating "jamming detected here", not the full zone
                     import time
+
                     estimated_obstacle = JammingZone(
-                        id=f"discovered_{agent_id}_{int(time.time()*1000)}",
+                        id=f"discovered_{agent_id}_{int(time.time() * 1000)}",
                         center=positions[i].tolist(),  # 3D position where comm dropped
                         radius=5.0,  # SMALL radius - just mark the detection point
                         intensity=1.0,
                         active=True,
                         obstacle_type=ObstacleType.LOW_JAM,  # Comm degradation implies jamming
                     )
-                    
+
                     # Add to GLOBAL discovered positions
                     self._global_discovered_positions.add(pos_rounded)
-                    
+
                     # Add to discovered obstacles for this agent
                     if agent_id not in self._discovered_obstacles:
                         self._discovered_obstacles[agent_id] = []
                     self._discovered_obstacles[agent_id].append(estimated_obstacle)
-                    
+
                     if agent_id not in self._discovered_obstacle_positions:
                         self._discovered_obstacle_positions[agent_id] = []
                     self._discovered_obstacle_positions[agent_id].append(pos_rounded)
-                    
+
                     # Add to known zone IDs
                     if agent_id not in self._known_zone_ids:
                         self._known_zone_ids[agent_id] = set()
                     self._known_zone_ids[agent_id].add(estimated_obstacle.id)
-                    
+
                     # Trigger path replan by clearing swarm center path
                     self.path_planner.clear_path("swarm_center")
-                    print(f"[Controller] Marked obstacle at {pos_rounded}, triggering path replan (total: {total_obstacles + 1})")
+                    print(
+                        f"[Controller] Marked obstacle at {pos_rounded}, triggering path replan (total: {total_obstacles + 1})"
+                    )
 
         # Create commands
         commands = {}
         max_control_magnitude = 10.0  # Limit control input magnitude to prevent runaway
-        
+
         for i, agent_id in enumerate(agent_ids):
             # Clamp control inputs to prevent extreme values
             vel = control_inputs[i]
             vel_magnitude = np.linalg.norm(vel)
             if vel_magnitude > max_control_magnitude:
                 vel = vel * (max_control_magnitude / vel_magnitude)
-                print(f"[Controller] WARNING: Clamped control for {agent_id} from {vel_magnitude:.1f} to {max_control_magnitude}")
-            
+                print(
+                    f"[Controller] WARNING: Clamped control for {agent_id} from {vel_magnitude:.1f} to {max_control_magnitude}"
+                )
+
             # Calculate new target position
             new_pos = positions[i] + vel * dt
-            
+
             # Clamp position to world bounds
             new_pos = np.clip(new_pos, self.bounds_min, self.bounds_max)
 
             # Calculate heading from velocity
-            heading = float(np.arctan2(vel[1], vel[0])) if np.linalg.norm(vel[:2]) > 0.01 else 0.0
+            heading = (
+                float(np.arctan2(vel[1], vel[0]))
+                if np.linalg.norm(vel[:2]) > 0.01
+                else 0.0
+            )
 
             commands[agent_id] = VehicleCommand(
                 agent_id=agent_id,
@@ -730,7 +852,7 @@ class UnifiedController(MultiVehicleController):
             if agent_id not in self._agent_paths:
                 self._agent_paths[agent_id] = []
             self._agent_paths[agent_id].append(new_pos.tolist())
-            
+
             # Cap at 2000 points max to prevent memory issues
             if len(self._agent_paths[agent_id]) > 2000:
                 self._agent_paths[agent_id] = self._agent_paths[agent_id][-2000:]
@@ -746,7 +868,7 @@ class UnifiedController(MultiVehicleController):
     ) -> np.ndarray:
         """
         Compute destination-reaching control with obstacle/jamming zone avoidance.
-        
+
         Combines destination control with obstacle avoidance.
         Uses behavior-based control when path_algorithm is "direct".
         """
@@ -760,7 +882,7 @@ class UnifiedController(MultiVehicleController):
             control = self._simple_destination_control(pos, dest, jamming_zones)
 
         return control
-    
+
     def _compute_destination_control_with_avoidance(
         self,
         pos: np.ndarray,
@@ -770,7 +892,7 @@ class UnifiedController(MultiVehicleController):
     ) -> tuple[np.ndarray, Optional[np.ndarray]]:
         """
         Compute destination control and return both control vector and avoidance component.
-        
+
         Returns:
             Tuple of (control_vector, avoidance_vector)
         """
@@ -779,10 +901,14 @@ class UnifiedController(MultiVehicleController):
 
         if self.path_algorithm == "direct":
             # Direct destination with behavior-based obstacle avoidance
-            control, avoidance = self._behavior_based_control_with_avoidance(pos, dest, jamming_zones)
+            control, avoidance = self._behavior_based_control_with_avoidance(
+                pos, dest, jamming_zones
+            )
         else:
             # Simple destination control with avoidance
-            control, avoidance = self._simple_destination_control_with_avoidance(pos, dest, jamming_zones)
+            control, avoidance = self._simple_destination_control_with_avoidance(
+                pos, dest, jamming_zones
+            )
 
         return control, avoidance
 
@@ -794,7 +920,7 @@ class UnifiedController(MultiVehicleController):
     ) -> np.ndarray:
         """
         Behavior-based obstacle avoidance for direct path planning.
-        
+
         Behavior depends on obstacle type:
         - physical: Hard avoid (must path around completely)
         - high_jam: Strong avoid (large buffer zone)
@@ -810,7 +936,7 @@ class UnifiedController(MultiVehicleController):
 
             obstacle_pos = np.array(zone.center)
             # Use jamming radius for jamming types, physical radius for physical
-            obstacle_type = getattr(zone, 'obstacle_type', ObstacleType.LOW_JAM)
+            obstacle_type = getattr(zone, "obstacle_type", ObstacleType.LOW_JAM)
             if obstacle_type == ObstacleType.PHYSICAL:
                 effective_radius = zone.radius
             else:
@@ -838,7 +964,9 @@ class UnifiedController(MultiVehicleController):
 
                 if dist_to_center < wall_follow_zone_dist:
                     # Strong avoidance when very close
-                    avoidance = self._obstacle_avoidance_3d(pos, obstacle_pos, effective_radius)
+                    avoidance = self._obstacle_avoidance_3d(
+                        pos, obstacle_pos, effective_radius
+                    )
                     control += avoidance
                     # Minimal destination control when very close to obstacle
                     control += self._destination_control_3d(pos, dest, weight=0.2)
@@ -847,7 +975,9 @@ class UnifiedController(MultiVehicleController):
                     if dist_to_center > 0:
                         wall_normal = (pos - obstacle_pos) / dist_to_center
                         wall_pos = obstacle_pos + wall_normal * effective_radius
-                        wall_follow = self._wall_following_3d(pos, dest, wall_pos, wall_normal)
+                        wall_follow = self._wall_following_3d(
+                            pos, dest, wall_pos, wall_normal
+                        )
                         control += wall_follow
                     # Reduced destination control during wall following
                     control += self._destination_control_3d(pos, dest, weight=0.3)
@@ -857,7 +987,7 @@ class UnifiedController(MultiVehicleController):
             control += self._destination_control_3d(pos, dest, weight=1.0)
 
         return control
-    
+
     def _behavior_based_control_with_avoidance(
         self,
         pos: np.ndarray,
@@ -866,7 +996,7 @@ class UnifiedController(MultiVehicleController):
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Behavior-based control that also returns the avoidance component.
-        
+
         Returns:
             Tuple of (total_control, avoidance_component)
         """
@@ -880,14 +1010,14 @@ class UnifiedController(MultiVehicleController):
                 continue
 
             obstacle_pos = np.array(zone.center)
-            obstacle_type = getattr(zone, 'obstacle_type', ObstacleType.LOW_JAM)
-            
+            obstacle_type = getattr(zone, "obstacle_type", ObstacleType.LOW_JAM)
+
             # Use jamming radius for jamming types, physical radius for physical
             if obstacle_type == ObstacleType.PHYSICAL:
                 effective_radius = zone.radius
             else:
                 effective_radius = zone.jamming_radius
-            
+
             dist_to_center = np.linalg.norm(pos - obstacle_pos)
 
             # Buffer zones based on obstacle type
@@ -905,7 +1035,9 @@ class UnifiedController(MultiVehicleController):
                 has_obstacle_influence = True
 
                 if dist_to_center < wall_follow_zone_dist:
-                    avoidance = self._obstacle_avoidance_3d(pos, obstacle_pos, effective_radius)
+                    avoidance = self._obstacle_avoidance_3d(
+                        pos, obstacle_pos, effective_radius
+                    )
                     control += avoidance
                     total_avoidance += avoidance
                     # INCREASED: Ensure meaningful destination control even near obstacles
@@ -914,7 +1046,9 @@ class UnifiedController(MultiVehicleController):
                     if dist_to_center > 0:
                         wall_normal = (pos - obstacle_pos) / dist_to_center
                         wall_pos = obstacle_pos + wall_normal * effective_radius
-                        wall_follow = self._wall_following_3d(pos, dest, wall_pos, wall_normal)
+                        wall_follow = self._wall_following_3d(
+                            pos, dest, wall_pos, wall_normal
+                        )
                         control += wall_follow
                         total_avoidance += wall_follow * 0.5
                     # INCREASED: Better destination pull in buffer zone
@@ -924,13 +1058,13 @@ class UnifiedController(MultiVehicleController):
         # This ensures forward progress even when surrounded by obstacles
         min_dest_control = self._destination_control_3d(pos, dest, weight=0.3)
         control += min_dest_control
-        
+
         if not has_obstacle_influence:
             # No obstacles - strong destination control
             control += self._destination_control_3d(pos, dest, weight=0.7)
 
         return control, total_avoidance
-    
+
     def _simple_destination_control_with_avoidance(
         self,
         pos: np.ndarray,
@@ -939,7 +1073,7 @@ class UnifiedController(MultiVehicleController):
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Simple destination control that also returns the avoidance component.
-        
+
         Returns:
             Tuple of (total_control, avoidance_component)
         """
@@ -971,9 +1105,9 @@ class UnifiedController(MultiVehicleController):
             center = np.array(zone.center)
             to_agent = pos - center
             dist = np.linalg.norm(to_agent)
-            
+
             # Use obstacle type to determine buffer multiplier
-            obstacle_type = getattr(zone, 'obstacle_type', ObstacleType.LOW_JAM)
+            obstacle_type = getattr(zone, "obstacle_type", ObstacleType.LOW_JAM)
             if obstacle_type == ObstacleType.PHYSICAL:
                 buffer_mult = 2.0
                 effective_radius = zone.radius
@@ -989,12 +1123,16 @@ class UnifiedController(MultiVehicleController):
 
             if dist < buffer and dist > 0:
                 if dist < wall_follow:
-                    avoidance_strength = self.avoidance_magnitude * np.exp(-0.3 * (dist - effective_radius))
+                    avoidance_strength = self.avoidance_magnitude * np.exp(
+                        -0.3 * (dist - effective_radius)
+                    )
                     avoidance += (to_agent / dist) * avoidance_strength
                     # INCREASED: Don't reduce dest_control as much to prevent deadlock
                     dest_control *= 0.5
                 else:
-                    avoidance_strength = 2.0 * (1.0 - (dist - wall_follow) / (buffer - wall_follow))
+                    avoidance_strength = 2.0 * (
+                        1.0 - (dist - wall_follow) / (buffer - wall_follow)
+                    )
                     avoidance += (to_agent / dist) * avoidance_strength
                     dest_control *= 0.6
 
@@ -1002,8 +1140,10 @@ class UnifiedController(MultiVehicleController):
         dest_norm = np.linalg.norm(dest - pos)
         if dest_norm > 0.1:
             min_dest_pull = (dest - pos) / dest_norm * self.attraction_magnitude * 0.3
-            dest_control = np.maximum(np.abs(dest_control), np.abs(min_dest_pull)) * np.sign(dest_control + min_dest_pull + 1e-6)
-        
+            dest_control = np.maximum(
+                np.abs(dest_control), np.abs(min_dest_pull)
+            ) * np.sign(dest_control + min_dest_pull + 1e-6)
+
         return dest_control + avoidance, avoidance
 
     def _destination_control_3d(
@@ -1055,7 +1195,11 @@ class UnifiedController(MultiVehicleController):
 
             # Exponential scaling for aggressive close-range avoidance
             proximity_factor = np.exp(-0.3 * (dist_to_obstacle - obstacle_radius))
-            control_param = ao * proximity_factor * (1 + 1 / (dist_to_obstacle - obstacle_radius + 0.1))
+            control_param = (
+                ao
+                * proximity_factor
+                * (1 + 1 / (dist_to_obstacle - obstacle_radius + 0.1))
+            )
 
             return avoidance_direction * control_param
 
@@ -1143,7 +1287,7 @@ class UnifiedController(MultiVehicleController):
 
         # Add jamming zone avoidance based on obstacle type
         avoidance = np.zeros(3)
-            
+
         for zone in jamming_zones:
             if not zone.active:
                 continue
@@ -1151,9 +1295,9 @@ class UnifiedController(MultiVehicleController):
             center = np.array(zone.center)
             to_agent = pos - center
             dist = np.linalg.norm(to_agent)
-            
+
             # Determine buffer multiplier based on obstacle type
-            obstacle_type = getattr(zone, 'obstacle_type', ObstacleType.LOW_JAM)
+            obstacle_type = getattr(zone, "obstacle_type", ObstacleType.LOW_JAM)
             if obstacle_type == ObstacleType.PHYSICAL:
                 buffer_mult = 2.0
                 effective_radius = zone.radius
@@ -1169,12 +1313,16 @@ class UnifiedController(MultiVehicleController):
 
             if dist < buffer and dist > 0:
                 if dist < wall_follow:
-                    avoidance_strength = self.avoidance_magnitude * np.exp(-0.3 * (dist - effective_radius))
+                    avoidance_strength = self.avoidance_magnitude * np.exp(
+                        -0.3 * (dist - effective_radius)
+                    )
                     avoidance += (to_agent / dist) * avoidance_strength
                     # INCREASED: Don't reduce dest_control as much to prevent deadlock
                     dest_control *= 0.5
                 else:
-                    avoidance_strength = 2.0 * (1.0 - (dist - wall_follow) / (buffer - wall_follow))
+                    avoidance_strength = 2.0 * (
+                        1.0 - (dist - wall_follow) / (buffer - wall_follow)
+                    )
                     avoidance += (to_agent / dist) * avoidance_strength
                     dest_control *= 0.6
 
@@ -1183,7 +1331,7 @@ class UnifiedController(MultiVehicleController):
         if dest_norm > 0.1:
             min_dest_pull = (dest - pos) / dest_norm * self.attraction_magnitude * 0.3
             dest_control += min_dest_pull
-        
+
         return dest_control + avoidance
 
     def _check_convergence(self):
@@ -1198,7 +1346,7 @@ class UnifiedController(MultiVehicleController):
         if len(self.Jn_history) < self.convergence_threshold:
             return
 
-        recent = self.Jn_history[-self.convergence_threshold:]
+        recent = self.Jn_history[-self.convergence_threshold :]
 
         if self.use_v2v_channel:
             mean_jn = np.mean(recent)
@@ -1206,7 +1354,9 @@ class UnifiedController(MultiVehicleController):
             # Converge when std < 5% of mean (or absolute < 0.02)
             if mean_jn > 0.01 and (std_jn < 0.05 * mean_jn or std_jn < 0.02):
                 if not self.formation_converged:
-                    print(f"[Controller] Formation converged (V2V)! Jn={mean_jn:.4f} std={std_jn:.4f}")
+                    print(
+                        f"[Controller] Formation converged (V2V)! Jn={mean_jn:.4f} std={std_jn:.4f}"
+                    )
                     print("[Controller] Now moving toward destination...")
                     self.formation_converged = True
         else:
@@ -1229,7 +1379,8 @@ class UnifiedController(MultiVehicleController):
         for i, aid in enumerate(agent_ids):
             # Find neighbors (agents with aij > PT)
             agent_neighbors = [
-                agent_ids[j] for j in range(n)
+                agent_ids[j]
+                for j in range(n)
                 if i != j and self._neighbor_matrix[i, j] > self.PT
             ]
             neighbors[aid] = agent_neighbors
@@ -1268,23 +1419,25 @@ class UnifiedController(MultiVehicleController):
         # (Realistic: agents detect jamming through comm quality drop)
         for aid in agent_ids:
             current_quality = agent_comm_quality.get(aid, 0.0)
-            
+
             # Initialize history if needed
             if aid not in self._comm_quality_history:
                 self._comm_quality_history[aid] = []
-            
+
             # Add current quality to history
             self._comm_quality_history[aid].append(current_quality)
-            
+
             # Keep history bounded (last 100 samples)
             if len(self._comm_quality_history[aid]) > 100:
                 self._comm_quality_history[aid] = self._comm_quality_history[aid][-100:]
-            
+
             # Establish baseline from first N samples (before hitting jamming)
             history = self._comm_quality_history[aid]
             if len(history) <= self._baseline_samples:
                 # Still building baseline - use mean of current history
-                self._baseline_comm_quality[aid] = sum(history) / len(history) if history else 0.97
+                self._baseline_comm_quality[aid] = (
+                    sum(history) / len(history) if history else 0.97
+                )
 
         # Calculate formation error (deviation from optimal comm quality)
         if n > 1:
@@ -1296,7 +1449,9 @@ class UnifiedController(MultiVehicleController):
             converged=self.formation_converged,
             formation_error=float(error),
             average_comm_quality=float(self.Jn_history[-1]) if self.Jn_history else 0.0,
-            average_neighbor_distance=float(self.rn_history[-1]) if self.rn_history else 0.0,
+            average_neighbor_distance=float(self.rn_history[-1])
+            if self.rn_history
+            else 0.0,
             roles={k: v for k, v in roles.items()},
             neighbors=neighbors,
         )
@@ -1317,10 +1472,12 @@ class UnifiedController(MultiVehicleController):
         """Get recorded path for an agent."""
         return self._agent_paths.get(agent_id)
 
-    def get_all_traveled_paths(self, short: bool = False) -> dict[str, list[list[float]]]:
+    def get_all_traveled_paths(
+        self, short: bool = False
+    ) -> dict[str, list[list[float]]]:
         """
         Get all traveled paths (trail history) for visualization.
-        
+
         Args:
             short: If True, return only last 100 points (short trail)
         """
@@ -1342,7 +1499,7 @@ class UnifiedController(MultiVehicleController):
     def get_communication_links(self) -> list[dict]:
         """
         Get all communication links between agents.
-        
+
         Shows both strong links (aij >= PT) and weak/degraded links.
 
         Returns:
@@ -1360,18 +1517,28 @@ class UnifiedController(MultiVehicleController):
             return links
 
         n = self._neighbor_matrix.shape[0]
-        agent_ids = list(self._formation_state.neighbors.keys()) if self._formation_state.neighbors else []
+        agent_ids = (
+            list(self._formation_state.neighbors.keys())
+            if self._formation_state.neighbors
+            else []
+        )
 
         if len(agent_ids) != n:
             # Fallback to generic IDs
-            agent_ids = [f"agent{i+1}" for i in range(n)]
+            agent_ids = [f"agent{i + 1}" for i in range(n)]
 
-        link_states = self._channel_model.get_link_states() if self.use_v2v_channel else {}
+        link_states = (
+            self._channel_model.get_link_states() if self.use_v2v_channel else {}
+        )
 
         # Only add each link once (i < j to avoid duplicates)
         for i in range(n):
             for j in range(i + 1, n):
-                quality = float(self._comm_matrix[i, j]) if self._comm_matrix is not None else 0
+                quality = (
+                    float(self._comm_matrix[i, j])
+                    if self._comm_matrix is not None
+                    else 0
+                )
                 aij = float(self._neighbor_matrix[i, j])
 
                 # Show links if there's any meaningful communication (quality > 0.3)
@@ -1381,7 +1548,9 @@ class UnifiedController(MultiVehicleController):
                         "from": agent_ids[i],
                         "to": agent_ids[j],
                         "quality": quality,
-                        "distance": float(self._dist_matrix[i, j]) if self._dist_matrix is not None else 0,
+                        "distance": float(self._dist_matrix[i, j])
+                        if self._dist_matrix is not None
+                        else 0,
                         "strong": aij >= self.PT,
                     }
                     # Include V2V channel link type if available
@@ -1391,7 +1560,9 @@ class UnifiedController(MultiVehicleController):
                             link_info["link_type"] = ls.link_type.value
                             link_info["path_loss_db"] = round(ls.path_loss_db, 1)
                             link_info["snr_db"] = round(ls.snr_db, 1)
-                            link_info["jam_attenuation_db"] = round(ls.jam_attenuation_db, 1)
+                            link_info["jam_attenuation_db"] = round(
+                                ls.jam_attenuation_db, 1
+                            )
                     links.append(link_info)
 
         return links
@@ -1399,7 +1570,7 @@ class UnifiedController(MultiVehicleController):
     def get_visualization_data(self) -> dict:
         """
         Get all visualization data for the frontend.
-        
+
         Returns:
             Dict with communication_links, waypoints, formation_state, avoidance_vectors
         """
@@ -1413,17 +1584,21 @@ class UnifiedController(MultiVehicleController):
                 "path_algorithm": self.path_algorithm,
                 "Jn": self.Jn_history[-1] if self.Jn_history else 0,
                 "rn": self.rn_history[-1] if self.rn_history else 0,
-            }
+            },
         }
-    
+
     def get_avoidance_vectors(self) -> dict:
         """
         Get current avoidance vectors for each agent.
-        
+
         Returns:
             Dict mapping agent_id to avoidance vector info
         """
-        return self._last_avoidance_vectors if hasattr(self, '_last_avoidance_vectors') else {}
+        return (
+            self._last_avoidance_vectors
+            if hasattr(self, "_last_avoidance_vectors")
+            else {}
+        )
 
     def reset(self):
         """Reset controller state."""
@@ -1438,7 +1613,7 @@ class UnifiedController(MultiVehicleController):
         self._known_zone_ids.clear()
         self._discovered_obstacle_positions.clear()
         # Reset global discovered positions
-        if hasattr(self, '_global_discovered_positions'):
+        if hasattr(self, "_global_discovered_positions"):
             self._global_discovered_positions.clear()
         # Reset comm quality tracking for jamming detection
         self._comm_quality_history.clear()
@@ -1451,19 +1626,21 @@ class UnifiedController(MultiVehicleController):
     def get_discovered_obstacles(self) -> list[dict]:
         """
         Get all discovered obstacles for visualization (minimap).
-        
+
         Returns:
             List of obstacle dicts with center, radius, discovered_by
         """
         obstacles = []
         for agent_id, agent_obstacles in self._discovered_obstacles.items():
             for obs in agent_obstacles:
-                obstacles.append({
-                    "id": obs.id,
-                    "center": obs.center,
-                    "radius": obs.radius,
-                    "discovered_by": agent_id,
-                })
+                obstacles.append(
+                    {
+                        "id": obs.id,
+                        "center": obs.center,
+                        "radius": obs.radius,
+                        "discovered_by": agent_id,
+                    }
+                )
         return obstacles
 
     def set_formation_type(self, formation_type: str):
@@ -1481,6 +1658,7 @@ class UnifiedController(MultiVehicleController):
             self.path_algorithm = algorithm
             self.path_planner.set_algorithm(algorithm)
             print(f"[Controller] Path algorithm changed to: {algorithm}")
+
 
 # Singleton controller instance
 _controller: Optional[UnifiedController] = None

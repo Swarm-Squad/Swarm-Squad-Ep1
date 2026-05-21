@@ -1,9 +1,10 @@
 """
 Formation patterns and generation for multi-vehicle systems.
 """
+
 import numpy as np
 
-from .base import FormationRole
+from swarm_squad_ep1.algo.base import FormationRole
 
 # Available formation types
 # "communication_aware" is the default and handled by the controller directly
@@ -21,7 +22,7 @@ FORMATION_TYPES = [
 class FormationGenerator:
     """
     Generate formation positions for agents.
-    
+
     Supports various formation patterns for multi-vehicle coordination.
     """
 
@@ -33,7 +34,7 @@ class FormationGenerator:
     ):
         """
         Initialize formation generator.
-        
+
         Args:
             formation_type: Type of formation (v_formation, line, circle, etc.)
             spacing: Distance between agents in formation
@@ -59,11 +60,11 @@ class FormationGenerator:
     ) -> dict[int, np.ndarray]:
         """
         Generate position offsets for each agent relative to formation center.
-        
+
         Args:
             num_agents: Number of agents
             heading: Formation heading in radians
-            
+
         Returns:
             Dictionary mapping agent index to offset [x, y, z]
         """
@@ -76,11 +77,9 @@ class FormationGenerator:
             sin_h = np.sin(heading)
             for idx in offsets:
                 x, y, z = offsets[idx]
-                offsets[idx] = np.array([
-                    x * cos_h - y * sin_h,
-                    x * sin_h + y * cos_h,
-                    z
-                ])
+                offsets[idx] = np.array(
+                    [x * cos_h - y * sin_h, x * sin_h + y * cos_h, z]
+                )
 
         return offsets
 
@@ -92,12 +91,12 @@ class FormationGenerator:
     ) -> dict[int, np.ndarray]:
         """
         Get absolute target positions for formation.
-        
+
         Args:
             center: Formation center position [x, y, z]
             num_agents: Number of agents
             heading: Formation heading in radians
-            
+
         Returns:
             Dictionary mapping agent index to target position
         """
@@ -126,11 +125,13 @@ class FormationGenerator:
         for i in range(1, n):
             side = 1 if i % 2 == 1 else -1
             row = (i + 1) // 2
-            offsets[i] = np.array([
-                -row * self.spacing * 0.7,  # Behind leader
-                side * row * self.spacing,  # Left or right
-                0.0
-            ])
+            offsets[i] = np.array(
+                [
+                    -row * self.spacing * 0.7,  # Behind leader
+                    side * row * self.spacing,  # Left or right
+                    0.0,
+                ]
+            )
 
         return offsets
 
@@ -140,11 +141,7 @@ class FormationGenerator:
         center_offset = (n - 1) / 2
 
         for i in range(n):
-            offsets[i] = np.array([
-                0.0,
-                (i - center_offset) * self.spacing,
-                0.0
-            ])
+            offsets[i] = np.array([0.0, (i - center_offset) * self.spacing, 0.0])
 
         return offsets
 
@@ -155,11 +152,7 @@ class FormationGenerator:
 
         for i in range(n):
             angle = 2 * np.pi * i / n
-            offsets[i] = np.array([
-                radius * np.cos(angle),
-                radius * np.sin(angle),
-                0.0
-            ])
+            offsets[i] = np.array([radius * np.cos(angle), radius * np.sin(angle), 0.0])
 
         return offsets
 
@@ -171,11 +164,13 @@ class FormationGenerator:
         for i in range(1, n):
             side = 1 if i % 2 == 1 else -1
             row = (i + 1) // 2
-            offsets[i] = np.array([
-                -row * self.spacing,  # Behind
-                side * row * self.spacing * 0.5,  # Spread
-                0.0
-            ])
+            offsets[i] = np.array(
+                [
+                    -row * self.spacing,  # Behind
+                    side * row * self.spacing * 0.5,  # Spread
+                    0.0,
+                ]
+            )
 
         return offsets
 
@@ -184,11 +179,7 @@ class FormationGenerator:
         offsets = {}
 
         for i in range(n):
-            offsets[i] = np.array([
-                -i * self.spacing,
-                0.0,
-                0.0
-            ])
+            offsets[i] = np.array([-i * self.spacing, 0.0, 0.0])
 
         return offsets
 
@@ -208,11 +199,13 @@ class FormationGenerator:
         # Additional agents in outer diamond
         for i in range(4, n):
             angle = 2 * np.pi * (i - 4) / (n - 4) if n > 4 else 0
-            offsets[i] = np.array([
-                2 * self.spacing * np.cos(angle),
-                2 * self.spacing * np.sin(angle),
-                0.0
-            ])
+            offsets[i] = np.array(
+                [
+                    2 * self.spacing * np.cos(angle),
+                    2 * self.spacing * np.sin(angle),
+                    0.0,
+                ]
+            )
 
         return offsets
 
@@ -221,4 +214,6 @@ class FormationGenerator:
         if formation_type in self._generators:
             self.formation_type = formation_type
         else:
-            raise ValueError(f"Unknown formation: {formation_type}. Available: {list(self._generators.keys())}")
+            raise ValueError(
+                f"Unknown formation: {formation_type}. Available: {list(self._generators.keys())}"
+            )

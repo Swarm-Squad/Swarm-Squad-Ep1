@@ -1,13 +1,14 @@
 """
 Agent state management for Swarm Squad Ep1.
 """
+
 import math
 import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
-from ..config import (
+from swarm_squad_ep1.config import (
     HIGH_COMM_QUAL,
     LOW_COMM_QUAL,
     MISSION_END,
@@ -23,6 +24,7 @@ from ..config import (
 @dataclass
 class AgentState:
     """State of a single agent/vehicle."""
+
     agent_id: str
     position: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
     velocity: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
@@ -57,17 +59,15 @@ class AgentState:
         pos = self.position
         dest = list(MISSION_END)
         distance_to_goal = math.sqrt(
-            (pos[0] - dest[0])**2 +
-            (pos[1] - dest[1])**2 +
-            (pos[2] - dest[2])**2
+            (pos[0] - dest[0]) ** 2 + (pos[1] - dest[1]) ** 2 + (pos[2] - dest[2]) ** 2
         )
 
         speed = math.sqrt(sum(v**2 for v in self.velocity))
-        eta = distance_to_goal / speed if speed > 0.01 else float('inf')
+        eta = distance_to_goal / speed if speed > 0.01 else float("inf")
 
         # Helper to convert numpy types to Python native types
         def to_native(val):
-            if hasattr(val, 'item'):  # numpy scalar
+            if hasattr(val, "item"):  # numpy scalar
                 return val.item()
             return val
 
@@ -82,14 +82,16 @@ class AgentState:
             "jammed": bool(to_native(self.jammed)),
             "communication_quality": float(to_native(self.communication_quality)),
             # Target
-            "llm_target": [float(t) for t in self.llm_target] if self.llm_target else None,
+            "llm_target": [float(t) for t in self.llm_target]
+            if self.llm_target
+            else None,
             # Formation
             "formation_role": self.formation_role,
             "neighbors": list(self.neighbors) if self.neighbors else [],
             "formation_error": float(to_native(self.formation_error)),
             # Mission
             "distance_to_goal": float(distance_to_goal),
-            "eta": float(eta) if eta != float('inf') else None,
+            "eta": float(eta) if eta != float("inf") else None,
             "path_points": int(len(self.path)),
             # MAVLink / spoofing
             "is_phantom": self.is_phantom,
@@ -101,12 +103,9 @@ class AgentState:
     def update_position(self, new_pos: list[float], is_jammed: bool = None):
         """Update agent position and calculate velocity/heading."""
         # Calculate velocity from position change
-        if hasattr(self, '_prev_pos'):
+        if hasattr(self, "_prev_pos"):
             dt = 0.1  # Assume 100ms updates
-            self.velocity = [
-                (new_pos[i] - self._prev_pos[i]) / dt
-                for i in range(3)
-            ]
+            self.velocity = [(new_pos[i] - self._prev_pos[i]) / dt for i in range(3)]
 
             # Calculate heading from horizontal velocity
             vx, vy = self.velocity[0], self.velocity[1]
@@ -118,8 +117,12 @@ class AgentState:
 
         if is_jammed is not None:
             # Ensure Python bool, not numpy.bool_
-            self.jammed = bool(is_jammed) if hasattr(is_jammed, 'item') else bool(is_jammed)
-            self.communication_quality = LOW_COMM_QUAL if self.jammed else HIGH_COMM_QUAL
+            self.jammed = (
+                bool(is_jammed) if hasattr(is_jammed, "item") else bool(is_jammed)
+            )
+            self.communication_quality = (
+                LOW_COMM_QUAL if self.jammed else HIGH_COMM_QUAL
+            )
 
         self.last_update = datetime.now().isoformat()
 
@@ -154,14 +157,16 @@ class AgentState:
             self.path_index += 1
 
 
-def init_agents(num_agents: int = NUM_AGENTS, positions: list = None) -> dict[str, AgentState]:
+def init_agents(
+    num_agents: int = NUM_AGENTS, positions: list = None
+) -> dict[str, AgentState]:
     """
     Initialize all agents with configured starting positions.
-    
+
     Args:
         num_agents: Number of agents to create
         positions: Optional list of [x, y, z] positions. If None, uses config.
-        
+
     Returns:
         Dictionary mapping agent_id to AgentState
     """
@@ -195,25 +200,25 @@ def init_agents(num_agents: int = NUM_AGENTS, positions: list = None) -> dict[st
         )
         agents[agent_id]._prev_pos = start_pos.copy()
 
-        print(f"[SIM] {agent_id} at ({start_pos[0]:.2f}, {start_pos[1]:.2f}, {start_pos[2]:.2f})")
+        print(
+            f"[SIM] {agent_id} at ({start_pos[0]:.2f}, {start_pos[1]:.2f}, {start_pos[2]:.2f})"
+        )
 
     print(f"[SIM] All {num_agents} agents initialized")
     return agents
 
 
 def move_agent_towards_target(
-    agent: AgentState,
-    target: list[float],
-    max_step: float = 1.0
+    agent: AgentState, target: list[float], max_step: float = 1.0
 ) -> list[float]:
     """
     Move agent one step towards target position.
-    
+
     Args:
         agent: Current agent state
         target: Target position [x, y, z]
         max_step: Maximum distance to move per step
-        
+
     Returns:
         New position [x, y, z]
     """
@@ -249,4 +254,4 @@ def move_agent_towards_target(
 
 def calculate_distance(pos1: list[float], pos2: list[float]) -> float:
     """Calculate 3D distance between two positions."""
-    return math.sqrt(sum((a - b)**2 for a, b in zip(pos1, pos2)))
+    return math.sqrt(sum((a - b) ** 2 for a, b in zip(pos1, pos2)))

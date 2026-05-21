@@ -1,13 +1,14 @@
 """Smoke tests for per-tool argument schema validation."""
+
 from __future__ import annotations
 
+from swarm_squad_ep1.chat.json_utils import is_valid
 from swarm_squad_ep1.chat.tools import (
     TOOL_ARG_SCHEMAS,
     TOOL_CALL_SCHEMA,
     build_ollama_tools,
     validate_tool_args,
 )
-from swarm_squad_ep1.chat.json_utils import is_valid
 
 
 def test_ollama_tools_shape():
@@ -64,6 +65,7 @@ def test_no_arg_tool_accepts_empty():
 def test_list_tools_tool_registered():
     """The meta tool 'list_tools' must be registered end-to-end."""
     from swarm_squad_ep1.chat.tools import TOOL_EXECUTORS
+
     assert "list_tools" in TOOL_ARG_SCHEMAS
     assert "list_tools" in TOOL_EXECUTORS
 

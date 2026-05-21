@@ -55,7 +55,9 @@ const Chat = {
       for (const cat of Object.keys(cats)) {
         const names = cats[cat].filter((n) => byName[n]);
         if (!names.length) continue;
-        lines.push(`**${pretty[cat] || cat}:** ${names.map((n) => `\`${n}\``).join(", ")}`);
+        lines.push(
+          `**${pretty[cat] || cat}:** ${names.map((n) => `\`${n}\``).join(", ")}`,
+        );
       }
 
       this.addMessage("system", lines.join("\n"));
@@ -96,7 +98,10 @@ const Chat = {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/`(.*?)`/g, '<code class="bg-secondary/50 px-1 rounded text-xs">$1</code>')
+      .replace(
+        /`(.*?)`/g,
+        '<code class="bg-secondary/50 px-1 rounded text-xs">$1</code>',
+      )
       .replace(/\n/g, "<br>");
   },
 
@@ -189,7 +194,10 @@ const Chat = {
       const thinking = document.getElementById("chat-thinking");
       if (thinking) thinking.remove();
       if (error.name === "AbortError") {
-        this.addMessage("system", "Request timed out after 5 minutes. The LLM model may still be loading on the GPU — please try again.");
+        this.addMessage(
+          "system",
+          "Request timed out after 5 minutes. The LLM model may still be loading on the GPU — please try again.",
+        );
       } else {
         this.addMessage("system", `Error: ${error.message}`);
       }

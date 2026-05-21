@@ -1,4 +1,5 @@
 """Smoke tests for CryptoAuth TP/FP/FN/TN counters."""
+
 from __future__ import annotations
 
 import pytest
@@ -7,7 +8,9 @@ from swarm_squad_ep1.algo.crypto_auth import CryptoAuth
 from swarm_squad_ep1.algo.mavlink import MAVLinkMessage, MessageType
 
 
-def _mk_msg(sender: str, seq: int, spoofed: bool = False, t: float = 0.0) -> MAVLinkMessage:
+def _mk_msg(
+    sender: str, seq: int, spoofed: bool = False, t: float = 0.0
+) -> MAVLinkMessage:
     return MAVLinkMessage(
         msg_type=MessageType.GLOBAL_POSITION_INT,
         sender_id=sender,
@@ -30,8 +33,8 @@ def test_disabled_crypto_accepts_all_and_counts_fn_tn():
     ]
     accepted = auth.filter_messages(msgs)
     assert len(accepted) == 4  # nothing rejected when disabled
-    assert auth.stats.tn == 2   # 2 legit accepted -> TN
-    assert auth.stats.fn == 2   # 2 spoofed accepted -> FN
+    assert auth.stats.tn == 2  # 2 legit accepted -> TN
+    assert auth.stats.fn == 2  # 2 spoofed accepted -> FN
     assert auth.stats.tp == 0
     assert auth.stats.fp == 0
 

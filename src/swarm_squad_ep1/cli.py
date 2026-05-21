@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 from typing import Sequence
 
-from . import runtime
-from .research.__main__ import main as research_main
+from swarm_squad_ep1 import runtime
+from swarm_squad_ep1.research.__main__ import main as research_main
 
 
 def _run_gui(args: argparse.Namespace) -> int:

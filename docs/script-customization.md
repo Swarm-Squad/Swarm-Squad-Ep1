@@ -187,4 +187,3 @@ For purely programmatic experiments:
 - `SwarmSquadClient.run_headless_scenario(...)`
 
 For larger matrices and output artifacts, use `swarm-squad-ep1 research ...`.
-

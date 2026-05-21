@@ -1,7 +1,6 @@
 """Smoke tests for the realistic V2V channel model."""
-from __future__ import annotations
 
-import math
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -57,7 +56,11 @@ def test_physical_obstacle_forces_nlos_obstacle():
     params = ChannelParams(enable_shadow_fading=False, enable_small_scale_fading=False)
     m = V2VChannelModel(params)
     positions = np.array([[0.0, 0.0, 0.0], [40.0, 0.0, 0.0]])
-    obs = [ObstacleSpec(center=np.array([20.0, 0.0, 0.0]), radius=3.0, kind=ObstacleKind.PHYSICAL)]
+    obs = [
+        ObstacleSpec(
+            center=np.array([20.0, 0.0, 0.0]), radius=3.0, kind=ObstacleKind.PHYSICAL
+        )
+    ]
     m.compute_quality_matrix(positions, obstacles=obs)
     st = m.get_link_states()[(0, 1)]
     assert st.link_type == LinkType.NLOS_OBSTACLE
@@ -73,7 +76,11 @@ def test_jamming_zone_preserves_los_but_adds_attenuation():
     )
     m = V2VChannelModel(params)
     positions = np.array([[0.0, 0.0, 0.0], [40.0, 0.0, 0.0]])
-    obs = [ObstacleSpec(center=np.array([20.0, 0.0, 0.0]), radius=5.0, kind=ObstacleKind.HIGH_JAM)]
+    obs = [
+        ObstacleSpec(
+            center=np.array([20.0, 0.0, 0.0]), radius=5.0, kind=ObstacleKind.HIGH_JAM
+        )
+    ]
 
     m.compute_quality_matrix(positions, obstacles=obs)
     st = m.get_link_states()[(0, 1)]
@@ -90,14 +97,22 @@ def test_jamming_degrades_quality_vs_clean():
     q_clean = m1.compute_quality_matrix(positions, obstacles=[])[0, 1]
 
     m2 = V2VChannelModel(params)
-    obs = [ObstacleSpec(center=np.array([20.0, 0.0, 0.0]), radius=5.0, kind=ObstacleKind.HIGH_JAM)]
+    obs = [
+        ObstacleSpec(
+            center=np.array([20.0, 0.0, 0.0]), radius=5.0, kind=ObstacleKind.HIGH_JAM
+        )
+    ]
     q_jammed = m2.compute_quality_matrix(positions, obstacles=obs)[0, 1]
 
-    assert q_jammed < q_clean, f"jamming did not degrade quality (clean={q_clean}, jammed={q_jammed})"
+    assert q_jammed < q_clean, (
+        f"jamming did not degrade quality (clean={q_clean}, jammed={q_jammed})"
+    )
 
 
 def test_link_summary_serialization():
-    m = V2VChannelModel(ChannelParams(enable_shadow_fading=False, enable_small_scale_fading=False))
+    m = V2VChannelModel(
+        ChannelParams(enable_shadow_fading=False, enable_small_scale_fading=False)
+    )
     positions = np.array([[0.0, 0.0, 0.0], [25.0, 0.0, 0.0]])
     m.compute_quality_matrix(positions, obstacles=[])
     summary = m.get_link_summary()

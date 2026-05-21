@@ -11,6 +11,7 @@ without any FastAPI / global-state coupling:
 The ``step(...)`` function is a self-contained transition so it can be
 called from unit tests and experiment loops alike.
 """
+
 from __future__ import annotations
 
 import random
@@ -20,19 +21,19 @@ from typing import Optional
 
 import numpy as np
 
-from ..algo.base import JammingZone, ObstacleType
-from ..algo.controller import UnifiedController
-from ..algo.crypto_auth import CryptoAuth
-from ..algo.mavlink import MAVLinkBus
-from ..algo.spoofing import SpoofingEngine, SpoofingZone, SpoofType
-from ..algo.v2v_channel import V2VChannelModel
-from ..simulation.agents import AgentState
-from .scenarios import Scenario
-
+from swarm_squad_ep1.algo.base import JammingZone, ObstacleType
+from swarm_squad_ep1.algo.controller import UnifiedController
+from swarm_squad_ep1.algo.crypto_auth import CryptoAuth
+from swarm_squad_ep1.algo.mavlink import MAVLinkBus
+from swarm_squad_ep1.algo.spoofing import SpoofingEngine, SpoofingZone, SpoofType
+from swarm_squad_ep1.algo.v2v_channel import V2VChannelModel
+from swarm_squad_ep1.research.scenarios import Scenario
+from swarm_squad_ep1.simulation.agents import AgentState
 
 # --------------------------------------------------------------------------
 # Result container
 # --------------------------------------------------------------------------
+
 
 @dataclass
 class Result:
@@ -87,11 +88,14 @@ class Result:
 # Setup helpers
 # --------------------------------------------------------------------------
 
+
 def _build_agents(scenario: Scenario) -> dict[str, AgentState]:
     agents: dict[str, AgentState] = {}
-    positions = scenario.agent_init_positions or [(i * 5.0, -40.0, 2.0) for i in range(scenario.num_agents)]
+    positions = scenario.agent_init_positions or [
+        (i * 5.0, -40.0, 2.0) for i in range(scenario.num_agents)
+    ]
     for i, pos in enumerate(positions[: scenario.num_agents]):
-        aid = f"agent{i+1}"
+        aid = f"agent{i + 1}"
         state = AgentState(agent_id=aid, position=list(pos), formation_role=None)
         state._prev_pos = list(pos)
         agents[aid] = state
@@ -105,10 +109,13 @@ def _build_jamming_zones(scenario: Scenario) -> dict[str, JammingZone]:
             t = ObstacleType(spec.obstacle_type)
         except ValueError:
             t = ObstacleType.LOW_JAM
-        zid = f"jam_{i+1}"
+        zid = f"jam_{i + 1}"
         zones[zid] = JammingZone(
-            id=zid, center=list(spec.center), radius=spec.radius,
-            active=True, obstacle_type=t,
+            id=zid,
+            center=list(spec.center),
+            radius=spec.radius,
+            active=True,
+            obstacle_type=t,
         )
     return zones
 
@@ -120,10 +127,13 @@ def _build_spoofing_zones(scenario: Scenario) -> dict[str, SpoofingZone]:
             t = SpoofType(spec.spoof_type)
         except ValueError:
             t = SpoofType.PHANTOM
-        zid = f"spoof_{i+1}"
+        zid = f"spoof_{i + 1}"
         zones[zid] = SpoofingZone(
-            id=zid, center=list(spec.center), radius=spec.radius,
-            active=True, spoof_type=t,
+            id=zid,
+            center=list(spec.center),
+            radius=spec.radius,
+            active=True,
+            spoof_type=t,
             phantom_count=spec.phantom_count,
             falsification_magnitude=spec.falsification_magnitude,
             coordinate_vector=list(spec.coordinate_vector),
@@ -134,6 +144,7 @@ def _build_spoofing_zones(scenario: Scenario) -> dict[str, SpoofingZone]:
 # --------------------------------------------------------------------------
 # The pure step()
 # --------------------------------------------------------------------------
+
 
 def step(
     agents: dict[str, AgentState],
@@ -169,7 +180,9 @@ def step(
         active_spoof = [z for z in (spoofing_zones or []) if z.active]
         if active_spoof and spoof_engine is not None:
             agent_pos = {aid: list(a.position) for aid, a in agents.items()}
-            bus.set_messages(spoof_engine.process(bus.get_messages(), active_spoof, agent_pos))
+            bus.set_messages(
+                spoof_engine.process(bus.get_messages(), active_spoof, agent_pos)
+            )
 
         pre_count = len(bus.get_messages())
         comm_quals = {aid: float(a.communication_quality) for aid, a in agents.items()}
@@ -205,7 +218,8 @@ def step(
                     destination=tuple(destination),
                     jamming_zones=jamming_zones,
                     discovered_obstacles=controller.get_discovered_obstacles()
-                        if hasattr(controller, "get_discovered_obstacles") else [],
+                    if hasattr(controller, "get_discovered_obstacles")
+                    else [],
                 )
                 guidance = llm_controller.get_guidance(aid)
                 if guidance and aid in commands:
@@ -215,14 +229,18 @@ def step(
                         target = np.array(cmd.target_position)
                         base = target - current
                         blended = llm_controller.apply_guidance(
-                            aid, base, guidance, agent.communication_quality,
+                            aid,
+                            base,
+                            guidance,
+                            agent.communication_quality,
                         )
                         mag = np.linalg.norm(blended)
                         if mag > 2.0:
                             blended = blended * (2.0 / mag)
                         new_target = np.clip(
                             current + blended,
-                            controller.bounds_min, controller.bounds_max,
+                            controller.bounds_min,
+                            controller.bounds_max,
                         )
                         cmd.target_position = new_target.tolist()
         except Exception as e:
@@ -255,6 +273,7 @@ def step(
 # --------------------------------------------------------------------------
 # Run a whole scenario
 # --------------------------------------------------------------------------
+
 
 def run_scenario(
     scenario: Scenario,
@@ -299,7 +318,8 @@ def run_scenario(
     llm_ctl = None
     if scenario.llm_assistance_enabled:
         try:
-            from ..algo.llm_controller import LLMAssistanceController
+            from swarm_squad_ep1.algo.llm_controller import LLMAssistanceController
+
             llm_ctl = LLMAssistanceController(enabled=True)
         except Exception as e:
             if verbose:
@@ -334,7 +354,11 @@ def run_scenario(
 
         if controller.Jn_history:
             Jn_trace.append(float(controller.Jn_history[-1]))
-        comm = np.mean([a.communication_quality for a in agents.values()]) if agents else 0.0
+        comm = (
+            np.mean([a.communication_quality for a in agents.values()])
+            if agents
+            else 0.0
+        )
         comm_trace.append(float(comm))
 
         center = np.mean([a.position for a in agents.values()], axis=0)

@@ -18,6 +18,7 @@ dependencies = [
     "pathfinding3d>=0.7.2",
     "matplotlib>=3.10.8",
     "sentence-transformers>=5.5.1",
+    "pre-commit>=4.5.1",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +50,11 @@ packages = ["src/swarm_squad_ep1"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "integration: requires live local services (e.g., Qdrant/Ollama) to be available",
+    "api: API contract and endpoint behavior tests",
+    "frontend_contract: frontend bootstrap/static/API contract tests",
+]
 
 [tool.ruff]
-ignore = ["E402"]
+lint.ignore = ["E402"]

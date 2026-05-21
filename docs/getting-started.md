@@ -145,4 +145,3 @@ uv run swarm-squad-ep1 research smoke
   - `docs/client-api-reference.md`
   - `docs/algorithms-and-threat-model.md`
   - `docs/research-harness.md`
-

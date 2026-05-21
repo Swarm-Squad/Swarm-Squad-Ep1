@@ -28,6 +28,7 @@ E5  Full factorial (attack × LLM × crypto)
 E6  Communication model comparison
     V2V channel vs legacy under varying jamming intensity.
 """
+
 from __future__ import annotations
 
 import csv
@@ -36,8 +37,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-from .runner import Result, run_scenario
-from .scenarios import (
+from swarm_squad_ep1.research.runner import Result, run_scenario
+from swarm_squad_ep1.research.scenarios import (
     Scenario,
     baseline_scenario,
     combined_scenario,
@@ -45,10 +46,10 @@ from .scenarios import (
     spoofing_scenario,
 )
 
-
 # --------------------------------------------------------------------------
 # Experiment builders
 # --------------------------------------------------------------------------
+
 
 def _e1_single_vs_dual(seeds: int) -> list[Scenario]:
     """Jamming only, spoofing only, and combined — no LLM, no crypto.
@@ -73,8 +74,11 @@ def _e1_single_vs_dual(seeds: int) -> list[Scenario]:
         for jam in ("low_jam", "high_jam"):
             for spoof in ("phantom", "position_falsification", "coordinate"):
                 sc = combined_scenario(
-                    jam_type=jam, spoof_type=spoof,
-                    crypto=False, llm=False, seed=seed,
+                    jam_type=jam,
+                    spoof_type=spoof,
+                    crypto=False,
+                    llm=False,
+                    seed=seed,
                 )
                 sc.name = f"E1_combo_{jam}_{spoof}"
                 out.append(sc)
@@ -93,8 +97,11 @@ def _e2_llm_under_dual(seeds: int) -> list[Scenario]:
             for spoof in ("phantom", "position_falsification", "coordinate"):
                 for llm in (False, True):
                     sc = combined_scenario(
-                        jam_type=jam, spoof_type=spoof,
-                        crypto=False, llm=llm, seed=seed,
+                        jam_type=jam,
+                        spoof_type=spoof,
+                        crypto=False,
+                        llm=llm,
+                        seed=seed,
                     )
                     sc.name = f"E2_{jam}_{spoof}_llm={int(llm)}"
                     out.append(sc)
@@ -114,8 +121,11 @@ def _e3_path_algorithms(seeds: int) -> list[Scenario]:
     for seed in range(seeds):
         for algo in algos:
             sc = combined_scenario(
-                jam_type="high_jam", spoof_type="phantom",
-                crypto=True, llm=False, seed=seed,
+                jam_type="high_jam",
+                spoof_type="phantom",
+                crypto=True,
+                llm=False,
+                seed=seed,
             )
             sc.path_algorithm = algo
             sc.name = f"E3_path_{algo}"
@@ -136,15 +146,21 @@ def _e4_crypto_comparison(seeds: int) -> list[Scenario]:
     for seed in range(seeds):
         for spoof in ("phantom", "position_falsification", "coordinate"):
             sc = spoofing_scenario(
-                spoof_type=spoof, crypto=False, seed=seed, llm=False,
+                spoof_type=spoof,
+                crypto=False,
+                seed=seed,
+                llm=False,
             )
             sc.name = f"E4_spoof_{spoof}_nocrypto"
             out.append(sc)
 
             for algo in crypto_algos:
                 sc = spoofing_scenario(
-                    spoof_type=spoof, crypto=True,
-                    crypto_algorithm=algo, seed=seed, llm=False,
+                    spoof_type=spoof,
+                    crypto=True,
+                    crypto_algorithm=algo,
+                    seed=seed,
+                    llm=False,
                 )
                 sc.name = f"E4_spoof_{spoof}_{algo}"
                 out.append(sc)
@@ -152,17 +168,23 @@ def _e4_crypto_comparison(seeds: int) -> list[Scenario]:
         for spoof in ("phantom", "position_falsification", "coordinate"):
             for jam in ("low_jam", "high_jam"):
                 sc = combined_scenario(
-                    jam_type=jam, spoof_type=spoof,
-                    crypto=False, llm=False, seed=seed,
+                    jam_type=jam,
+                    spoof_type=spoof,
+                    crypto=False,
+                    llm=False,
+                    seed=seed,
                 )
                 sc.name = f"E4_combo_{jam}_{spoof}_nocrypto"
                 out.append(sc)
 
                 for algo in crypto_algos:
                     sc = combined_scenario(
-                        jam_type=jam, spoof_type=spoof,
-                        crypto=True, crypto_algorithm=algo,
-                        llm=False, seed=seed,
+                        jam_type=jam,
+                        spoof_type=spoof,
+                        crypto=True,
+                        crypto_algorithm=algo,
+                        llm=False,
+                        seed=seed,
                     )
                     sc.name = f"E4_combo_{jam}_{spoof}_{algo}"
                     out.append(sc)
@@ -195,7 +217,10 @@ def _e5_full_factorial(seeds: int) -> list[Scenario]:
 
                 for spoof in ("phantom", "position_falsification", "coordinate"):
                     sc = spoofing_scenario(
-                        spoof_type=spoof, crypto=crypto, seed=seed, llm=llm,
+                        spoof_type=spoof,
+                        crypto=crypto,
+                        seed=seed,
+                        llm=llm,
                     )
                     sc.name = f"E5_spoof_{spoof}_{tag}"
                     out.append(sc)
@@ -203,8 +228,11 @@ def _e5_full_factorial(seeds: int) -> list[Scenario]:
                 for jam in ("low_jam", "high_jam"):
                     for spoof in ("phantom", "position_falsification", "coordinate"):
                         sc = combined_scenario(
-                            jam_type=jam, spoof_type=spoof,
-                            crypto=crypto, llm=llm, seed=seed,
+                            jam_type=jam,
+                            spoof_type=spoof,
+                            crypto=crypto,
+                            llm=llm,
+                            seed=seed,
                         )
                         sc.name = f"E5_combo_{jam}_{spoof}_{tag}"
                         out.append(sc)
@@ -243,18 +271,38 @@ EXPERIMENTS: dict[str, Callable[[int], list[Scenario]]] = {
 # --------------------------------------------------------------------------
 
 RESULT_COLUMNS = [
-    "experiment", "scenario_name", "seed",
-    "comm_model", "path_algorithm", "formation_type",
-    "llm_enabled", "crypto_enabled", "crypto_algorithm",
-    "jamming_types", "spoofing_types",
-    "destination_reached", "steps_to_destination", "total_steps",
+    "experiment",
+    "scenario_name",
+    "seed",
+    "comm_model",
+    "path_algorithm",
+    "formation_type",
+    "llm_enabled",
+    "crypto_enabled",
+    "crypto_algorithm",
+    "jamming_types",
+    "spoofing_types",
+    "destination_reached",
+    "steps_to_destination",
+    "total_steps",
     "duration_s",
-    "final_Jn", "avg_Jn", "avg_comm_quality", "total_path_length",
+    "final_Jn",
+    "avg_Jn",
+    "avg_comm_quality",
+    "total_path_length",
     "packet_loss_rate",
-    "spoof_tp", "spoof_fp", "spoof_fn", "spoof_tn",
-    "detection_rate", "false_positive_rate", "precision",
-    "llm_calls", "llm_parse_success", "llm_parse_fail",
-    "llm_repair_success", "llm_fallback_used",
+    "spoof_tp",
+    "spoof_fp",
+    "spoof_fn",
+    "spoof_tn",
+    "detection_rate",
+    "false_positive_rate",
+    "precision",
+    "llm_calls",
+    "llm_parse_success",
+    "llm_parse_fail",
+    "llm_repair_success",
+    "llm_fallback_used",
 ]
 
 
@@ -270,7 +318,9 @@ def _row_from_result(experiment: str, scenario: Scenario, res: Result) -> dict:
         "formation_type": scenario.formation_type,
         "llm_enabled": scenario.llm_assistance_enabled,
         "crypto_enabled": scenario.crypto_enabled,
-        "crypto_algorithm": scenario.crypto_algorithm if scenario.crypto_enabled else "-",
+        "crypto_algorithm": scenario.crypto_algorithm
+        if scenario.crypto_enabled
+        else "-",
         "jamming_types": jt,
         "spoofing_types": st,
         "destination_reached": res.destination_reached,
@@ -327,7 +377,7 @@ def run_experiment(
         writer.writeheader()
         for i, sc in enumerate(scenarios):
             if verbose:
-                print(f"[{name}] {i+1}/{total} {sc.name} seed={sc.seed}")
+                print(f"[{name}] {i + 1}/{total} {sc.name} seed={sc.seed}")
             res = run_scenario(sc, keep_trace=keep_trace, verbose=False)
             results.append(res)
             writer.writerow(_row_from_result(name, sc, res))
@@ -346,33 +396,46 @@ def run_experiment(
         bucket.setdefault(key, []).append(res)
 
     summary = []
-    for (prefix, llm, crypto, comm, path_algo, crypto_algo), group in sorted(bucket.items()):
+    for (prefix, llm, crypto, comm, path_algo, crypto_algo), group in sorted(
+        bucket.items()
+    ):
         n = len(group)
         success = sum(1 for r in group if r.destination_reached) / max(1, n)
-        summary.append({
-            "prefix": prefix,
-            "llm_enabled": llm,
-            "crypto_enabled": crypto,
-            "crypto_algorithm": crypto_algo,
-            "comm_model": comm,
-            "path_algorithm": path_algo,
-            "n": n,
-            "success_rate": round(success, 3),
-            "avg_final_Jn": round(sum(r.final_Jn for r in group) / n, 4),
-            "avg_comm_quality": round(sum(r.avg_comm_quality for r in group) / n, 4),
-            "avg_steps": round(sum(r.total_steps for r in group) / n, 1),
-            "avg_path_length": round(sum(r.total_path_length for r in group) / n, 2),
-            "avg_packet_loss": round(sum(r.packet_loss_rate for r in group) / n, 4),
-            "avg_detection_rate": round(sum(r.detection_rate for r in group) / n, 4),
-            "avg_fpr": round(sum(r.false_positive_rate for r in group) / n, 4),
-            "avg_precision": round(sum(r.precision for r in group) / n, 4),
-            "avg_llm_parse_fail_rate": round(
-                sum(r.llm_parse_fail / max(1, r.llm_calls) for r in group) / n, 4,
-            ),
-        })
+        summary.append(
+            {
+                "prefix": prefix,
+                "llm_enabled": llm,
+                "crypto_enabled": crypto,
+                "crypto_algorithm": crypto_algo,
+                "comm_model": comm,
+                "path_algorithm": path_algo,
+                "n": n,
+                "success_rate": round(success, 3),
+                "avg_final_Jn": round(sum(r.final_Jn for r in group) / n, 4),
+                "avg_comm_quality": round(
+                    sum(r.avg_comm_quality for r in group) / n, 4
+                ),
+                "avg_steps": round(sum(r.total_steps for r in group) / n, 1),
+                "avg_path_length": round(
+                    sum(r.total_path_length for r in group) / n, 2
+                ),
+                "avg_packet_loss": round(sum(r.packet_loss_rate for r in group) / n, 4),
+                "avg_detection_rate": round(
+                    sum(r.detection_rate for r in group) / n, 4
+                ),
+                "avg_fpr": round(sum(r.false_positive_rate for r in group) / n, 4),
+                "avg_precision": round(sum(r.precision for r in group) / n, 4),
+                "avg_llm_parse_fail_rate": round(
+                    sum(r.llm_parse_fail / max(1, r.llm_calls) for r in group) / n,
+                    4,
+                ),
+            }
+        )
 
     with open(summary_path, "w") as fh:
-        json.dump({"experiment": name, "timestamp": ts, "summary": summary}, fh, indent=2)
+        json.dump(
+            {"experiment": name, "timestamp": ts, "summary": summary}, fh, indent=2
+        )
 
     if verbose:
         print(f"\n[{name}] {total} scenarios complete")

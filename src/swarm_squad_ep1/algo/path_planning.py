@@ -13,15 +13,17 @@ Available algorithms:
 - Bidirectional A*
 - Minimum Spanning Tree (MSP)
 """
+
 from typing import Optional
 
 import numpy as np
 
-from .base import JammingZone, ObstacleType
+from swarm_squad_ep1.algo.base import JammingZone, ObstacleType
 
 # Try to import PathPlanner3D, fallback to simple implementation if not available
 try:
-    from .path_planning_3d import PathPlanner3D
+    from swarm_squad_ep1.algo.path_planning_3d import PathPlanner3D
+
     PATHFINDING3D_AVAILABLE = True
 except ImportError:
     PATHFINDING3D_AVAILABLE = False
@@ -30,7 +32,7 @@ except ImportError:
 
 # Available path planning algorithms
 PATH_ALGORITHMS = [
-    "direct",           # Direct destination with behavior-based obstacle avoidance (default)
+    "direct",  # Direct destination with behavior-based obstacle avoidance (default)
     "astar",
     "theta_star",
     "dijkstra",
@@ -56,7 +58,7 @@ ALGORITHM_NAMES = {
 class PathPlanner:
     """
     Path planner with jamming zone avoidance.
-    
+
     Uses PathPlanner3D for grid-based algorithms (A*, Dijkstra, etc.)
     or falls back to potential field method.
     """
@@ -71,7 +73,7 @@ class PathPlanner:
     ):
         """
         Initialize path planner.
-        
+
         Args:
             algorithm: Planning algorithm to use
             voxel_size: Grid cell size for pathfinding3d algorithms
@@ -104,7 +106,10 @@ class PathPlanner:
         if self._planner_initialized:
             return
 
-        if PATHFINDING3D_AVAILABLE and self.algorithm not in ["potential_field", "direct"]:
+        if PATHFINDING3D_AVAILABLE and self.algorithm not in [
+            "potential_field",
+            "direct",
+        ]:
             try:
                 # Use larger voxel size for slower algorithms
                 voxel = self.voxel_size
@@ -128,9 +133,9 @@ class PathPlanner:
     def update_obstacles_from_jamming(self, jamming_zones: list[JammingZone]):
         """
         Update obstacles from jamming zones with type-based costs.
-        
+
         Converts JammingZone objects to (x, y, z, radius, type) tuples for PathPlanner3D.
-        
+
         Obstacle types determine path planning behavior:
         - PHYSICAL: Blocked (infinite cost, must path around)
         - HIGH_JAM: Very high cost (10x normal, strongly prefer to avoid)
@@ -146,14 +151,16 @@ class PathPlanner:
                 else:
                     # For jamming types, use the jamming field radius
                     effective_radius = zone.jamming_radius + self.safety_margin
-                
-                obstacles.append((
-                    zone.center[0],
-                    zone.center[1],
-                    zone.center[2] if len(zone.center) > 2 else 0,
-                    effective_radius,
-                    zone.obstacle_type.value  # Include type for cost calculation
-                ))
+
+                obstacles.append(
+                    (
+                        zone.center[0],
+                        zone.center[1],
+                        zone.center[2] if len(zone.center) > 2 else 0,
+                        effective_radius,
+                        zone.obstacle_type.value,  # Include type for cost calculation
+                    )
+                )
 
         # Only update if obstacles changed
         if obstacles != self._current_obstacles:
@@ -175,13 +182,13 @@ class PathPlanner:
     ) -> Optional[list[np.ndarray]]:
         """
         Plan a path from start to goal avoiding jamming zones.
-        
+
         Args:
             start: Start position [x, y, z]
             goal: Goal position [x, y, z]
             jamming_zones: List of jamming zones to avoid
             agent_id: Agent identifier for caching
-            
+
         Returns:
             List of waypoints, or None if no path found
         """
@@ -194,19 +201,26 @@ class PathPlanner:
         self.update_obstacles_from_jamming(jamming_zones)
 
         # Use PathPlanner3D for grid-based algorithms
-        if self._planner3d is not None and self.algorithm not in ["potential_field", "direct"]:
+        if self._planner3d is not None and self.algorithm not in [
+            "potential_field",
+            "direct",
+        ]:
             path_result = self._planner3d.find_path(start, goal)
             if path_result[0] is not None:
                 path = path_result[0]
                 algo_used = path_result[1]
                 nodes = path_result[2]
-                print(f"[PathPlanner] {agent_id}: Path found with {algo_used}, {len(path)} waypoints, {nodes} nodes")
+                print(
+                    f"[PathPlanner] {agent_id}: Path found with {algo_used}, {len(path)} waypoints, {nodes} nodes"
+                )
 
                 self.paths[agent_id] = path
                 self.current_waypoints[agent_id] = 0
                 return path
             else:
-                print(f"[PathPlanner] {agent_id}: No path found with {self.algorithm}, using fallback")
+                print(
+                    f"[PathPlanner] {agent_id}: No path found with {self.algorithm}, using fallback"
+                )
 
         # Fallback to potential field or direct
         if self.algorithm == "direct":
@@ -224,7 +238,7 @@ class PathPlanner:
         """
         Get all planned paths for visualization.
         Only returns waypoints AHEAD of the vehicle's current position.
-        
+
         Returns:
             Dict mapping agent_id to list of [x, y, z] waypoints (from current position forward)
         """
@@ -237,7 +251,7 @@ class PathPlanner:
                 remaining_path = path[start_idx:]
                 if remaining_path:
                     result[agent_id] = [
-                        p.tolist() if hasattr(p, 'tolist') else list(p)
+                        p.tolist() if hasattr(p, "tolist") else list(p)
                         for p in remaining_path
                     ]
         return result
@@ -353,7 +367,9 @@ class PathPlanner:
         """Direct straight-line path."""
         return [start.copy(), goal.copy()]
 
-    def _smooth_path(self, path: list[np.ndarray], tolerance: float = 0.1) -> list[np.ndarray]:
+    def _smooth_path(
+        self, path: list[np.ndarray], tolerance: float = 0.1
+    ) -> list[np.ndarray]:
         """Remove redundant waypoints on straight lines."""
         if len(path) <= 2:
             return path
@@ -396,7 +412,9 @@ class PathPlanner:
     def set_algorithm(self, algorithm: str):
         """Change path planning algorithm."""
         if algorithm not in PATH_ALGORITHMS:
-            raise ValueError(f"Unknown algorithm: {algorithm}. Available: {PATH_ALGORITHMS}")
+            raise ValueError(
+                f"Unknown algorithm: {algorithm}. Available: {PATH_ALGORITHMS}"
+            )
 
         self.algorithm = algorithm
 
@@ -405,7 +423,9 @@ class PathPlanner:
         self._planner3d = None
         self.clear_all_paths()
 
-        print(f"[PathPlanner] Algorithm changed to: {ALGORITHM_NAMES.get(algorithm, algorithm)}")
+        print(
+            f"[PathPlanner] Algorithm changed to: {ALGORITHM_NAMES.get(algorithm, algorithm)}"
+        )
 
     def set_bounds(self, bounds_min: list, bounds_max: list):
         """Update planning bounds."""

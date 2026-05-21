@@ -129,4 +129,3 @@ Common runtime knobs in `.env`:
 - `LLM_ASSISTANCE_ENABLED`, `CRYPTO_AUTH_ENABLED`
 
 Detailed variable explanations are in `.env.example`.
-

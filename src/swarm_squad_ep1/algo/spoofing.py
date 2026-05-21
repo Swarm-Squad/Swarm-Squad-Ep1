@@ -6,6 +6,7 @@ Implements three attack types that manipulate MAVLink messages:
   2. Position Falsification - corrupts real agent positions with random offsets
   3. Coordinate Attack - systematically shifts all affected positions by a vector
 """
+
 import math
 import random
 import time
@@ -13,9 +14,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-import numpy as np
-
-from .mavlink import MAVLinkMessage, MessageType
+from swarm_squad_ep1.algo.mavlink import MAVLinkMessage, MessageType
 
 
 class SpoofType(str, Enum):
@@ -40,6 +39,7 @@ SPOOF_PARAMS = {
 @dataclass
 class SpoofingZone:
     """Spatial zone where spoofing attacks are active."""
+
     id: str
     center: list[float]
     radius: float
@@ -110,19 +110,24 @@ class SpoofingEngine:
         zone_id = zone.id
 
         # Generate stable phantom positions (slowly drifting)
-        if zone_id not in self._phantom_cache or len(self._phantom_cache[zone_id]) != zone.phantom_count:
+        if (
+            zone_id not in self._phantom_cache
+            or len(self._phantom_cache[zone_id]) != zone.phantom_count
+        ):
             self._phantom_cache[zone_id] = []
             for i in range(zone.phantom_count):
                 angle = 2 * math.pi * i / zone.phantom_count
                 r = zone.radius * 0.6
-                self._phantom_cache[zone_id].append({
-                    "base_angle": angle,
-                    "base_r": r,
-                    "z_offset": random.uniform(-2, 2),
-                })
+                self._phantom_cache[zone_id].append(
+                    {
+                        "base_angle": angle,
+                        "base_r": r,
+                        "z_offset": random.uniform(-2, 2),
+                    }
+                )
 
         for i in range(zone.phantom_count):
-            phantom_id = f"phantom_{zone_id}_{i+1}"
+            phantom_id = f"phantom_{zone_id}_{i + 1}"
             cache = self._phantom_cache[zone_id][i]
 
             # Slowly orbit around zone center with small perturbation
@@ -132,7 +137,9 @@ class SpoofingEngine:
             pos = [
                 zone.center[0] + r * math.cos(angle),
                 zone.center[1] + r * math.sin(angle),
-                zone.center[2] + cache["z_offset"] if len(zone.center) > 2 else cache["z_offset"],
+                zone.center[2] + cache["z_offset"]
+                if len(zone.center) > 2
+                else cache["z_offset"],
             ]
 
             seq = self._phantom_sequence.get(phantom_id, 0)
@@ -163,9 +170,11 @@ class SpoofingEngine:
         """Add random offsets to position messages for agents within the zone."""
         result = []
         for msg in messages:
-            if (msg.msg_type == MessageType.GLOBAL_POSITION_INT
-                    and not msg.is_spoofed
-                    and msg.sender_id in agent_positions):
+            if (
+                msg.msg_type == MessageType.GLOBAL_POSITION_INT
+                and not msg.is_spoofed
+                and msg.sender_id in agent_positions
+            ):
                 true_pos = agent_positions[msg.sender_id]
                 if zone.contains(true_pos):
                     spoofed = msg.clone()
@@ -202,9 +211,11 @@ class SpoofingEngine:
         result = []
         vec = zone.coordinate_vector
         for msg in messages:
-            if (msg.msg_type == MessageType.GLOBAL_POSITION_INT
-                    and not msg.is_spoofed
-                    and msg.sender_id in agent_positions):
+            if (
+                msg.msg_type == MessageType.GLOBAL_POSITION_INT
+                and not msg.is_spoofed
+                and msg.sender_id in agent_positions
+            ):
                 true_pos = agent_positions[msg.sender_id]
                 if zone.contains(true_pos):
                     spoofed = msg.clone()
@@ -218,7 +229,9 @@ class SpoofingEngine:
             result.append(msg)
         return result
 
-    def get_phantom_positions(self, spoofing_zones: list[SpoofingZone]) -> dict[str, list[float]]:
+    def get_phantom_positions(
+        self, spoofing_zones: list[SpoofingZone]
+    ) -> dict[str, list[float]]:
         """Return current phantom agent positions for visualization."""
         positions = {}
         for zone in spoofing_zones:
@@ -226,25 +239,32 @@ class SpoofingEngine:
                 continue
             zone_id = zone.id
             # Auto-populate cache if not yet initialized (before simulation starts)
-            if zone_id not in self._phantom_cache or len(self._phantom_cache[zone_id]) != zone.phantom_count:
+            if (
+                zone_id not in self._phantom_cache
+                or len(self._phantom_cache[zone_id]) != zone.phantom_count
+            ):
                 self._phantom_cache[zone_id] = []
                 for i in range(zone.phantom_count):
                     angle = 2 * math.pi * i / zone.phantom_count
                     r = zone.radius * 0.6
-                    self._phantom_cache[zone_id].append({
-                        "base_angle": angle,
-                        "base_r": r,
-                        "z_offset": random.uniform(-2, 2),
-                    })
+                    self._phantom_cache[zone_id].append(
+                        {
+                            "base_angle": angle,
+                            "base_r": r,
+                            "z_offset": random.uniform(-2, 2),
+                        }
+                    )
             for i, cache in enumerate(self._phantom_cache[zone_id]):
-                phantom_id = f"phantom_{zone_id}_{i+1}"
+                phantom_id = f"phantom_{zone_id}_{i + 1}"
                 t = time.time()
                 angle = cache["base_angle"] + t * 0.1
                 r = cache["base_r"] + math.sin(t * 0.5 + i) * 2.0
                 positions[phantom_id] = [
                     zone.center[0] + r * math.cos(angle),
                     zone.center[1] + r * math.sin(angle),
-                    zone.center[2] + cache["z_offset"] if len(zone.center) > 2 else cache["z_offset"],
+                    zone.center[2] + cache["z_offset"]
+                    if len(zone.center) > 2
+                    else cache["z_offset"],
                 ]
         return positions
 

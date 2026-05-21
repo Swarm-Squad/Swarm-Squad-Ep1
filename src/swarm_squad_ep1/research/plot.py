@@ -9,6 +9,7 @@ output path (or ``None`` if matplotlib is unavailable).
 
 ``generate_all_plots(csv_path)`` runs every applicable plot for the data.
 """
+
 from __future__ import annotations
 
 import csv
@@ -17,9 +18,11 @@ from typing import Optional
 
 try:
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
+
     HAS_MPL = True
 except ImportError:
     HAS_MPL = False
@@ -28,6 +31,7 @@ except ImportError:
 # --------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------
+
 
 def _load_csv(path: Path) -> list[dict]:
     with open(path) as fh:
@@ -80,7 +84,10 @@ COLORS = {
 # E1: Single vs dual attack
 # --------------------------------------------------------------------------
 
-def plot_single_vs_dual(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_single_vs_dual(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Grouped bar chart: success rate for jam-only, spoof-only, combined."""
     if not _ensure_mpl():
         return None
@@ -106,20 +113,34 @@ def plot_single_vs_dual(csv_path: str | Path, out_png: Optional[str | Path] = No
 
     labels = ["Baseline", "Jamming\nOnly", "Spoofing\nOnly", "Jamming +\nSpoofing"]
     keys = ["baseline", "jam_only", "spoof_only", "combined"]
-    values = [_mean([float(v) for v in categories[k]]) if categories[k] else 0 for k in keys]
+    values = [
+        _mean([float(v) for v in categories[k]]) if categories[k] else 0 for k in keys
+    ]
     counts = [len(categories[k]) for k in keys]
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    bars = ax.bar(labels, values, color=[COLORS["green"], COLORS["orange"], COLORS["purple"], COLORS["red"]])
+    bars = ax.bar(
+        labels,
+        values,
+        color=[COLORS["green"], COLORS["orange"], COLORS["purple"], COLORS["red"]],
+    )
     for bar, val, n in zip(bars, values, counts):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.02,
-                f"{val:.0%}\n(n={n})", ha="center", va="bottom", fontsize=9)
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{val:.0%}\n(n={n})",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
     ax.set_ylabel("Mission Success Rate")
     ax.set_ylim(0, 1.15)
     ax.set_title("E1: Single Attack vs Combined Attack Susceptibility")
     ax.yaxis.set_major_formatter(mticker.PercentFormatter(1.0))
     fig.tight_layout()
-    out = Path(out_png) if out_png else Path(csv_path).with_name("E1_single_vs_dual.png")
+    out = (
+        Path(out_png) if out_png else Path(csv_path).with_name("E1_single_vs_dual.png")
+    )
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return str(out)
@@ -129,7 +150,10 @@ def plot_single_vs_dual(csv_path: str | Path, out_png: Optional[str | Path] = No
 # E1 supplement: comm quality degradation
 # --------------------------------------------------------------------------
 
-def plot_comm_quality_by_attack(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_comm_quality_by_attack(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Box-style bar chart of avg comm quality per attack category."""
     if not _ensure_mpl():
         return None
@@ -159,7 +183,7 @@ def plot_comm_quality_by_attack(csv_path: str | Path, out_png: Optional[str | Pa
     fig, ax = plt.subplots(figsize=(7, 4.5))
     bp = ax.boxplot(data, labels=labels, patch_artist=True)
     colors = [COLORS["green"], COLORS["orange"], COLORS["purple"], COLORS["red"]]
-    for patch, c in zip(bp["boxes"], colors[:len(labels)]):
+    for patch, c in zip(bp["boxes"], colors[: len(labels)]):
         patch.set_facecolor(c)
         patch.set_alpha(0.6)
     ax.set_ylabel("Avg Communication Quality")
@@ -175,7 +199,10 @@ def plot_comm_quality_by_attack(csv_path: str | Path, out_png: Optional[str | Pa
 # E2: LLM assistance under dual attack
 # --------------------------------------------------------------------------
 
-def plot_llm_improvement(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_llm_improvement(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Paired bar chart: LLM off vs on for each combined-attack config."""
     if not _ensure_mpl():
         return None
@@ -194,10 +221,15 @@ def plot_llm_improvement(csv_path: str | Path, out_png: Optional[str | Path] = N
         groups.setdefault(base, {}).setdefault(llm, []).append(reached)
 
     labels = sorted(groups.keys())
-    off_vals = [_mean([float(v) for v in groups[l].get(False, [])]) for l in labels]
-    on_vals = [_mean([float(v) for v in groups[l].get(True, [])]) for l in labels]
+    off_vals = [
+        _mean([float(v) for v in groups[label].get(False, [])]) for label in labels
+    ]
+    on_vals = [
+        _mean([float(v) for v in groups[label].get(True, [])]) for label in labels
+    ]
 
     import numpy as _np
+
     x = _np.arange(len(labels))
     w = 0.35
 
@@ -205,27 +237,35 @@ def plot_llm_improvement(csv_path: str | Path, out_png: Optional[str | Path] = N
     ax.bar(x - w / 2, off_vals, w, label="LLM OFF", color=COLORS["grey"])
     ax.bar(x + w / 2, on_vals, w, label="LLM ON", color=COLORS["blue"])
     ax.set_xticks(x)
-    ax.set_xticklabels([l.replace("_", "\n") for l in labels], fontsize=8)
+    ax.set_xticklabels([label.replace("_", "\n") for label in labels], fontsize=8)
     ax.set_ylabel("Mission Success Rate")
     ax.set_ylim(0, 1.15)
     ax.yaxis.set_major_formatter(mticker.PercentFormatter(1.0))
     ax.set_title("E2: LLM Assistance Improvement Under Combined Attack")
     ax.legend()
     fig.tight_layout()
-    out = Path(out_png) if out_png else Path(csv_path).with_name("E2_llm_improvement.png")
+    out = (
+        Path(out_png) if out_png else Path(csv_path).with_name("E2_llm_improvement.png")
+    )
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return str(out)
 
 
-def plot_llm_steps_saved(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+def plot_llm_steps_saved(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Paired bar chart: avg steps to destination, LLM off vs on."""
     if not _ensure_mpl():
         return None
 
     rows = _load_csv(Path(csv_path))
-    rows = [r for r in rows if r.get("scenario_name", "").startswith("E2_")
-            and _to_bool(r.get("destination_reached", "false"))]
+    rows = [
+        r
+        for r in rows
+        if r.get("scenario_name", "").startswith("E2_")
+        and _to_bool(r.get("destination_reached", "false"))
+    ]
     if not rows:
         return None
 
@@ -238,10 +278,11 @@ def plot_llm_steps_saved(csv_path: str | Path, out_png: Optional[str | Path] = N
         groups.setdefault(base, {}).setdefault(llm, []).append(steps)
 
     labels = sorted(groups.keys())
-    off_vals = [_mean(groups[l].get(False, [0])) for l in labels]
-    on_vals = [_mean(groups[l].get(True, [0])) for l in labels]
+    off_vals = [_mean(groups[label].get(False, [0])) for label in labels]
+    on_vals = [_mean(groups[label].get(True, [0])) for label in labels]
 
     import numpy as _np
+
     x = _np.arange(len(labels))
     w = 0.35
 
@@ -249,7 +290,7 @@ def plot_llm_steps_saved(csv_path: str | Path, out_png: Optional[str | Path] = N
     ax.bar(x - w / 2, off_vals, w, label="LLM OFF", color=COLORS["grey"])
     ax.bar(x + w / 2, on_vals, w, label="LLM ON", color=COLORS["blue"])
     ax.set_xticks(x)
-    ax.set_xticklabels([l.replace("_", "\n") for l in labels], fontsize=8)
+    ax.set_xticklabels([label.replace("_", "\n") for label in labels], fontsize=8)
     ax.set_ylabel("Avg Steps to Destination")
     ax.set_title("E2: Steps to Destination — LLM OFF vs ON")
     ax.legend()
@@ -264,7 +305,10 @@ def plot_llm_steps_saved(csv_path: str | Path, out_png: Optional[str | Path] = N
 # E3: Path planning comparison
 # --------------------------------------------------------------------------
 
-def plot_path_algorithms(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_path_algorithms(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Compare path algorithms: success rate + avg path length."""
     if not _ensure_mpl():
         return None
@@ -291,8 +335,14 @@ def plot_path_algorithms(csv_path: str | Path, out_png: Optional[str | Path] = N
 
     bars = ax1.bar(algos, success, color=COLORS["blue"])
     for bar, val in zip(bars, success):
-        ax1.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.02,
-                 f"{val:.0%}", ha="center", va="bottom", fontsize=9)
+        ax1.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.02,
+            f"{val:.0%}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
     ax1.set_ylabel("Mission Success Rate")
     ax1.set_ylim(0, 1.15)
     ax1.yaxis.set_major_formatter(mticker.PercentFormatter(1.0))
@@ -306,7 +356,9 @@ def plot_path_algorithms(csv_path: str | Path, out_png: Optional[str | Path] = N
 
     fig.suptitle("E3: Path Planning Algorithm Comparison", fontsize=13, y=1.02)
     fig.tight_layout()
-    out = Path(out_png) if out_png else Path(csv_path).with_name("E3_path_algorithms.png")
+    out = (
+        Path(out_png) if out_png else Path(csv_path).with_name("E3_path_algorithms.png")
+    )
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return str(out)
@@ -316,7 +368,10 @@ def plot_path_algorithms(csv_path: str | Path, out_png: Optional[str | Path] = N
 # E4: Crypto comparison
 # --------------------------------------------------------------------------
 
-def plot_crypto_comparison(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_crypto_comparison(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Detection rate + FPR by crypto algorithm under spoofing."""
     if not _ensure_mpl():
         return None
@@ -344,6 +399,7 @@ def plot_crypto_comparison(csv_path: str | Path, out_png: Optional[str | Path] =
     success_vals = [_mean([float(v) for v in groups[a]["reached"]]) for a in algos]
 
     import numpy as _np
+
     x = _np.arange(len(algos))
     w = 0.2
 
@@ -360,7 +416,11 @@ def plot_crypto_comparison(csv_path: str | Path, out_png: Optional[str | Path] =
     ax.set_title("E4: Cryptographic Authentication Comparison")
     ax.legend(loc="upper right", fontsize=8)
     fig.tight_layout()
-    out = Path(out_png) if out_png else Path(csv_path).with_name("E4_crypto_comparison.png")
+    out = (
+        Path(out_png)
+        if out_png
+        else Path(csv_path).with_name("E4_crypto_comparison.png")
+    )
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return str(out)
@@ -370,7 +430,10 @@ def plot_crypto_comparison(csv_path: str | Path, out_png: Optional[str | Path] =
 # E5: Full factorial heatmap
 # --------------------------------------------------------------------------
 
-def plot_full_factorial(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_full_factorial(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Heatmap-style table: attack scenario × (LLM, crypto) → success rate."""
     if not _ensure_mpl():
         return None
@@ -394,28 +457,40 @@ def plot_full_factorial(csv_path: str | Path, out_png: Optional[str | Path] = No
     col_labels = sorted(set(k[1] for k in cells))
 
     import numpy as _np
+
     data = _np.zeros((len(row_labels), len(col_labels)))
     for (r, c), vals in cells.items():
         ri = row_labels.index(r)
         ci = col_labels.index(c)
         data[ri, ci] = _mean([float(v) for v in vals])
 
-    fig, ax = plt.subplots(figsize=(max(8, len(col_labels) * 2), max(6, len(row_labels) * 0.6)))
+    fig, ax = plt.subplots(
+        figsize=(max(8, len(col_labels) * 2), max(6, len(row_labels) * 0.6))
+    )
     im = ax.imshow(data, cmap="RdYlGn", vmin=0, vmax=1, aspect="auto")
     ax.set_xticks(range(len(col_labels)))
     ax.set_xticklabels(col_labels, fontsize=8)
     ax.set_yticks(range(len(row_labels)))
-    ax.set_yticklabels([l.replace("_", " ") for l in row_labels], fontsize=8)
+    ax.set_yticklabels([label.replace("_", " ") for label in row_labels], fontsize=8)
 
     for i in range(len(row_labels)):
         for j in range(len(col_labels)):
-            ax.text(j, i, f"{data[i, j]:.0%}", ha="center", va="center",
-                    fontsize=8, color="black" if data[i, j] > 0.4 else "white")
+            ax.text(
+                j,
+                i,
+                f"{data[i, j]:.0%}",
+                ha="center",
+                va="center",
+                fontsize=8,
+                color="black" if data[i, j] > 0.4 else "white",
+            )
 
     fig.colorbar(im, ax=ax, label="Mission Success Rate", shrink=0.8)
     ax.set_title("E5: Full Factorial — Attack × LLM × Crypto", fontsize=12)
     fig.tight_layout()
-    out = Path(out_png) if out_png else Path(csv_path).with_name("E5_full_factorial.png")
+    out = (
+        Path(out_png) if out_png else Path(csv_path).with_name("E5_full_factorial.png")
+    )
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return str(out)
@@ -425,7 +500,10 @@ def plot_full_factorial(csv_path: str | Path, out_png: Optional[str | Path] = No
 # E6: Comm model comparison
 # --------------------------------------------------------------------------
 
-def plot_comm_model(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_comm_model(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """V2V vs legacy: success rate + comm quality by jamming level."""
     if not _ensure_mpl():
         return None
@@ -444,6 +522,7 @@ def plot_comm_model(csv_path: str | Path, out_png: Optional[str | Path] = None) 
         d["comm"].append(_to_float(r.get("avg_comm_quality")))
 
     import numpy as _np
+
     jam_levels = sorted(set(k[1] for k in groups))
     models = sorted(set(k[0] for k in groups))
 
@@ -452,8 +531,10 @@ def plot_comm_model(csv_path: str | Path, out_png: Optional[str | Path] = None) 
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
     for idx, model in enumerate(models):
-        vals = [_mean([float(v) for v in groups.get((model, j), {}).get("reached", [])])
-                for j in jam_levels]
+        vals = [
+            _mean([float(v) for v in groups.get((model, j), {}).get("reached", [])])
+            for j in jam_levels
+        ]
         ax1.bar(x + (idx - 0.5) * w, vals, w, label=model)
     ax1.set_xticks(x)
     ax1.set_xticklabels(jam_levels)
@@ -464,8 +545,7 @@ def plot_comm_model(csv_path: str | Path, out_png: Optional[str | Path] = None) 
     ax1.legend()
 
     for idx, model in enumerate(models):
-        vals = [_mean(groups.get((model, j), {}).get("comm", [0]))
-                for j in jam_levels]
+        vals = [_mean(groups.get((model, j), {}).get("comm", [0])) for j in jam_levels]
         ax2.bar(x + (idx - 0.5) * w, vals, w, label=model)
     ax2.set_xticks(x)
     ax2.set_xticklabels(jam_levels)
@@ -485,7 +565,10 @@ def plot_comm_model(csv_path: str | Path, out_png: Optional[str | Path] = None) 
 # General-purpose plots (work across experiments)
 # --------------------------------------------------------------------------
 
-def plot_success_by_llm(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+
+def plot_success_by_llm(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Bar chart of mission-success rate with LLM on vs off."""
     if not _ensure_mpl():
         return None
@@ -516,7 +599,9 @@ def plot_success_by_llm(csv_path: str | Path, out_png: Optional[str | Path] = No
     return str(out)
 
 
-def plot_detection_roc(csv_path: str | Path, out_png: Optional[str | Path] = None) -> Optional[str]:
+def plot_detection_roc(
+    csv_path: str | Path, out_png: Optional[str | Path] = None
+) -> Optional[str]:
     """Scatter of (false_positive_rate, detection_rate) points per scenario."""
     if not _ensure_mpl():
         return None

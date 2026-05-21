@@ -4,6 +4,7 @@ MAVLink v2-inspired communication protocol for Swarm Squad Ep1.
 Provides a message bus that mediates agent-to-agent communication, enabling
 spoofing attack injection and cryptographic authentication verification.
 """
+
 import random
 import time
 from collections import defaultdict
@@ -101,8 +102,13 @@ class MAVLinkBus:
         # Position falsification tracking (true -> spoofed offsets)
         self._falsification_offsets: dict[str, list[float]] = {}
 
-    def broadcast(self, agent_id: str, position: list[float],
-                  velocity: list[float] = None, heading: float = 0.0) -> MAVLinkMessage:
+    def broadcast(
+        self,
+        agent_id: str,
+        position: list[float],
+        velocity: list[float] = None,
+        heading: float = 0.0,
+    ) -> MAVLinkMessage:
         """Create and queue a position message from an agent."""
         seq = self._sequence_counters[agent_id]
         self._sequence_counters[agent_id] = seq + 1

@@ -7,6 +7,7 @@ geometry, attack/countermeasure toggles, comm model, and RNG seed.
 Keep this module pure dataclasses (no FastAPI, no globals) so scenarios
 can be pickled, emitted to JSON, and composed into large matrices.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -58,7 +59,8 @@ class Scenario:
             "destination": list(self.destination),
             "agent_init_positions": (
                 [list(p) for p in self.agent_init_positions]
-                if self.agent_init_positions else None
+                if self.agent_init_positions
+                else None
             ),
             "jamming_zones": [j.__dict__ for j in self.jamming_zones],
             "spoofing_zones": [s.__dict__ for s in self.spoofing_zones],
@@ -78,6 +80,7 @@ class Scenario:
 # --------------------------------------------------------------------------
 # Preset builders used by experiments.py
 # --------------------------------------------------------------------------
+
 
 def _default_starts(num_agents: int) -> list[tuple[float, float, float]]:
     """Line-formation start 40 m south of origin."""
@@ -106,7 +109,9 @@ def jamming_scenario(
         seed=seed,
         agent_init_positions=_default_starts(5),
         jamming_zones=[
-            JammingZoneSpec(center=(10.0, 40.0, 10.0), radius=15.0, obstacle_type=jam_type),
+            JammingZoneSpec(
+                center=(10.0, 40.0, 10.0), radius=15.0, obstacle_type=jam_type
+            ),
         ],
         llm_assistance_enabled=llm,
     )
@@ -124,7 +129,9 @@ def spoofing_scenario(
         seed=seed,
         agent_init_positions=_default_starts(5),
         spoofing_zones=[
-            SpoofingZoneSpec(center=(10.0, 40.0, 10.0), radius=25.0, spoof_type=spoof_type),
+            SpoofingZoneSpec(
+                center=(10.0, 40.0, 10.0), radius=25.0, spoof_type=spoof_type
+            ),
         ],
         crypto_enabled=crypto,
         crypto_algorithm=crypto_algorithm,
@@ -145,10 +152,14 @@ def combined_scenario(
         seed=seed,
         agent_init_positions=_default_starts(5),
         jamming_zones=[
-            JammingZoneSpec(center=(5.0, 30.0, 8.0), radius=15.0, obstacle_type=jam_type),
+            JammingZoneSpec(
+                center=(5.0, 30.0, 8.0), radius=15.0, obstacle_type=jam_type
+            ),
         ],
         spoofing_zones=[
-            SpoofingZoneSpec(center=(15.0, 60.0, 12.0), radius=25.0, spoof_type=spoof_type),
+            SpoofingZoneSpec(
+                center=(15.0, 60.0, 12.0), radius=25.0, spoof_type=spoof_type
+            ),
         ],
         crypto_enabled=crypto,
         crypto_algorithm=crypto_algorithm,
@@ -173,7 +184,9 @@ _EDUCATION_PRESETS: dict[str, dict] = {
         "title": "Jamming Demo",
         "summary": "Single low-power jamming zone to study communication degradation.",
         "jamming_zones": [
-            JammingZoneSpec(center=(10.0, 40.0, 10.0), radius=15.0, obstacle_type="low_jam"),
+            JammingZoneSpec(
+                center=(10.0, 40.0, 10.0), radius=15.0, obstacle_type="low_jam"
+            ),
         ],
         "spoofing_zones": [],
         "crypto_enabled": False,
@@ -184,7 +197,9 @@ _EDUCATION_PRESETS: dict[str, dict] = {
         "summary": "Single spoofing zone to visualize phantom/falsified traffic effects.",
         "jamming_zones": [],
         "spoofing_zones": [
-            SpoofingZoneSpec(center=(10.0, 40.0, 10.0), radius=25.0, spoof_type="phantom"),
+            SpoofingZoneSpec(
+                center=(10.0, 40.0, 10.0), radius=25.0, spoof_type="phantom"
+            ),
         ],
         "crypto_enabled": True,
         "llm_assistance_enabled": False,
@@ -193,10 +208,16 @@ _EDUCATION_PRESETS: dict[str, dict] = {
         "title": "Combined Attack Demo",
         "summary": "Jamming plus spoofing; shows why layered defenses matter.",
         "jamming_zones": [
-            JammingZoneSpec(center=(5.0, 30.0, 8.0), radius=15.0, obstacle_type="high_jam"),
+            JammingZoneSpec(
+                center=(5.0, 30.0, 8.0), radius=15.0, obstacle_type="high_jam"
+            ),
         ],
         "spoofing_zones": [
-            SpoofingZoneSpec(center=(15.0, 60.0, 12.0), radius=25.0, spoof_type="position_falsification"),
+            SpoofingZoneSpec(
+                center=(15.0, 60.0, 12.0),
+                radius=25.0,
+                spoof_type="position_falsification",
+            ),
         ],
         "crypto_enabled": True,
         "llm_assistance_enabled": True,
@@ -222,7 +243,9 @@ def get_education_presets() -> dict[str, dict]:
 def build_education_scenario(preset: str, seed: int = 0) -> Scenario:
     """Build a ready-to-run Scenario from an educational preset key."""
     if preset not in _EDUCATION_PRESETS:
-        raise ValueError(f"Unknown preset '{preset}'. Available: {sorted(_EDUCATION_PRESETS)}")
+        raise ValueError(
+            f"Unknown preset '{preset}'. Available: {sorted(_EDUCATION_PRESETS)}"
+        )
 
     p = _EDUCATION_PRESETS[preset]
     return Scenario(

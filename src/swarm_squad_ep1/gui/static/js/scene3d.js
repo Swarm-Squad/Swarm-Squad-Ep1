@@ -1286,9 +1286,9 @@ function updateCommunicationLinks(links, agentPositions) {
 
   // Link-type palette
   const TYPE_COLORS = {
-    los: 0x2ecc71,            // green
-    nlos_vehicle: 0xf39c12,   // orange
-    nlos_obstacle: 0xe74c3c,  // red
+    los: 0x2ecc71, // green
+    nlos_vehicle: 0xf39c12, // orange
+    nlos_obstacle: 0xe74c3c, // red
   };
 
   for (const link of links) {
@@ -1315,7 +1315,8 @@ function updateCommunicationLinks(links, agentPositions) {
       // Opacity tracks quality
       opacity = 0.35 + Math.min(0.55, quality * 0.6);
     } else if (isStrong) {
-      color = quality > 0.7 ? CONFIG.colors.commLink : CONFIG.colors.commLinkWeak;
+      color =
+        quality > 0.7 ? CONFIG.colors.commLink : CONFIG.colors.commLinkWeak;
       opacity = 0.5 + quality * 0.3;
     } else {
       color = 0xff6b6b;
@@ -1862,7 +1863,10 @@ function updateVisualization(visData) {
 
   // Update falsification offset lines
   if (visData.falsification_offsets && hasValidPositions) {
-    updateFalsificationLines(visData.falsification_offsets, visData.agent_positions);
+    updateFalsificationLines(
+      visData.falsification_offsets,
+      visData.agent_positions,
+    );
   }
 
   // Update crypto auth shield indicators on agents
@@ -2296,7 +2300,7 @@ function selectSpoofingZone(zoneId) {
     }
 
     window.dispatchEvent(
-      new CustomEvent("spoofingZoneSelected", { detail: { zoneId } })
+      new CustomEvent("spoofingZoneSelected", { detail: { zoneId } }),
     );
   } else {
     hideTooltip();

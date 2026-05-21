@@ -1,4 +1,5 @@
 """Smoke tests for the dependency-free JSON extractor/validator."""
+
 from __future__ import annotations
 
 import pytest
@@ -17,7 +18,7 @@ class TestExtract:
         assert extract_first_json('{"a": 1}') == {"a": 1}
 
     def test_markdown_fence(self):
-        text = "Sure:\n```json\n{\"tool\": \"move_agent\", \"args\": {}}\n```\n"
+        text = 'Sure:\n```json\n{"tool": "move_agent", "args": {}}\n```\n'
         obj = extract_first_json(text)
         assert obj == {"tool": "move_agent", "args": {}}
 
@@ -26,7 +27,7 @@ class TestExtract:
         assert obj == {"a": 1, "b": [1, 2, 3]}
 
     def test_embedded_in_prose(self):
-        text = "Thinking... here you go: {\"x\": 42} -- done."
+        text = 'Thinking... here you go: {"x": 42} -- done.'
         assert extract_first_json(text) == {"x": 42}
 
     def test_multiple_objects(self):

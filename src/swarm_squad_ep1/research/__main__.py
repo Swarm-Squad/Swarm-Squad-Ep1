@@ -7,12 +7,12 @@ CLI entry point for the research harness.
     python -m swarm_squad_ep1.research smoke
     python -m swarm_squad_ep1.research plot --csv=results/E1/<timestamp>.csv
 """
+
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
-
 
 EXPERIMENT_DESCRIPTIONS = {
     "E1": "Single-vs-dual attack susceptibility (jam/spoof alone vs combined)",
@@ -28,12 +28,12 @@ def _cmd_list(args) -> int:
     print("\nAvailable experiments:\n")
     for eid, desc in EXPERIMENT_DESCRIPTIONS.items():
         print(f"  {eid:4s}  {desc}")
-    print(f"\n  all   Run E1 through E6 sequentially\n")
+    print("\n  all   Run E1 through E6 sequentially\n")
     return 0
 
 
 def _cmd_run(args) -> int:
-    from .experiments import EXPERIMENTS, run_experiment
+    from swarm_squad_ep1.research.experiments import EXPERIMENTS, run_experiment
 
     if args.experiment == "all":
         targets = list(EXPERIMENTS.keys())
@@ -44,14 +44,16 @@ def _cmd_run(args) -> int:
 
     for name in targets:
         if name not in EXPERIMENTS:
-            print(f"unknown experiment {name!r}; options: {list(EXPERIMENTS)}",
-                  file=sys.stderr)
+            print(
+                f"unknown experiment {name!r}; options: {list(EXPERIMENTS)}",
+                file=sys.stderr,
+            )
             return 2
 
     for name in targets:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  EXPERIMENT {name}: {EXPERIMENT_DESCRIPTIONS.get(name, '')}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
         run_experiment(
             name,
             out_dir=args.out_dir,
@@ -65,12 +67,14 @@ def _cmd_run(args) -> int:
 
 
 def _cmd_smoke(args) -> int:
-    from .smoke_test import run_smoke
+    from swarm_squad_ep1.research.smoke_test import run_smoke
+
     return run_smoke(verbose=not args.quiet)
 
 
 def _cmd_plot(args) -> int:
-    from .plot import generate_all_plots
+    from swarm_squad_ep1.research.plot import generate_all_plots
+
     p = Path(args.csv)
     if not p.exists():
         print(f"not found: {p}", file=sys.stderr)
@@ -93,7 +97,8 @@ def main(argv=None) -> int:
 
     p_run = sub.add_parser("run", help="run an experiment matrix")
     p_run.add_argument(
-        "--experiment", default="E1",
+        "--experiment",
+        default="E1",
         help="experiment ID (E1-E6), comma-separated list, or 'all'",
     )
     p_run.add_argument("--seeds", type=int, default=3)
@@ -109,8 +114,12 @@ def main(argv=None) -> int:
 
     p_plot = sub.add_parser("plot", help="render plots from a result CSV")
     p_plot.add_argument("--csv", required=True)
-    p_plot.add_argument("--out-dir", default=None, dest="out_dir",
-                        help="directory for PNGs (default: next to CSV)")
+    p_plot.add_argument(
+        "--out-dir",
+        default=None,
+        dest="out_dir",
+        help="directory for PNGs (default: next to CSV)",
+    )
     p_plot.set_defaults(func=_cmd_plot)
 
     args = parser.parse_args(argv)

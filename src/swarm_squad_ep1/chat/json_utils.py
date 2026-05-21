@@ -17,12 +17,12 @@ This module provides:
 
 No external deps (avoids adding ``jsonschema`` just for this).
 """
+
 from __future__ import annotations
 
 import json
 import re
 from typing import Any, Iterable
-
 
 # --------------------------------------------------------------------------
 # Extraction
@@ -180,7 +180,9 @@ def validate(obj: Any, schema: dict, _path: str = "$") -> None:
         return
 
     if "const" in schema and obj != schema["const"]:
-        raise ValidationError(f"{_path}: expected const {schema['const']!r}, got {obj!r}")
+        raise ValidationError(
+            f"{_path}: expected const {schema['const']!r}, got {obj!r}"
+        )
 
     if "enum" in schema and obj not in schema["enum"]:
         raise ValidationError(f"{_path}: {obj!r} not in enum {schema['enum']!r}")
@@ -189,7 +191,9 @@ def validate(obj: Any, schema: dict, _path: str = "$") -> None:
     if t is not None:
         types = t if isinstance(t, list) else [t]
         if not any(_type_matches(obj, ti) for ti in types):
-            raise ValidationError(f"{_path}: expected type {t}, got {type(obj).__name__}")
+            raise ValidationError(
+                f"{_path}: expected type {t}, got {type(obj).__name__}"
+            )
 
     # Numeric bounds
     if isinstance(obj, (int, float)) and not isinstance(obj, bool):
@@ -201,9 +205,13 @@ def validate(obj: Any, schema: dict, _path: str = "$") -> None:
     # Arrays
     if isinstance(obj, list):
         if "minItems" in schema and len(obj) < schema["minItems"]:
-            raise ValidationError(f"{_path}: array shorter than minItems {schema['minItems']}")
+            raise ValidationError(
+                f"{_path}: array shorter than minItems {schema['minItems']}"
+            )
         if "maxItems" in schema and len(obj) > schema["maxItems"]:
-            raise ValidationError(f"{_path}: array longer than maxItems {schema['maxItems']}")
+            raise ValidationError(
+                f"{_path}: array longer than maxItems {schema['maxItems']}"
+            )
         items = schema.get("items")
         if items:
             if isinstance(items, dict):
@@ -246,7 +254,9 @@ def validate(obj: Any, schema: dict, _path: str = "$") -> None:
             if key == "anyOf" and ok == 0:
                 raise ValidationError(f"{_path}: failed anyOf ({'; '.join(errs)})")
             if key == "oneOf" and ok != 1:
-                raise ValidationError(f"{_path}: oneOf matched {ok} schemas (expected 1)")
+                raise ValidationError(
+                    f"{_path}: oneOf matched {ok} schemas (expected 1)"
+                )
     if "allOf" in schema:
         for sub in schema["allOf"]:
             validate(obj, sub, _path)

@@ -2,6 +2,7 @@
 Centralized configuration for the Swarm Squad Ep1 runtime.
 All settings are configurable via environment variables.
 """
+
 import json
 import os
 import random
@@ -141,14 +142,14 @@ OBSTACLE_RADIUS_MAX = float(os.getenv("OBSTACLE_RADIUS_MAX", "8.0"))
 DEFAULT_FORMATION = os.getenv("DEFAULT_FORMATION", "communication_aware")
 
 # Communication quality parameters
-ALPHA = float(os.getenv("ALPHA", "1e-5"))          # Antenna characteristic
-DELTA = float(os.getenv("DELTA", "2.0"))           # Required data rate
-R0 = float(os.getenv("R0", "5.0"))                 # Reference distance
+ALPHA = float(os.getenv("ALPHA", "1e-5"))  # Antenna characteristic
+DELTA = float(os.getenv("DELTA", "2.0"))  # Required data rate
+R0 = float(os.getenv("R0", "5.0"))  # Reference distance
 V_PATH_LOSS = float(os.getenv("V_PATH_LOSS", "3.0"))  # Path loss exponent
-PT = float(os.getenv("PT", "0.94"))                # Reception probability threshold
+PT = float(os.getenv("PT", "0.94"))  # Reception probability threshold
 
 # Derived parameter
-BETA = ALPHA * (2 ** DELTA - 1)
+BETA = ALPHA * (2**DELTA - 1)
 
 # Convergence parameters
 CONVERGENCE_THRESHOLD = int(os.getenv("CONVERGENCE_THRESHOLD", "20"))
@@ -200,10 +201,14 @@ DEFAULT_SPOOF_TYPE = os.getenv("DEFAULT_SPOOF_TYPE", "phantom")
 PHANTOM_COUNT = int(os.getenv("PHANTOM_COUNT", "2"))
 
 # Position falsification: magnitude of random offset (units)
-POSITION_FALSIFICATION_MAGNITUDE = float(os.getenv("POSITION_FALSIFICATION_MAGNITUDE", "8.0"))
+POSITION_FALSIFICATION_MAGNITUDE = float(
+    os.getenv("POSITION_FALSIFICATION_MAGNITUDE", "8.0")
+)
 
 # Coordinate attack: systematic shift vector [x, y, z]
-COORDINATE_ATTACK_VECTOR = json.loads(os.getenv("COORDINATE_ATTACK_VECTOR", "[10.0, 10.0, 0.0]"))
+COORDINATE_ATTACK_VECTOR = json.loads(
+    os.getenv("COORDINATE_ATTACK_VECTOR", "[10.0, 10.0, 0.0]")
+)
 
 # Manual spoofing zones (JSON array of [x, y, z, radius, spoof_type])
 SPOOFING_ZONES_MANUAL = os.getenv("SPOOFING_ZONES_MANUAL", "")
@@ -232,15 +237,16 @@ ENABLE_DEBUG_TELEMETRY = os.getenv("ENABLE_DEBUG_TELEMETRY", "false").lower() ==
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def get_agent_ids(num_agents: int = NUM_AGENTS) -> list[str]:
     """Generate agent IDs."""
-    return [f"agent{i+1}" for i in range(num_agents)]
+    return [f"agent{i + 1}" for i in range(num_agents)]
 
 
 def get_initial_agent_positions(num_agents: int = NUM_AGENTS) -> list[list[float]]:
     """
     Get initial agent positions based on configuration.
-    
+
     Returns:
         List of [x, y, z] positions for each agent
     """
@@ -251,7 +257,9 @@ def get_initial_agent_positions(num_agents: int = NUM_AGENTS) -> list[list[float
             if len(positions) >= num_agents:
                 return [list(p) for p in positions[:num_agents]]
             else:
-                print(f"[Config] Manual positions ({len(positions)}) < num_agents ({num_agents}), using random")
+                print(
+                    f"[Config] Manual positions ({len(positions)}) < num_agents ({num_agents}), using random"
+                )
         except json.JSONDecodeError as e:
             print(f"[Config] Failed to parse AGENT_POSITIONS_MANUAL: {e}")
 
@@ -271,11 +279,11 @@ def get_initial_agent_positions(num_agents: int = NUM_AGENTS) -> list[list[float
 def get_initial_obstacles() -> list[tuple]:
     """
     Get initial obstacles based on configuration.
-    
+
     Supports two formats:
     - 4-parameter: [x, y, z, radius] - defaults to "low_jam" type
     - 5-parameter: [x, y, z, radius, type] - type is "physical", "low_jam", or "high_jam"
-    
+
     Returns:
         List of (x, y, z, radius, type) tuples
     """
@@ -314,11 +322,11 @@ def get_initial_obstacles() -> list[tuple]:
 def get_initial_spoofing_zones() -> list[tuple]:
     """
     Get initial spoofing zones based on configuration.
-    
+
     Supports two formats:
     - 4-parameter: [x, y, z, radius] - defaults to DEFAULT_SPOOF_TYPE
     - 5-parameter: [x, y, z, radius, spoof_type]
-    
+
     Returns:
         List of (x, y, z, radius, spoof_type) tuples
     """
@@ -374,6 +382,7 @@ def get_path_planning_params() -> dict:
 def get_ollama_client():
     """Get configured Ollama client (sync, for startup checks only)."""
     import ollama
+
     return ollama.Client(host=OLLAMA_HOST)
 
 
@@ -381,6 +390,7 @@ def test_ollama_connection(verbose: bool = True) -> bool:
     """Test if Ollama is accessible (sync, for startup only)."""
     try:
         import httpx
+
         response = httpx.get(f"{OLLAMA_HOST}/api/tags", timeout=5.0)
         if response.status_code == 200:
             if verbose:
@@ -418,6 +428,7 @@ async def async_chat_with_retry(
     timeout_secs overrides LLM_TIMEOUT for this call.
     """
     import asyncio
+
     import httpx
 
     url = f"{OLLAMA_HOST}/api/chat"
@@ -434,7 +445,9 @@ async def async_chat_with_retry(
     if options:
         payload["options"] = options
 
-    read_timeout = float(timeout_secs) if timeout_secs is not None else float(LLM_TIMEOUT)
+    read_timeout = (
+        float(timeout_secs) if timeout_secs is not None else float(LLM_TIMEOUT)
+    )
     timeout = httpx.Timeout(connect=5.0, read=read_timeout, write=10.0, pool=5.0)
 
     for attempt in range(max_retries):
@@ -443,7 +456,9 @@ async def async_chat_with_retry(
                 response = await client.post(url, json=payload)
                 if response.status_code != 200:
                     print(f"[LLM] HTTP {response.status_code}: {response.text[:200]}")
-                    raise httpx.HTTPStatusError("non-200", request=response.request, response=response)
+                    raise httpx.HTTPStatusError(
+                        "non-200", request=response.request, response=response
+                    )
                 data = response.json()
                 msg = data.get("message", {})
                 # When tool_calls are present the content may legitimately be
@@ -453,9 +468,11 @@ async def async_chat_with_retry(
                     raise ValueError("Empty message content from Ollama")
                 return {"message": msg}
         except Exception as e:
-            print(f"[LLM] Attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}")
+            print(
+                f"[LLM] Attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}"
+            )
             if attempt < max_retries - 1:
-                await asyncio.sleep(min(2 ** attempt, 8))
+                await asyncio.sleep(min(2**attempt, 8))
     return None
 
 
@@ -474,6 +491,7 @@ def chat_with_retry(
     Do NOT call this from async FastAPI endpoints - use async_chat_with_retry.
     """
     import time
+
     import httpx
 
     url = f"{OLLAMA_HOST}/api/chat"
@@ -500,7 +518,7 @@ def chat_with_retry(
         except Exception as e:
             print(f"[LLM] Attempt {attempt + 1}/{max_retries} failed: {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
     return None
 
 
@@ -516,5 +534,7 @@ def print_config():
     print(f"Formation: {DEFAULT_FORMATION}")
     print(f"Path Algorithm: {DEFAULT_PATH_ALGORITHM}")
     print(f"Default Obstacle Type: {DEFAULT_OBSTACLE_TYPE}")
-    print(f"Comm Params: alpha={ALPHA}, delta={DELTA}, r0={R0}, v={V_PATH_LOSS}, PT={PT}")
+    print(
+        f"Comm Params: alpha={ALPHA}, delta={DELTA}, r0={R0}, v={V_PATH_LOSS}, PT={PT}"
+    )
     print("=" * 60)

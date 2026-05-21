@@ -129,8 +129,7 @@ const App = {
       if (status) status.textContent = "Beginner mode active.";
       const msg = document.getElementById("beginner-default-preset");
       if (msg && this.educationPresets[this.defaultPreset]) {
-        msg.textContent =
-          `Default preset: ${this.educationPresets[this.defaultPreset].title}`;
+        msg.textContent = `Default preset: ${this.educationPresets[this.defaultPreset].title}`;
       }
     }
   },
@@ -182,14 +181,14 @@ const App = {
     const formationSelect = document.getElementById("formation-select");
     if (formationSelect) {
       formationSelect.addEventListener("change", (e) =>
-        applyAlgorithmChange("formation", e.target.value)
+        applyAlgorithmChange("formation", e.target.value),
       );
     }
 
     const pathAlgoSelect = document.getElementById("path-algo-select");
     if (pathAlgoSelect) {
       pathAlgoSelect.addEventListener("change", (e) =>
-        applyAlgorithmChange("path_algorithm", e.target.value)
+        applyAlgorithmChange("path_algorithm", e.target.value),
       );
     }
 
@@ -211,7 +210,6 @@ const App = {
         }
       });
     }
-
   },
 
   /**
@@ -392,7 +390,8 @@ const App = {
         const statusEl = document.getElementById("v2v-status");
         const commSelect = document.getElementById("comm-model-select");
         if (statusEl && commSelect && commSelect.value === "v2v_channel") {
-          let los = 0, nlos = 0;
+          let los = 0,
+            nlos = 0;
           for (const link of data.communication_links) {
             if (link.link_type === "los") los++;
             else if (link.link_type) nlos++;
@@ -744,10 +743,12 @@ const App = {
         : `<span class="text-xs px-1.5 py-0.5 rounded ${jammed ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}">${jammed ? "JAMMED" : "OK"}</span>`;
 
       const deleteBtn = isPhantom
-        ? ''
+        ? ""
         : `<button onclick="event.stopPropagation(); deleteAgent('${agentId}')" class="w-5 h-5 rounded hover:bg-red-500/20 flex items-center justify-center text-muted-foreground hover:text-red-400 transition-colors" title="Remove agent">×</button>`;
 
-      const nameClass = isPhantom ? "font-medium text-sm text-purple-300 italic" : "font-medium text-sm";
+      const nameClass = isPhantom
+        ? "font-medium text-sm text-purple-300 italic"
+        : "font-medium text-sm";
 
       item.innerHTML = `
         <div class="flex items-center justify-between mb-1">
@@ -1000,7 +1001,9 @@ const App = {
     const statsEl = document.getElementById("protocol-stats");
     if (!statsEl) return;
 
-    const hasActivity = data.mavlink && (data.mavlink.messages_sent > 0 || data.spoofing_zones_active > 0);
+    const hasActivity =
+      data.mavlink &&
+      (data.mavlink.messages_sent > 0 || data.spoofing_zones_active > 0);
     if (hasActivity) {
       statsEl.classList.remove("hidden");
     }
@@ -1176,7 +1179,7 @@ function showAddSpoofingModal() {
   const algoType = document.getElementById("spoof-type-select")?.value;
   const modalType = document.getElementById("spoof-modal-type");
   if (modalType) {
-    modalType.value = (algoType && algoType !== "none") ? algoType : "phantom";
+    modalType.value = algoType && algoType !== "none" ? algoType : "phantom";
   }
   if (window.lucide) lucide.createIcons();
 }
@@ -1193,12 +1196,20 @@ async function createSpoofingZone() {
   const x = parseFloat(document.getElementById("spoof-x").value) || 0;
   const y = parseFloat(document.getElementById("spoof-y").value) || 0;
   const z = parseFloat(document.getElementById("spoof-z").value) || 0;
-  const radius = parseFloat(document.getElementById("spoof-radius").value) || 15;
-  const spoofType = document.getElementById("spoof-modal-type")?.value || "phantom";
-  const phantomCount = parseInt(document.getElementById("spoof-phantom-count")?.value) || 2;
-  const magnitude = parseFloat(document.getElementById("spoof-magnitude")?.value) || 8;
+  const radius =
+    parseFloat(document.getElementById("spoof-radius").value) || 15;
+  const spoofType =
+    document.getElementById("spoof-modal-type")?.value || "phantom";
+  const phantomCount =
+    parseInt(document.getElementById("spoof-phantom-count")?.value) || 2;
+  const magnitude =
+    parseFloat(document.getElementById("spoof-magnitude")?.value) || 8;
 
-  console.log("[App] Creating spoofing zone:", { center: [x, y, z], radius, spoofType });
+  console.log("[App] Creating spoofing zone:", {
+    center: [x, y, z],
+    radius,
+    spoofType,
+  });
 
   try {
     const response = await fetch("/spoofing_zones", {
@@ -1227,7 +1238,9 @@ async function createSpoofingZone() {
         togglePanel("spoofing");
       }
     } else {
-      alert(`Failed to create spoofing zone: ${result.detail || result.error || "Unknown error"}`);
+      alert(
+        `Failed to create spoofing zone: ${result.detail || result.error || "Unknown error"}`,
+      );
     }
   } catch (error) {
     console.error("Failed to create spoofing zone:", error);
@@ -1262,9 +1275,12 @@ async function toggleCryptoAuth() {
 
   const currentEnabled = toggle.dataset.enabled === "true";
   const newEnabled = !currentEnabled;
-  const algo = document.getElementById("crypto-algo-select")?.value || "hmac_sha256";
+  const algo =
+    document.getElementById("crypto-algo-select")?.value || "hmac_sha256";
 
-  console.log(`[App] toggleCryptoAuth: ${currentEnabled} -> ${newEnabled}, algo=${algo}`);
+  console.log(
+    `[App] toggleCryptoAuth: ${currentEnabled} -> ${newEnabled}, algo=${algo}`,
+  );
 
   try {
     const response = await fetch("/simulation/crypto_auth", {
@@ -1305,10 +1321,14 @@ async function toggleCryptoAuth() {
         else statusEl.classList.add("hidden");
       }
 
-      console.log(`[App] Crypto auth ${newEnabled ? "enabled" : "disabled"} (${algo})`);
+      console.log(
+        `[App] Crypto auth ${newEnabled ? "enabled" : "disabled"} (${algo})`,
+      );
     } else {
       console.error("[App] Crypto toggle failed:", result);
-      alert(`Crypto auth toggle failed: ${result.error || result.detail || "Unknown error"}`);
+      alert(
+        `Crypto auth toggle failed: ${result.error || result.detail || "Unknown error"}`,
+      );
     }
   } catch (error) {
     console.error("Failed to toggle crypto auth:", error);
@@ -1319,7 +1339,9 @@ async function toggleCryptoAuth() {
 async function setCryptoAlgorithm(algo) {
   // Always send the algorithm change - the server stores it for when crypto is enabled
   const isEnabled = App.cryptoAuthEnabled || false;
-  console.log(`[App] setCryptoAlgorithm: ${algo}, currently enabled=${isEnabled}`);
+  console.log(
+    `[App] setCryptoAlgorithm: ${algo}, currently enabled=${isEnabled}`,
+  );
 
   try {
     const response = await fetch("/simulation/crypto_auth", {
@@ -1462,9 +1484,12 @@ async function deleteAgent(agentId) {
 async function startSimulation() {
   const formation = document.getElementById("formation-select").value;
   const pathAlgo = document.getElementById("path-algo-select").value;
-  const cryptoEnabled = document.getElementById("crypto-toggle")?.dataset?.enabled === "true";
-  const cryptoAlgo = document.getElementById("crypto-algo-select")?.value || "hmac_sha256";
-  const commModel = document.getElementById("comm-model-select")?.value || "v2v_channel";
+  const cryptoEnabled =
+    document.getElementById("crypto-toggle")?.dataset?.enabled === "true";
+  const cryptoAlgo =
+    document.getElementById("crypto-algo-select")?.value || "hmac_sha256";
+  const commModel =
+    document.getElementById("comm-model-select")?.value || "v2v_channel";
 
   // Apply comm model setting before starting
   try {
@@ -1589,8 +1614,7 @@ async function loadEducationPreset(presetId) {
 
     const presetName = App.educationPresets[presetId]?.title || presetId;
     if (statusEl) {
-      statusEl.textContent =
-        `${presetName} loaded (jam zones: ${data.jamming_zones}, spoof zones: ${data.spoofing_zones}).`;
+      statusEl.textContent = `${presetName} loaded (jam zones: ${data.jamming_zones}, spoof zones: ${data.spoofing_zones}).`;
     }
   } catch (error) {
     console.error("[App] Failed to load education preset:", error);

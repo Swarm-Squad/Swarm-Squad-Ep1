@@ -16,8 +16,9 @@ propagation model inspired by GEMV2 and 3GPP TR 37.885:
 Jamming zone degradation (D_i * D_j) is preserved by the caller and
 applied on top of the channel quality returned by this model.
 """
+
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Union
 
@@ -36,6 +37,7 @@ class ObstacleKind(Enum):
     Mirrors ``algo.base.ObstacleType`` but the channel module is kept
     independent of it to avoid circular imports.
     """
+
     PHYSICAL = "physical"
     LOW_JAM = "low_jam"
     HIGH_JAM = "high_jam"
@@ -44,6 +46,7 @@ class ObstacleKind(Enum):
 @dataclass
 class ObstacleSpec:
     """Geometry + semantic kind of an obstacle for V2V channel analysis."""
+
     center: np.ndarray
     radius: float
     kind: ObstacleKind = ObstacleKind.PHYSICAL
@@ -52,6 +55,7 @@ class ObstacleSpec:
 @dataclass
 class ChannelParams:
     """Tunable channel model parameters."""
+
     # Transmit power (dBm) -- typical DSRC
     tx_power: float = 23.0
     # Carrier frequency (GHz)
@@ -111,6 +115,7 @@ class ChannelParams:
 @dataclass
 class LinkState:
     """Per-link state for temporal correlation."""
+
     link_type: LinkType = LinkType.LOS
     shadow_fading_db: float = 0.0
     small_scale_fading_db: float = 0.0
@@ -173,7 +178,12 @@ class V2VChannelModel:
         for i in range(n):
             for j in range(i + 1, n):
                 q = self._compute_link_quality(
-                    i, j, positions[i], positions[j], positions, specs,
+                    i,
+                    j,
+                    positions[i],
+                    positions[j],
+                    positions,
+                    specs,
                 )
                 quality[i, j] = q
                 quality[j, i] = q
@@ -195,7 +205,11 @@ class V2VChannelModel:
         ``obstacles`` can be either a list of ObstacleSpec or the legacy
         ``obstacle_centers`` ndarray (with ``obstacle_radii`` as second arg).
         """
-        if isinstance(obstacles, np.ndarray) or obstacles is None and obstacle_radii is not None:
+        if (
+            isinstance(obstacles, np.ndarray)
+            or obstacles is None
+            and obstacle_radii is not None
+        ):
             specs = self._normalize_obstacles(None, obstacles, obstacle_radii)
         elif obstacles is None:
             specs = []
@@ -206,7 +220,12 @@ class V2VChannelModel:
             specs = self._normalize_obstacles(None, obstacles, obstacle_radii)
 
         return self._compute_link_quality(
-            idx_i, idx_j, pos_i, pos_j, all_positions, specs,
+            idx_i,
+            idx_j,
+            pos_i,
+            pos_j,
+            all_positions,
+            specs,
         )
 
     def get_link_states(self) -> dict[tuple[int, int], LinkState]:
@@ -228,17 +247,19 @@ class V2VChannelModel:
                 pair = [agent_ids[i], agent_ids[j]]
             else:
                 pair = [i, j]
-            out.append({
-                "pair": pair,
-                "link_type": ls.link_type.value,
-                "path_loss_db": round(ls.path_loss_db, 2),
-                "shadow_fading_db": round(ls.shadow_fading_db, 2),
-                "small_scale_fading_db": round(ls.small_scale_fading_db, 2),
-                "jam_attenuation_db": round(ls.jam_attenuation_db, 2),
-                "received_power_dbm": round(ls.received_power_dbm, 2),
-                "snr_db": round(ls.snr_db, 2),
-                "quality": round(ls.quality, 4),
-            })
+            out.append(
+                {
+                    "pair": pair,
+                    "link_type": ls.link_type.value,
+                    "path_loss_db": round(ls.path_loss_db, 2),
+                    "shadow_fading_db": round(ls.shadow_fading_db, 2),
+                    "small_scale_fading_db": round(ls.small_scale_fading_db, 2),
+                    "jam_attenuation_db": round(ls.jam_attenuation_db, 2),
+                    "received_power_dbm": round(ls.received_power_dbm, 2),
+                    "snr_db": round(ls.snr_db, 2),
+                    "quality": round(ls.quality, 4),
+                }
+            )
         return out
 
     # ------------------------------------------------------------------
@@ -256,11 +277,20 @@ class V2VChannelModel:
         if obstacle_centers is None or len(obstacle_centers) == 0:
             return []
         centers = np.asarray(obstacle_centers)
-        radii = np.asarray(obstacle_radii) if obstacle_radii is not None else np.ones(len(centers))
+        radii = (
+            np.asarray(obstacle_radii)
+            if obstacle_radii is not None
+            else np.ones(len(centers))
+        )
         specs = []
         for c, r in zip(centers, radii):
-            specs.append(ObstacleSpec(center=np.asarray(c, dtype=float), radius=float(r),
-                                      kind=ObstacleKind.PHYSICAL))
+            specs.append(
+                ObstacleSpec(
+                    center=np.asarray(c, dtype=float),
+                    radius=float(r),
+                    kind=ObstacleKind.PHYSICAL,
+                )
+            )
         return specs
 
     # ------------------------------------------------------------------
@@ -269,8 +299,10 @@ class V2VChannelModel:
 
     def _compute_link_quality(
         self,
-        idx_i: int, idx_j: int,
-        pos_i: np.ndarray, pos_j: np.ndarray,
+        idx_i: int,
+        idx_j: int,
+        pos_i: np.ndarray,
+        pos_j: np.ndarray,
         all_positions: np.ndarray,
         obstacles: list[ObstacleSpec],
     ) -> float:
@@ -281,7 +313,12 @@ class V2VChannelModel:
 
         # 1. Classify link + tally in-beam jammer attenuation
         link_type, jam_extra_db = self._classify_link(
-            pos_i, pos_j, idx_i, idx_j, all_positions, obstacles,
+            pos_i,
+            pos_j,
+            idx_i,
+            idx_j,
+            all_positions,
+            obstacles,
         )
 
         # 2. Path loss (+ in-beam jammer attenuation)
@@ -325,8 +362,10 @@ class V2VChannelModel:
 
     def _classify_link(
         self,
-        pos_i: np.ndarray, pos_j: np.ndarray,
-        idx_i: int, idx_j: int,
+        pos_i: np.ndarray,
+        pos_j: np.ndarray,
+        idx_i: int,
+        idx_j: int,
         all_positions: np.ndarray,
         obstacles: list[ObstacleSpec],
     ) -> tuple[LinkType, float]:
@@ -343,7 +382,9 @@ class V2VChannelModel:
         blocker_found = False
 
         for obs in obstacles:
-            if not _ray_intersects_sphere(origin, direction, ray_len, obs.center, obs.radius):
+            if not _ray_intersects_sphere(
+                origin, direction, ray_len, obs.center, obs.radius
+            ):
                 continue
             if p.enable_obstacle_type_awareness:
                 if obs.kind == ObstacleKind.PHYSICAL:
@@ -364,8 +405,7 @@ class V2VChannelModel:
         for k in range(all_positions.shape[0]):
             if k == idx_i or k == idx_j:
                 continue
-            if _ray_intersects_sphere(origin, direction, ray_len,
-                                      all_positions[k], vr):
+            if _ray_intersects_sphere(origin, direction, ray_len, all_positions[k], vr):
                 return LinkType.NLOS_VEHICLE, jam_extra_db
 
         return LinkType.LOS, jam_extra_db
@@ -438,11 +478,11 @@ class V2VChannelModel:
             x = float(self._rng.normal())
             y = float(self._rng.normal())
             s = np.sqrt(2.0 * K)
-            envelope = np.sqrt((x + s) ** 2 + y ** 2) / np.sqrt(2.0 * (K + 1.0))
+            envelope = np.sqrt((x + s) ** 2 + y**2) / np.sqrt(2.0 * (K + 1.0))
         else:
             x = float(self._rng.normal(0, 1.0 / np.sqrt(2.0)))
             y = float(self._rng.normal(0, 1.0 / np.sqrt(2.0)))
-            envelope = np.sqrt(x ** 2 + y ** 2)
+            envelope = np.sqrt(x**2 + y**2)
 
         envelope = max(envelope, 1e-6)
         gain_db = 20.0 * np.log10(envelope)
@@ -452,6 +492,7 @@ class V2VChannelModel:
 # ======================================================================
 # Geometry utilities
 # ======================================================================
+
 
 def _ray_intersects_sphere(
     origin: np.ndarray,

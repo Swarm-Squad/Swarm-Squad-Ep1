@@ -1,4 +1,5 @@
 """End-to-end smoke for the research harness (3 short scenarios, no LLM)."""
+
 from __future__ import annotations
 
 import pytest

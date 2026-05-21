@@ -167,11 +167,20 @@
           <span class="text-muted-foreground">DB</span>
         </div>
         <div class="flex items-center gap-2 text-sm" id="mavlink-indicator">
-          <span class="w-2 h-2 rounded-full bg-purple-400" id="mavlink-status"></span>
+          <span
+            class="w-2 h-2 rounded-full bg-purple-400"
+            id="mavlink-status"
+          ></span>
           <span class="text-muted-foreground">MAVLink</span>
         </div>
-        <div class="flex items-center gap-2 text-sm hidden" id="crypto-indicator">
-          <span class="w-2 h-2 rounded-full bg-green-400" id="crypto-status-dot"></span>
+        <div
+          class="flex items-center gap-2 text-sm hidden"
+          id="crypto-indicator"
+        >
+          <span
+            class="w-2 h-2 rounded-full bg-green-400"
+            id="crypto-status-dot"
+          ></span>
           <span class="text-muted-foreground">Crypto</span>
         </div>
       </div>
@@ -482,8 +491,13 @@
               <i data-lucide="plus" class="icon-xs"></i> Add Spoofing Zone
             </button>
             <!-- Protocol Stats -->
-            <div id="protocol-stats" class="mt-2 text-xs bg-secondary/50 rounded-md p-2 hidden">
-              <div class="flex items-center gap-1 mb-1 text-muted-foreground font-medium">
+            <div
+              id="protocol-stats"
+              class="mt-2 text-xs bg-secondary/50 rounded-md p-2 hidden"
+            >
+              <div
+                class="flex items-center gap-1 mb-1 text-muted-foreground font-medium"
+              >
                 <i data-lucide="activity" class="icon-xs"></i> MAVLink Protocol
               </div>
               <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
@@ -509,7 +523,10 @@
             class="w-full px-4 py-3 flex items-center justify-between hover:bg-secondary/50 transition-colors"
           >
             <div class="flex items-center gap-2">
-              <i data-lucide="shield-check" class="icon-sm text-emerald-400"></i>
+              <i
+                data-lucide="shield-check"
+                class="icon-sm text-emerald-400"
+              ></i>
               <span class="font-medium text-sm">Attack Metrics</span>
               <span
                 class="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded"
@@ -527,11 +544,18 @@
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="bg-secondary/40 rounded p-2">
                 <div class="text-muted-foreground">Detection Rate</div>
-                <div class="text-lg font-mono text-emerald-300" id="am-det-rate">-</div>
+                <div
+                  class="text-lg font-mono text-emerald-300"
+                  id="am-det-rate"
+                >
+                  -
+                </div>
               </div>
               <div class="bg-secondary/40 rounded p-2">
                 <div class="text-muted-foreground">False-Pos Rate</div>
-                <div class="text-lg font-mono text-amber-300" id="am-fpr">-</div>
+                <div class="text-lg font-mono text-amber-300" id="am-fpr">
+                  -
+                </div>
               </div>
               <div class="bg-secondary/40 rounded p-2">
                 <div class="text-muted-foreground">Precision</div>
@@ -543,12 +567,25 @@
               </div>
             </div>
             <div class="mt-2 grid grid-cols-4 gap-1 text-xs font-mono">
-              <div class="bg-secondary/30 rounded px-2 py-1 text-emerald-300">TP <span id="am-tp">0</span></div>
-              <div class="bg-secondary/30 rounded px-2 py-1 text-amber-300">FP <span id="am-fp">0</span></div>
-              <div class="bg-secondary/30 rounded px-2 py-1 text-red-300">FN <span id="am-fn">0</span></div>
-              <div class="bg-secondary/30 rounded px-2 py-1 text-muted-foreground">TN <span id="am-tn">0</span></div>
+              <div class="bg-secondary/30 rounded px-2 py-1 text-emerald-300">
+                TP <span id="am-tp">0</span>
+              </div>
+              <div class="bg-secondary/30 rounded px-2 py-1 text-amber-300">
+                FP <span id="am-fp">0</span>
+              </div>
+              <div class="bg-secondary/30 rounded px-2 py-1 text-red-300">
+                FN <span id="am-fn">0</span>
+              </div>
+              <div
+                class="bg-secondary/30 rounded px-2 py-1 text-muted-foreground"
+              >
+                TN <span id="am-tn">0</span>
+              </div>
             </div>
-            <div class="mt-2 text-xs text-muted-foreground" id="am-active-attacks">
+            <div
+              class="mt-2 text-xs text-muted-foreground"
+              id="am-active-attacks"
+            >
               No active spoofing attacks
             </div>
           </div>
@@ -586,7 +623,9 @@
               <div class="grid grid-cols-3 gap-2 text-xs">
                 <div class="bg-secondary/40 rounded p-2">
                   <div class="text-muted-foreground">Parse OK</div>
-                  <div class="font-mono text-emerald-300" id="la-parse-ok">0</div>
+                  <div class="font-mono text-emerald-300" id="la-parse-ok">
+                    0
+                  </div>
                 </div>
                 <div class="bg-secondary/40 rounded p-2">
                   <div class="text-muted-foreground">Parse Fail</div>
@@ -594,24 +633,32 @@
                 </div>
                 <div class="bg-secondary/40 rounded p-2">
                   <div class="text-muted-foreground">Repair OK</div>
-                  <div class="font-mono text-amber-300" id="la-repair-ok">0</div>
+                  <div class="font-mono text-amber-300" id="la-repair-ok">
+                    0
+                  </div>
                 </div>
               </div>
 
               <!-- Recent activity log -->
               <div>
-                <div class="text-xs text-muted-foreground mb-1">Recent Activity</div>
+                <div class="text-xs text-muted-foreground mb-1">
+                  Recent Activity
+                </div>
                 <div
                   id="llm-activity-log"
                   class="text-xs font-mono bg-secondary/50 rounded p-2 h-32 overflow-y-auto scrollbar-thin"
                 >
-                  <span class="text-muted-foreground/60 italic">No activity yet</span>
+                  <span class="text-muted-foreground/60 italic"
+                    >No activity yet</span
+                  >
                 </div>
               </div>
 
               <!-- Assisted Agents -->
               <div>
-                <div class="text-xs text-muted-foreground mb-1">Agents Being Assisted</div>
+                <div class="text-xs text-muted-foreground mb-1">
+                  Agents Being Assisted
+                </div>
                 <div
                   id="llm-assisted-agents"
                   class="text-xs space-y-1 max-h-24 overflow-y-auto"
@@ -622,7 +669,9 @@
 
               <!-- Active Guidance -->
               <div>
-                <div class="text-xs text-muted-foreground mb-1">Active Guidance</div>
+                <div class="text-xs text-muted-foreground mb-1">
+                  Active Guidance
+                </div>
                 <div
                   id="llm-active-guidance"
                   class="text-xs space-y-1 max-h-32 overflow-y-auto"
@@ -634,7 +683,9 @@
               <!-- Zones (jamming + spoofing) -->
               <div class="grid grid-cols-1 gap-2">
                 <div>
-                  <div class="text-xs text-muted-foreground mb-1">Jamming Zones</div>
+                  <div class="text-xs text-muted-foreground mb-1">
+                    Jamming Zones
+                  </div>
                   <div
                     id="llm-jamming-zones"
                     class="text-xs space-y-1 max-h-24 overflow-y-auto"
@@ -643,7 +694,9 @@
                   </div>
                 </div>
                 <div>
-                  <div class="text-xs text-muted-foreground mb-1">Spoofing Zones</div>
+                  <div class="text-xs text-muted-foreground mb-1">
+                    Spoofing Zones
+                  </div>
                   <div
                     id="llm-spoofing-zones"
                     class="text-xs space-y-1 max-h-24 overflow-y-auto"
@@ -655,12 +708,16 @@
 
               <!-- Last Prompt Preview -->
               <div>
-                <div class="text-xs text-muted-foreground mb-1">Last LLM Prompt</div>
+                <div class="text-xs text-muted-foreground mb-1">
+                  Last LLM Prompt
+                </div>
                 <div
                   id="llm-last-prompt"
                   class="text-xs font-mono bg-secondary/50 rounded p-2 h-40 overflow-y-auto text-purple-200/80 scrollbar-thin scrollbar-thumb-secondary scrollbar-track-transparent"
                 >
-                  <span class="text-muted-foreground/60 italic">No prompts yet</span>
+                  <span class="text-muted-foreground/60 italic"
+                    >No prompts yet</span
+                  >
                 </div>
               </div>
             </div>
@@ -727,10 +784,15 @@
                 id="comm-model-select"
                 class="w-full h-9 px-3 text-sm bg-secondary border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                <option value="v2v_channel" selected>V2V Channel (LOS/NLOS)</option>
+                <option value="v2v_channel" selected>
+                  V2V Channel (LOS/NLOS)
+                </option>
                 <option value="legacy">Legacy (Distance-Only)</option>
               </select>
-              <div id="v2v-status" class="text-xs text-muted-foreground/60 hidden">
+              <div
+                id="v2v-status"
+                class="text-xs text-muted-foreground/60 hidden"
+              >
                 <div class="flex justify-between">
                   <span>LOS Links:</span>
                   <span id="v2v-los-count" class="text-green-400">0</span>
@@ -745,8 +807,13 @@
             <div class="space-y-2 pt-2 border-t border-border/50">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <i data-lucide="shield-check" class="icon-xs text-green-400"></i>
-                  <label class="text-xs text-muted-foreground">Encryption</label>
+                  <i
+                    data-lucide="shield-check"
+                    class="icon-xs text-green-400"
+                  ></i>
+                  <label class="text-xs text-muted-foreground"
+                    >Encryption</label
+                  >
                 </div>
                 <button
                   id="crypto-toggle"
@@ -768,12 +835,21 @@
                   onchange="setCryptoAlgorithm(this.value)"
                   class="w-full h-8 px-2 text-xs bg-secondary border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="hmac_sha256" selected>HMAC-SHA256 (MAC only)</option>
-                  <option value="chacha20_poly1305">ChaCha20-Poly1305 (AEAD)</option>
-                  <option value="aes_256_ctr">AES-256-CTR + HMAC (Encrypt-then-MAC)</option>
+                  <option value="hmac_sha256" selected>
+                    HMAC-SHA256 (MAC only)
+                  </option>
+                  <option value="chacha20_poly1305">
+                    ChaCha20-Poly1305 (AEAD)
+                  </option>
+                  <option value="aes_256_ctr">
+                    AES-256-CTR + HMAC (Encrypt-then-MAC)
+                  </option>
                 </select>
               </div>
-              <div id="crypto-status" class="text-xs text-muted-foreground/60 hidden">
+              <div
+                id="crypto-status"
+                class="text-xs text-muted-foreground/60 hidden"
+              >
                 <div class="flex justify-between">
                   <span>Verified:</span>
                   <span id="crypto-accepted" class="text-green-400">0</span>
@@ -784,11 +860,13 @@
                 </div>
                 <div class="flex justify-between">
                   <span>Avg Sign:</span>
-                  <span id="crypto-sign-time">0</span><span class="text-muted-foreground/40">µs</span>
+                  <span id="crypto-sign-time">0</span
+                  ><span class="text-muted-foreground/40">µs</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Avg Verify:</span>
-                  <span id="crypto-verify-time">0</span><span class="text-muted-foreground/40">µs</span>
+                  <span id="crypto-verify-time">0</span
+                  ><span class="text-muted-foreground/40">µs</span>
                 </div>
               </div>
             </div>
@@ -848,13 +926,19 @@
         </div>
 
         <!-- Beginner Guide Panel -->
-        <div class="border-b border-border hidden" id="beginner-content-wrapper">
+        <div
+          class="border-b border-border hidden"
+          id="beginner-content-wrapper"
+        >
           <button
             onclick="togglePanel('beginner')"
             class="w-full px-4 py-3 flex items-center justify-between hover:bg-secondary/50 transition-colors"
           >
             <div class="flex items-center gap-2">
-              <i data-lucide="graduation-cap" class="icon-sm text-emerald-400"></i>
+              <i
+                data-lucide="graduation-cap"
+                class="icon-sm text-emerald-400"
+              ></i>
               <span class="font-medium text-sm">Beginner Guide</span>
             </div>
             <i
@@ -1091,11 +1175,14 @@
                 class="w-full h-9 px-3 text-sm bg-secondary border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="phantom" selected>Phantom (Ghost Agents)</option>
-                <option value="position_falsification">Position Falsification</option>
+                <option value="position_falsification">
+                  Position Falsification
+                </option>
                 <option value="coordinate">Coordinate Attack</option>
               </select>
               <p class="text-xs text-muted-foreground/50 mt-1">
-                Select "None" in the Algorithm Control dropdown to disable spoofing.
+                Select "None" in the Algorithm Control dropdown to disable
+                spoofing.
               </p>
             </div>
             <div class="space-y-1">
@@ -1110,7 +1197,9 @@
               />
             </div>
             <div class="space-y-1">
-              <label class="text-xs text-muted-foreground">Falsification Magnitude</label>
+              <label class="text-xs text-muted-foreground"
+                >Falsification Magnitude</label
+              >
               <input
                 type="number"
                 id="spoof-magnitude"

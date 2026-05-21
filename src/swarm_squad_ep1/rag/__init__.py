@@ -5,7 +5,8 @@ Uses Qdrant for both:
 - telemetry: Agent position/state data
 - logs: Conversation history, commands, notifications
 """
-from .qdrant import (
+
+from swarm_squad_ep1.rag.qdrant import (
     # Logs
     add_log,
     # Telemetry

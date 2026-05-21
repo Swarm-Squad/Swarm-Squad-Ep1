@@ -157,4 +157,3 @@ When in doubt:
 2. Ensure dependencies are healthy (`docker compose up -d`, `ollama serve`).
 3. Start fresh: `uv run swarm-squad-ep1`.
 4. Re-run your script and verify in GUI.
-

@@ -4,6 +4,7 @@ Focus: a prose answer containing unrelated JSON should NOT be misclassified
 as a malformed tool call (which previously triggered a self-repair and
 ultimately the dreaded 'I wasn't able to act on that' fallback).
 """
+
 from __future__ import annotations
 
 from swarm_squad_ep1.chat.llm import LLMAgent
@@ -12,7 +13,7 @@ from swarm_squad_ep1.chat.llm import LLMAgent
 def test_prose_with_unrelated_json_is_not_a_tool_call_attempt():
     agent = LLMAgent()
     content = (
-        "Here are some interesting stats: {\"agents\": 3, \"jammed\": 0}. "
+        'Here are some interesting stats: {"agents": 3, "jammed": 0}. '
         "You can also move them by name."
     )
     tc, err = agent._extract_prompt_json_tool_call(content)
@@ -52,4 +53,4 @@ def test_clean_text_strips_only_pure_json_blobs():
     agent = LLMAgent()
     assert agent._as_clean_text("") == ""
     assert agent._as_clean_text('{"tool": "x"}') == ""
-    assert agent._as_clean_text("hello {\"x\": 1}") == "hello {\"x\": 1}"
+    assert agent._as_clean_text('hello {"x": 1}') == 'hello {"x": 1}'

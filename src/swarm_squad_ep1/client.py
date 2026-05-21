@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .config import SIMULATION_API_URL
-from .research.runner import Result, run_scenario
-from .research.scenarios import (
+from swarm_squad_ep1.config import SIMULATION_API_URL
+from swarm_squad_ep1.research.runner import Result, run_scenario
+from swarm_squad_ep1.research.scenarios import (
     Scenario,
     build_education_scenario,
     get_education_presets,
@@ -21,7 +21,9 @@ class SwarmSquadClient:
     base_url: str = SIMULATION_API_URL
     timeout: float = 10.0
 
-    def _request(self, method: str, path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _request(
+        self, method: str, path: str, payload: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         import httpx
 
         url = f"{self.base_url.rstrip('/')}{path}"
@@ -91,8 +93,12 @@ class SwarmSquadClient:
     def simulation_results(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/results")
 
-    def move_agent(self, agent: str, x: float, y: float, z: float = 0.0) -> dict[str, Any]:
-        return self._request("POST", "/move_agent", {"agent": agent, "x": x, "y": y, "z": z})
+    def move_agent(
+        self, agent: str, x: float, y: float, z: float = 0.0
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST", "/move_agent", {"agent": agent, "x": x, "y": y, "z": z}
+        )
 
     def add_jamming_zone(
         self,
@@ -152,7 +158,9 @@ class SwarmSquadClient:
     def clear_spoofing_zones(self) -> dict[str, Any]:
         return self._request("DELETE", "/spoofing_zones")
 
-    def set_crypto_auth(self, enabled: bool, algorithm: str = "hmac_sha256") -> dict[str, Any]:
+    def set_crypto_auth(
+        self, enabled: bool, algorithm: str = "hmac_sha256"
+    ) -> dict[str, Any]:
         return self._request(
             "POST",
             "/simulation/crypto_auth",
@@ -166,7 +174,9 @@ class SwarmSquadClient:
         return self._request("GET", "/protocol_stats")
 
     def set_llm_assistance(self, enabled: bool) -> dict[str, Any]:
-        return self._request("POST", "/simulation/llm_assistance", {"enabled": bool(enabled)})
+        return self._request(
+            "POST", "/simulation/llm_assistance", {"enabled": bool(enabled)}
+        )
 
     def llm_assistance_status(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/llm_assistance")
@@ -179,7 +189,9 @@ class SwarmSquadClient:
             formation=scenario.formation_type,
             path_algorithm=scenario.path_algorithm,
         )
-        self.set_crypto_auth(scenario.crypto_enabled, algorithm=scenario.crypto_algorithm)
+        self.set_crypto_auth(
+            scenario.crypto_enabled, algorithm=scenario.crypto_algorithm
+        )
         self.set_llm_assistance(scenario.llm_assistance_enabled)
 
         for jam in scenario.jamming_zones:
@@ -228,4 +240,3 @@ class SwarmSquadClient:
     ) -> Result:
         scenario = build_education_scenario(preset, seed=seed)
         return run_scenario(scenario, keep_trace=keep_trace, verbose=verbose)
-

@@ -105,7 +105,7 @@ class PathPlanner3D:
             obstacles: List of tuples, either:
                 - (x, y, z, radius) - legacy format, treated as blocked
                 - (x, y, z, radius, type) - new format with type-based costs
-                
+
         Obstacle types and their grid costs:
             - "physical": 0 (blocked, infinite cost)
             - "high_jam": 1 (very expensive, strongly avoid)
@@ -125,7 +125,7 @@ class PathPlanner3D:
             else:
                 x, y, z, radius = obstacle[:4]
                 obs_type = "physical"  # Legacy: treat as blocked
-            
+
             # Determine grid value based on obstacle type
             # Higher value = easier to traverse (lower cost)
             # Lower value = harder to traverse (higher cost)
@@ -138,7 +138,7 @@ class PathPlanner3D:
                 grid_value = 5  # Moderate cost (2x normal)
             else:
                 grid_value = 0  # Unknown type - block it
-            
+
             center = np.array([x, y, z])
 
             # Find grid cells within sphere

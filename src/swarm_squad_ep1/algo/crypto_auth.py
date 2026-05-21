@@ -9,6 +9,7 @@ Supports multiple algorithms for performance comparison:
 When enabled, only messages with valid signatures are accepted; spoofed/modified
 messages are rejected — neutralizing phantom, falsification, and coordinate attacks.
 """
+
 import hashlib
 import hmac
 import json
@@ -19,7 +20,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
-from .mavlink import MAVLinkMessage
+from swarm_squad_ep1.algo.mavlink import MAVLinkMessage
 
 
 class CryptoAlgorithm(str, Enum):
@@ -66,7 +67,10 @@ class CryptoStats:
             "avg_verify_time_us": round(self.verify_time_us / total, 2),
             "recent_rejections": self.rejection_log[-10:],
             # Detection metrics (0 when the denominator is empty)
-            "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+            "tp": tp,
+            "fp": fp,
+            "fn": fn,
+            "tn": tn,
             "detection_rate": round(tp / pos, 4) if pos > 0 else 0.0,
             "false_positive_rate": round(fp / neg, 4) if neg > 0 else 0.0,
             "precision": round(tp / pred_pos, 4) if pred_pos > 0 else 0.0,
@@ -200,20 +204,24 @@ class CryptoAuth:
                     self.stats.tp += 1
                 else:
                     self.stats.fp += 1
-                self.stats.rejection_log.append({
-                    "time": time.time(),
-                    "sender": msg.sender_id,
-                    "type": msg.msg_type.name,
-                    "spoofed": msg.is_spoofed,
-                    "algorithm": self.algorithm.value,
-                })
+                self.stats.rejection_log.append(
+                    {
+                        "time": time.time(),
+                        "sender": msg.sender_id,
+                        "type": msg.msg_type.name,
+                        "spoofed": msg.is_spoofed,
+                        "algorithm": self.algorithm.value,
+                    }
+                )
         return accepted
 
     def get_status(self) -> dict:
         return {
             "enabled": self.enabled,
             "algorithm": self.algorithm.value,
-            "algorithm_label": ALGORITHM_LABELS.get(self.algorithm, self.algorithm.value),
+            "algorithm_label": ALGORITHM_LABELS.get(
+                self.algorithm, self.algorithm.value
+            ),
             "registered_agents": list(self._agent_keys.keys()),
             "stats": self.stats.to_dict(),
         }
@@ -341,7 +349,9 @@ class CryptoAuth:
             "sequence": msg.sequence,
             "payload": msg.payload,
         }
-        return json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
 
 
 # Singleton

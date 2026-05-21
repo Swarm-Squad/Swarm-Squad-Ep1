@@ -9,9 +9,14 @@ metrics needed to demonstrate:
 3. Path planning algorithm trade-offs under attack
 4. Cryptographic authentication method comparison
 """
-from .scenarios import Scenario, build_education_scenario, get_education_presets
-from .runner import Result, run_scenario
-from .experiments import EXPERIMENTS, run_experiment
+
+from swarm_squad_ep1.research.experiments import EXPERIMENTS, run_experiment
+from swarm_squad_ep1.research.runner import Result, run_scenario
+from swarm_squad_ep1.research.scenarios import (
+    Scenario,
+    build_education_scenario,
+    get_education_presets,
+)
 
 __all__ = [
     "Scenario",

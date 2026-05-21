@@ -13,10 +13,20 @@ Robust on small local models (e.g. llama3.2:3b):
   4. Unknown/malformed output is NEVER surfaced as a "final answer" any
      more — we reply with a fixed "I wasn't able to act on that."
 """
-import json
-from typing import Any, Optional
 
-from ..config import (
+import json
+from typing import Optional
+
+from swarm_squad_ep1.chat.json_utils import extract_json_candidates, is_valid
+from swarm_squad_ep1.chat.tools import (
+    TOOL_ARG_SCHEMAS,
+    TOOL_CALL_SCHEMA,
+    build_ollama_tools,
+    execute_tool,
+    get_tool_schemas_text,
+    validate_tool_args,
+)
+from swarm_squad_ep1.config import (
     LLM_MODEL,
     MISSION_END,
     SIMULATION_API_URL,
@@ -25,16 +35,7 @@ from ..config import (
     Z_RANGE,
     async_chat_with_retry,
 )
-from ..rag import add_log
-from .json_utils import extract_json_candidates, is_valid, validate, ValidationError
-from .tools import (
-    TOOL_ARG_SCHEMAS,
-    TOOL_CALL_SCHEMA,
-    build_ollama_tools,
-    execute_tool,
-    get_tool_schemas_text,
-    validate_tool_args,
-)
+from swarm_squad_ep1.rag import add_log
 
 MAX_TOOL_ROUNDS = 5
 
@@ -89,7 +90,7 @@ class LLMAgent:
 
     async def answer(self, user_query: str) -> dict:
         """Process a user message with a tool-calling loop."""
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"[LLM] Processing: {user_query}")
 
         add_log(user_query, source="user", message_type="command")
@@ -103,14 +104,22 @@ class LLMAgent:
         answer: Optional[str] = None
 
         for round_num in range(MAX_TOOL_ROUNDS + 1):
-            tool_call, assistant_content, raw_msg = await self._request_tool_call(messages)
+            tool_call, assistant_content, raw_msg = await self._request_tool_call(
+                messages
+            )
 
             # Remember the assistant turn verbatim for history.
-            messages.append({
-                "role": "assistant",
-                "content": assistant_content or "",
-                **({"tool_calls": raw_msg["tool_calls"]} if raw_msg.get("tool_calls") else {}),
-            })
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": assistant_content or "",
+                    **(
+                        {"tool_calls": raw_msg["tool_calls"]}
+                        if raw_msg.get("tool_calls")
+                        else {}
+                    ),
+                }
+            )
 
             if tool_call is None:
                 # No tool was requested. Prefer a clean prose answer; if
@@ -123,11 +132,13 @@ class LLMAgent:
                     answer = clean
                 else:
                     fallback = await execute_tool("list_tools", {})
-                    tool_calls_made.append({
-                        "tool": "list_tools",
-                        "args": {},
-                        "result_summary": f"auto-invoked ({fallback.get('count', 0)} tools)",
-                    })
+                    tool_calls_made.append(
+                        {
+                            "tool": "list_tools",
+                            "args": {},
+                            "result_summary": f"auto-invoked ({fallback.get('count', 0)} tools)",
+                        }
+                    )
                     answer = self._format_tools_fallback(fallback)
                 break
 
@@ -136,21 +147,25 @@ class LLMAgent:
             print(f"[LLM] Round {round_num} tool call: {tool_name}({tool_args})")
 
             result = await execute_tool(tool_name, tool_args)
-            tool_calls_made.append({
-                "tool": tool_name,
-                "args": tool_args,
-                "result_summary": result.get("message", result.get("success", ""))
-            })
+            tool_calls_made.append(
+                {
+                    "tool": tool_name,
+                    "args": tool_args,
+                    "result_summary": result.get("message", result.get("success", "")),
+                }
+            )
 
             result_text = json.dumps(result, indent=2, default=str)
-            messages.append({
-                "role": "user",
-                "content": (
-                    f"Tool result for {tool_name}:\n```json\n{result_text}\n```\n\n"
-                    "If you now have enough information, answer the user in 2-4 "
-                    "plain sentences (NO JSON). Otherwise emit exactly one tool-call JSON."
-                ),
-            })
+            messages.append(
+                {
+                    "role": "user",
+                    "content": (
+                        f"Tool result for {tool_name}:\n```json\n{result_text}\n```\n\n"
+                        "If you now have enough information, answer the user in 2-4 "
+                        "plain sentences (NO JSON). Otherwise emit exactly one tool-call JSON."
+                    ),
+                }
+            )
         else:
             answer = FAILED_ANSWER
 
@@ -161,7 +176,7 @@ class LLMAgent:
             tools_summary = " | ".join(f"[{tc['tool']}]" for tc in tool_calls_made)
             print(f"[LLM] Tools used: {tools_summary}")
         print(f"[LLM] Answer ready ({len(answer)} chars)")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         return {"response": answer, "tool_calls": tool_calls_made}
 
@@ -179,7 +194,9 @@ class LLMAgent:
         """
         # 1st attempt: native tool-calling
         response = await async_chat_with_retry(
-            self.model, messages=messages, tools=self._ollama_tools,
+            self.model,
+            messages=messages,
+            tools=self._ollama_tools,
             options={"temperature": 0.0},
         )
         if not response:
@@ -206,14 +223,18 @@ class LLMAgent:
                 "content": (
                     "Your previous response was not a valid tool call. "
                     f"Error: {err}. Respond with ONLY one JSON object of the "
-                    "form {\"tool\": \"<name>\", \"args\": {...}} and nothing else. "
+                    'form {"tool": "<name>", "args": {...}} and nothing else. '
                     "If you don't know which tool to use, call "
                     '{"tool": "list_tools", "args": {}}.'
                 ),
             }
             repaired = await async_chat_with_retry(
                 self.model,
-                messages=[*messages, {"role": "assistant", "content": content}, repair_user],
+                messages=[
+                    *messages,
+                    {"role": "assistant", "content": content},
+                    repair_user,
+                ],
                 tools=self._ollama_tools,
                 format=TOOL_CALL_SCHEMA,
                 options={"temperature": 0.0},
@@ -234,7 +255,8 @@ class LLMAgent:
     # ------------------------------------------------------------------
 
     def _extract_native_tool_call(
-        self, raw_msg: dict,
+        self,
+        raw_msg: dict,
     ) -> tuple[Optional[dict], Optional[str]]:
         """Extract a tool call from Ollama's native ``tool_calls`` field.
 
@@ -265,7 +287,8 @@ class LLMAgent:
         return {"tool": name, "args": args}, None
 
     def _extract_prompt_json_tool_call(
-        self, content: str,
+        self,
+        content: str,
     ) -> tuple[Optional[dict], Optional[str]]:
         """Scan free-text for a tool-call JSON and schema-validate it.
 
@@ -285,9 +308,7 @@ class LLMAgent:
         # attempt (dict with a "tool" key). Random JSON blobs inside a
         # prose answer should not trigger a repair round, because the
         # model was legitimately answering, not calling a tool.
-        tool_like = [
-            c for c in candidates if isinstance(c, dict) and "tool" in c
-        ]
+        tool_like = [c for c in candidates if isinstance(c, dict) and "tool" in c]
         if not tool_like:
             return None, None
 
@@ -323,8 +344,10 @@ class LLMAgent:
             desc = (t.get("description") or "").split(".")[0]
             lines.append(f"- `{name}` — {desc}")
         lines.append("")
-        lines.append("Tell me which one you want, or include the parameters directly "
-                     "(e.g. 'move agent1 to 10, 20').")
+        lines.append(
+            "Tell me which one you want, or include the parameters directly "
+            "(e.g. 'move agent1 to 10, 20')."
+        )
         return "\n".join(lines)
 
     @staticmethod

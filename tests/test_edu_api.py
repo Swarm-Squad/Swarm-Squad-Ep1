@@ -8,7 +8,12 @@ from swarm_squad_ep1.research.scenarios import build_education_scenario
 
 def test_list_presets_contains_expected_keys():
     presets = SwarmSquadClient.list_presets()
-    assert {"intro_baseline", "intro_jamming", "intro_spoofing", "intro_combined"} <= set(presets)
+    assert {
+        "intro_baseline",
+        "intro_jamming",
+        "intro_spoofing",
+        "intro_combined",
+    } <= set(presets)
 
 
 def test_build_preset_scenario_has_expected_toggles():
@@ -28,6 +33,8 @@ def test_headless_runner_smoke():
     scenario = SwarmSquadClient.build_preset_scenario("intro_jamming", seed=9)
     scenario.max_steps = 15  # keep unit test fast
     scenario.llm_assistance_enabled = False
-    result = SwarmSquadClient.run_headless_scenario(scenario, keep_trace=False, verbose=False)
+    result = SwarmSquadClient.run_headless_scenario(
+        scenario, keep_trace=False, verbose=False
+    )
     assert result.total_steps > 0
     assert 0.0 <= result.avg_comm_quality <= 1.0

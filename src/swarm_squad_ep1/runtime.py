@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from typing import Literal, Optional
 
-from .config import CHAT_API_PORT, QDRANT_HOST, QDRANT_PORT, SIM_API_PORT
+from swarm_squad_ep1.config import CHAT_API_PORT, QDRANT_HOST, QDRANT_PORT, SIM_API_PORT
 
 ServiceMode = Literal["dual", "simulation", "chat"]
 

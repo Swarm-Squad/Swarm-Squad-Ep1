@@ -5,6 +5,7 @@ Two collections:
 - telemetry: Agent position/state data
 - logs: Conversation history, commands, notifications
 """
+
 import uuid
 from datetime import datetime
 from typing import Any, Optional
@@ -20,7 +21,7 @@ from qdrant_client.models import (
 )
 from sentence_transformers import SentenceTransformer
 
-from ..config import QDRANT_HOST, QDRANT_PORT, VECTOR_DIM
+from swarm_squad_ep1.config import QDRANT_HOST, QDRANT_PORT, VECTOR_DIM
 
 # Collection names
 TELEMETRY_COLLECTION = "telemetry"
@@ -59,7 +60,7 @@ def _init_collections():
     except Exception:
         client.create_collection(
             collection_name=TELEMETRY_COLLECTION,
-            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
         print(f"[Qdrant] Created collection '{TELEMETRY_COLLECTION}'")
 
@@ -70,7 +71,7 @@ def _init_collections():
     except Exception:
         client.create_collection(
             collection_name=LOGS_COLLECTION,
-            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
         print(f"[Qdrant] Created collection '{LOGS_COLLECTION}'")
 
@@ -90,19 +91,20 @@ def test_connection() -> bool:
 # TELEMETRY FUNCTIONS
 # =============================================================================
 
+
 def add_telemetry(
     agent_id: str,
     position: tuple[float, float, float],
-    metadata: Optional[dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None,
 ) -> Optional[str]:
     """
     Add agent telemetry to Qdrant.
-    
+
     Args:
         agent_id: Agent identifier
         position: (x, y, z) coordinates
         metadata: Additional data (jammed, comm_quality, etc.)
-    
+
     Returns:
         Point ID if successful
     """
@@ -138,13 +140,17 @@ def add_telemetry(
             "text": text,
             "jammed": jammed,
             "communication_quality": comm_quality,
-            **{k: v for k, v in metadata.items() if k not in ["timestamp", "jammed", "communication_quality"]}
+            **{
+                k: v
+                for k, v in metadata.items()
+                if k not in ["timestamp", "jammed", "communication_quality"]
+            },
         }
 
         # Insert
         client.upsert(
             collection_name=TELEMETRY_COLLECTION,
-            points=[PointStruct(id=point_id, vector=embedding, payload=payload)]
+            points=[PointStruct(id=point_id, vector=embedding, payload=payload)],
         )
 
         return point_id
@@ -154,10 +160,7 @@ def add_telemetry(
         return None
 
 
-def get_telemetry_history(
-    agent_id: str,
-    limit: int = 20
-) -> list[dict[str, Any]]:
+def get_telemetry_history(agent_id: str, limit: int = 20) -> list[dict[str, Any]]:
     """Get position history for an agent."""
     try:
         client = get_client()
@@ -169,23 +172,27 @@ def get_telemetry_history(
             ),
             limit=limit * 2,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )[0]
 
         history = []
         for point in results:
             payload = point.payload
-            history.append({
-                "position": (
-                    float(payload.get("position_x", 0)),
-                    float(payload.get("position_y", 0)),
-                    float(payload.get("position_z", 0)),
-                ),
-                "jammed": bool(payload.get("jammed", False)),
-                "communication_quality": float(payload.get("communication_quality", 1.0)),
-                "timestamp": payload.get("timestamp", ""),
-                "point_id": str(point.id),
-            })
+            history.append(
+                {
+                    "position": (
+                        float(payload.get("position_x", 0)),
+                        float(payload.get("position_y", 0)),
+                        float(payload.get("position_z", 0)),
+                    ),
+                    "jammed": bool(payload.get("jammed", False)),
+                    "communication_quality": float(
+                        payload.get("communication_quality", 1.0)
+                    ),
+                    "timestamp": payload.get("timestamp", ""),
+                    "point_id": str(point.id),
+                }
+            )
 
         history.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return history[:limit]
@@ -207,13 +214,10 @@ def search_telemetry(query: str, limit: int = 10) -> list[dict[str, Any]]:
             collection_name=TELEMETRY_COLLECTION,
             query=query_vector,
             limit=limit,
-            with_payload=True
+            with_payload=True,
         )
 
-        return [
-            {**hit.payload, "score": hit.score}
-            for hit in results.points
-        ]
+        return [{**hit.payload, "score": hit.score} for hit in results.points]
 
     except Exception as e:
         print(f"[Qdrant] Error searching telemetry: {e}")
@@ -229,23 +233,27 @@ def get_all_telemetry(limit: int = 100) -> list[dict[str, Any]]:
             collection_name=TELEMETRY_COLLECTION,
             limit=limit,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )[0]
 
         records = []
         for point in results:
             payload = point.payload
-            records.append({
-                "agent_id": payload.get("agent_id"),
-                "position": (
-                    float(payload.get("position_x", 0)),
-                    float(payload.get("position_y", 0)),
-                    float(payload.get("position_z", 0)),
-                ),
-                "jammed": bool(payload.get("jammed", False)),
-                "communication_quality": float(payload.get("communication_quality", 1.0)),
-                "timestamp": payload.get("timestamp", ""),
-            })
+            records.append(
+                {
+                    "agent_id": payload.get("agent_id"),
+                    "position": (
+                        float(payload.get("position_x", 0)),
+                        float(payload.get("position_y", 0)),
+                        float(payload.get("position_z", 0)),
+                    ),
+                    "jammed": bool(payload.get("jammed", False)),
+                    "communication_quality": float(
+                        payload.get("communication_quality", 1.0)
+                    ),
+                    "timestamp": payload.get("timestamp", ""),
+                }
+            )
 
         records.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return records
@@ -259,21 +267,22 @@ def get_all_telemetry(limit: int = 100) -> list[dict[str, Any]]:
 # LOG FUNCTIONS (replaces PostgreSQL)
 # =============================================================================
 
+
 def add_log(
     log_text: str,
     metadata: Optional[dict[str, Any]] = None,
     source: str = "system",
-    message_type: str = "notification"
+    message_type: str = "notification",
 ) -> Optional[str]:
     """
     Add a log entry to Qdrant.
-    
+
     Args:
         log_text: Message content
         metadata: Additional data
         source: "user", "llm", "agent1", etc.
         message_type: "command", "response", "notification", "error"
-    
+
     Returns:
         Point ID if successful
     """
@@ -296,12 +305,12 @@ def add_log(
             "source": source,
             "message_type": message_type,
             "timestamp": timestamp,
-            **metadata
+            **metadata,
         }
 
         client.upsert(
             collection_name=LOGS_COLLECTION,
-            points=[PointStruct(id=point_id, vector=embedding, payload=payload)]
+            points=[PointStruct(id=point_id, vector=embedding, payload=payload)],
         )
 
         return point_id
@@ -312,9 +321,7 @@ def add_log(
 
 
 def get_logs(
-    source: Optional[str] = None,
-    message_type: Optional[str] = None,
-    limit: int = 50
+    source: Optional[str] = None, message_type: Optional[str] = None, limit: int = 50
 ) -> list[dict[str, Any]]:
     """Get logs with optional filtering."""
     try:
@@ -323,9 +330,13 @@ def get_logs(
         # Build filter
         filter_conditions = []
         if source:
-            filter_conditions.append(FieldCondition(key="source", match=MatchValue(value=source)))
+            filter_conditions.append(
+                FieldCondition(key="source", match=MatchValue(value=source))
+            )
         if message_type:
-            filter_conditions.append(FieldCondition(key="message_type", match=MatchValue(value=message_type)))
+            filter_conditions.append(
+                FieldCondition(key="message_type", match=MatchValue(value=message_type))
+            )
 
         scroll_filter = Filter(must=filter_conditions) if filter_conditions else None
 
@@ -334,20 +345,22 @@ def get_logs(
             scroll_filter=scroll_filter,
             limit=limit * 2,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )[0]
 
         logs = []
         for point in results:
             payload = point.payload
-            logs.append({
-                "id": str(point.id),
-                "text": payload.get("text", ""),
-                "source": payload.get("source", ""),
-                "message_type": payload.get("message_type", ""),
-                "timestamp": payload.get("timestamp", ""),
-                "metadata": payload,
-            })
+            logs.append(
+                {
+                    "id": str(point.id),
+                    "text": payload.get("text", ""),
+                    "source": payload.get("source", ""),
+                    "message_type": payload.get("message_type", ""),
+                    "timestamp": payload.get("timestamp", ""),
+                    "metadata": payload,
+                }
+            )
 
         logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return logs[:limit]
@@ -365,31 +378,37 @@ def get_conversation_history(limit: int = 100) -> list[dict[str, Any]]:
         # Get user messages
         user_results = client.scroll(
             collection_name=LOGS_COLLECTION,
-            scroll_filter=Filter(must=[FieldCondition(key="source", match=MatchValue(value="user"))]),
+            scroll_filter=Filter(
+                must=[FieldCondition(key="source", match=MatchValue(value="user"))]
+            ),
             limit=limit,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )[0]
 
         # Get LLM messages
         llm_results = client.scroll(
             collection_name=LOGS_COLLECTION,
-            scroll_filter=Filter(must=[FieldCondition(key="source", match=MatchValue(value="llm"))]),
+            scroll_filter=Filter(
+                must=[FieldCondition(key="source", match=MatchValue(value="llm"))]
+            ),
             limit=limit,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
         )[0]
 
         # Combine and sort
         messages = []
         for point in user_results + llm_results:
             payload = point.payload
-            messages.append({
-                "id": str(point.id),
-                "text": payload.get("text", ""),
-                "role": payload.get("source", ""),
-                "timestamp": payload.get("timestamp", ""),
-            })
+            messages.append(
+                {
+                    "id": str(point.id),
+                    "text": payload.get("text", ""),
+                    "role": payload.get("source", ""),
+                    "timestamp": payload.get("timestamp", ""),
+                }
+            )
 
         messages.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return messages[:limit]
@@ -411,7 +430,7 @@ def search_logs(query: str, limit: int = 10) -> list[dict[str, Any]]:
             collection_name=LOGS_COLLECTION,
             query=query_vector,
             limit=limit,
-            with_payload=True
+            with_payload=True,
         )
 
         return [
@@ -428,14 +447,15 @@ def search_logs(query: str, limit: int = 10) -> list[dict[str, Any]]:
 # UNIFIED SEARCH (for RAG)
 # =============================================================================
 
+
 def search_all(query: str, limit: int = 10) -> dict[str, list[dict]]:
     """
     Search both telemetry and logs for RAG retrieval.
-    
+
     Args:
         query: Search query
         limit: Max results per collection
-    
+
     Returns:
         Dict with 'telemetry' and 'logs' results
     """
@@ -449,6 +469,7 @@ def search_all(query: str, limit: int = 10) -> dict[str, list[dict]]:
 # CLEANUP
 # =============================================================================
 
+
 def clear_telemetry():
     """Clear all telemetry data."""
     try:
@@ -456,7 +477,7 @@ def clear_telemetry():
         client.delete_collection(TELEMETRY_COLLECTION)
         client.create_collection(
             collection_name=TELEMETRY_COLLECTION,
-            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
         print("[Qdrant] Telemetry cleared")
     except Exception as e:
@@ -470,7 +491,7 @@ def clear_logs():
         client.delete_collection(LOGS_COLLECTION)
         client.create_collection(
             collection_name=LOGS_COLLECTION,
-            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
         print("[Qdrant] Logs cleared")
     except Exception as e:
