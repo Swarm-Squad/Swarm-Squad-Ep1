@@ -1,0 +1,754 @@
+"""
+MCP-style tool definitions for the chat LLM.
+
+Each tool has a schema (name, description, parameters) and an execute function.
+The LLM selects tools from the registry, and the tool runner executes them
+and feeds results back for multi-step reasoning.
+"""
+from typing import Any
+
+import httpx
+
+from ..config import SIMULATION_API_URL
+from ..rag import add_log
+
+# ============================================================================
+# TOOL REGISTRY
+# ============================================================================
+
+TOOL_SCHEMAS = [
+    {
+        "name": "move_agent",
+        "description": "Move a vehicle agent to specific 3D coordinates. Use when the user wants to relocate, move, send, or navigate an agent.",
+        "parameters": {
+            "agent": {"type": "string", "description": "Agent ID e.g. 'agent1'"},
+            "x": {"type": "number", "description": "X coordinate"},
+            "y": {"type": "number", "description": "Y coordinate"},
+            "z": {"type": "number", "description": "Z coordinate (default 0)", "default": 0},
+        },
+        "required": ["agent", "x", "y"],
+    },
+    {
+        "name": "get_agent_status",
+        "description": "Get the current status of one or all agents including position, jamming state, communication quality, and formation info.",
+        "parameters": {
+            "agent": {"type": "string", "description": "Agent ID (omit for all agents)", "default": None},
+        },
+        "required": [],
+    },
+    {
+        "name": "get_simulation_status",
+        "description": "Get overall simulation status including whether it's running, formation state, and metrics.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "add_agent",
+        "description": "Create a new agent at the specified coordinates.",
+        "parameters": {
+            "x": {"type": "number", "description": "X coordinate"},
+            "y": {"type": "number", "description": "Y coordinate"},
+            "z": {"type": "number", "description": "Z coordinate (default 0)", "default": 0},
+        },
+        "required": ["x", "y"],
+    },
+    {
+        "name": "remove_agent",
+        "description": "Remove an agent from the simulation.",
+        "parameters": {
+            "agent": {"type": "string", "description": "Agent ID e.g. 'agent3'"},
+        },
+        "required": ["agent"],
+    },
+    {
+        "name": "add_spoofing_zone",
+        "description": "Create a spoofing attack zone. Types: 'phantom' (injects ghost agents), 'position_falsification' (corrupts positions), 'coordinate' (systematic shift).",
+        "parameters": {
+            "x": {"type": "number", "description": "Center X coordinate"},
+            "y": {"type": "number", "description": "Center Y coordinate"},
+            "z": {"type": "number", "description": "Center Z coordinate", "default": 10},
+            "radius": {"type": "number", "description": "Zone radius", "default": 15},
+            "spoof_type": {"type": "string", "description": "'phantom', 'position_falsification', or 'coordinate'", "default": "phantom"},
+        },
+        "required": ["x", "y"],
+    },
+    {
+        "name": "toggle_crypto_auth",
+        "description": "Enable or disable cryptographic authentication on MAVLink messages. When enabled, spoofing attacks are detected and rejected.",
+        "parameters": {
+            "enabled": {"type": "boolean", "description": "True to enable, False to disable"},
+            "algorithm": {"type": "string", "description": "'hmac_sha256', 'chacha20_poly1305', or 'aes_256_ctr'", "default": "hmac_sha256"},
+        },
+        "required": ["enabled"],
+    },
+    {
+        "name": "get_protocol_stats",
+        "description": "Get MAVLink protocol statistics: messages sent/received/dropped, spoofing injection count, crypto rejections, and timing data.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "delete_spoofing_zone",
+        "description": "Remove a spoofing attack zone by ID. IMPORTANT: Call list_spoofing_zones first to get the correct zone ID.",
+        "parameters": {
+            "zone_id": {"type": "string", "description": "Zone ID (get from list_spoofing_zones)"},
+        },
+        "required": ["zone_id"],
+    },
+    {
+        "name": "add_jamming_zone",
+        "description": "Create a jamming zone that degrades agent communication quality. Types: 'physical' (impenetrable obstacle), 'low_jam' (mild communication interference), 'high_jam' (severe jamming that nearly disables comms).",
+        "parameters": {
+            "x": {"type": "number", "description": "Center X coordinate"},
+            "y": {"type": "number", "description": "Center Y coordinate"},
+            "z": {"type": "number", "description": "Center Z coordinate", "default": 10},
+            "radius": {"type": "number", "description": "Zone radius", "default": 15},
+            "jam_type": {"type": "string", "description": "'physical', 'low_jam', or 'high_jam'", "default": "low_jam"},
+        },
+        "required": ["x", "y"],
+    },
+    {
+        "name": "delete_jamming_zone",
+        "description": "Remove a jamming/obstacle zone by ID. IMPORTANT: Call list_jamming_zones first to get the correct zone ID.",
+        "parameters": {
+            "zone_id": {"type": "string", "description": "Zone ID (get from list_jamming_zones)"},
+        },
+        "required": ["zone_id"],
+    },
+    {
+        "name": "list_jamming_zones",
+        "description": "List all active jamming zones with their IDs, positions, radii, and types. Use this to find zone IDs before deleting.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "list_spoofing_zones",
+        "description": "List all active spoofing zones with their IDs, positions, radii, and types. Use this to find zone IDs before deleting.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "clear_all_jamming_zones",
+        "description": "Remove ALL jamming zones at once. Use when the user wants to clear or remove all jamming zones.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "clear_all_spoofing_zones",
+        "description": "Remove ALL spoofing zones at once. Use when the user wants to clear or remove all spoofing zones.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "start_simulation",
+        "description": "Start the autonomous simulation. Vehicles navigate toward the mission destination using the specified formation and path algorithm.",
+        "parameters": {
+            "formation": {"type": "string", "description": "Formation type: 'communication_aware', 'v_formation', 'line', 'circle', 'wedge', 'column', 'diamond'", "default": "communication_aware"},
+            "path_algorithm": {"type": "string", "description": "Path algorithm: 'astar', 'direct', 'theta_star', 'dijkstra', 'bfs', 'greedy'", "default": "astar"},
+        },
+        "required": [],
+    },
+    {
+        "name": "stop_simulation",
+        "description": "Stop the running simulation. All vehicles freeze in their current positions.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "reset_simulation",
+        "description": "Reset simulation to initial state. Agents return to starting positions, spoofing zones are cleared, and MAVLink/crypto state is reset.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "set_formation",
+        "description": "Change the swarm formation type. Can be applied while simulation is running.",
+        "parameters": {
+            "formation": {"type": "string", "description": "Formation type: 'communication_aware', 'v_formation', 'line', 'circle', 'wedge', 'column', 'diamond'"},
+        },
+        "required": ["formation"],
+    },
+    {
+        "name": "get_telemetry_history",
+        "description": "Get recent position and state history for an agent from the telemetry database. Useful for tracking trajectory, checking when an agent was jammed, or analyzing movement patterns.",
+        "parameters": {
+            "agent_id": {"type": "string", "description": "Agent ID e.g. 'agent1'"},
+            "limit": {"type": "integer", "description": "Number of history entries to return (default 10)", "default": 10},
+        },
+        "required": ["agent_id"],
+    },
+    {
+        "name": "toggle_v2v_channel",
+        "description": "Enable or disable the realistic V2V channel model (LOS/NLOS propagation, path loss, fading). When disabled, uses legacy distance-only communication model.",
+        "parameters": {
+            "enabled": {"type": "boolean", "description": "True to enable realistic V2V channel, False for legacy model"},
+        },
+        "required": ["enabled"],
+    },
+    {
+        "name": "get_v2v_channel_status",
+        "description": "Get V2V channel model status including per-link LOS/NLOS classification, path loss, SNR, and quality.",
+        "parameters": {},
+        "required": [],
+    },
+    {
+        "name": "list_tools",
+        "description": "List all tools this assistant can invoke, with a short description of each. Use when the user asks 'what can you do', 'list tools', 'list capabilities', or 'show available commands'.",
+        "parameters": {},
+        "required": [],
+    },
+]
+
+
+def get_tool_schemas_text() -> str:
+    """Format tool schemas for inclusion in LLM prompt."""
+    lines = []
+    for tool in TOOL_SCHEMAS:
+        params_desc = []
+        for pname, pinfo in tool.get("parameters", {}).items():
+            req = "(required)" if pname in tool.get("required", []) else "(optional)"
+            params_desc.append(f"    - {pname}: {pinfo['description']} {req}")
+        params_str = "\n".join(params_desc) if params_desc else "    (none)"
+        lines.append(f"  {tool['name']}: {tool['description']}\n  Parameters:\n{params_str}")
+    return "\n\n".join(lines)
+
+
+# ============================================================================
+# JSON SCHEMAS (per-tool + Ollama-native tools array)
+# ============================================================================
+
+def _tool_args_schema(tool: dict) -> dict:
+    """Convert the flat TOOL_SCHEMAS entry to a proper JSON Schema object."""
+    properties = {}
+    for pname, pinfo in tool.get("parameters", {}).items():
+        prop: dict[str, Any] = {"type": pinfo.get("type", "string")}
+        if pinfo.get("description"):
+            prop["description"] = pinfo["description"]
+        if "default" in pinfo and pinfo["default"] is not None:
+            prop["default"] = pinfo["default"]
+        properties[pname] = prop
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": list(tool.get("required", [])),
+        "additionalProperties": False,
+    }
+
+
+# Name -> JSON Schema for that tool's arguments.
+TOOL_ARG_SCHEMAS: dict[str, dict] = {t["name"]: _tool_args_schema(t) for t in TOOL_SCHEMAS}
+
+
+def build_ollama_tools() -> list[dict]:
+    """Build the ``tools`` array for Ollama's native tool-calling API."""
+    ollama_tools: list[dict] = []
+    for tool in TOOL_SCHEMAS:
+        ollama_tools.append({
+            "type": "function",
+            "function": {
+                "name": tool["name"],
+                "description": tool.get("description", ""),
+                "parameters": TOOL_ARG_SCHEMAS[tool["name"]],
+            },
+        })
+    return ollama_tools
+
+
+# Top-level schema the LLM should emit when it wants to invoke a tool
+# (prompt-JSON fallback path).
+TOOL_CALL_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "tool": {"type": "string", "enum": [t["name"] for t in TOOL_SCHEMAS]},
+        "args": {"type": "object"},
+    },
+    "required": ["tool", "args"],
+    "additionalProperties": False,
+}
+
+
+# ============================================================================
+# TOOL EXECUTION
+# ============================================================================
+
+def _coerce_tool_args(name: str, args: dict) -> dict:
+    """Coerce LLM-provided argument types to match tool signatures."""
+    schema = next((s for s in TOOL_SCHEMAS if s["name"] == name), None)
+    if not schema:
+        return args
+
+    coerced = {}
+    params = schema.get("parameters", {})
+    for key, value in args.items():
+        param_info = params.get(key)
+        if param_info and value is not None:
+            expected_type = param_info.get("type")
+            try:
+                if expected_type == "number" and not isinstance(value, (int, float)):
+                    value = float(value)
+                elif expected_type == "integer" and not isinstance(value, int):
+                    value = int(float(value))
+                elif expected_type == "boolean" and not isinstance(value, bool):
+                    value = str(value).lower() in ("true", "1", "yes")
+                elif expected_type == "string" and not isinstance(value, str):
+                    value = str(value)
+            except (ValueError, TypeError):
+                pass
+        coerced[key] = value
+    return coerced
+
+
+def validate_tool_args(name: str, args: dict) -> tuple[bool, str]:
+    """Validate ``args`` against the tool's JSON Schema.
+
+    Returns ``(ok, error_message)``. A validation failure message is
+    short enough to feed back to the LLM for self-repair.
+    """
+    from .json_utils import ValidationError, validate
+    schema = TOOL_ARG_SCHEMAS.get(name)
+    if schema is None:
+        return False, f"Unknown tool: {name}"
+    if not isinstance(args, dict):
+        return False, f"args must be an object, got {type(args).__name__}"
+    try:
+        validate(args, schema)
+    except ValidationError as e:
+        return False, str(e)
+    return True, ""
+
+
+async def execute_tool(name: str, args: dict) -> dict[str, Any]:
+    """Execute a tool by name with the given arguments."""
+    executor = TOOL_EXECUTORS.get(name)
+    if not executor:
+        return {"success": False, "error": f"Unknown tool: {name}"}
+
+    args = _coerce_tool_args(name, args)
+    ok, err = validate_tool_args(name, args)
+    if not ok:
+        return {"success": False, "error": f"invalid args for {name}: {err}"}
+
+    try:
+        return await executor(**args)
+    except TypeError as e:
+        # Typically "got unexpected keyword" or "missing required arg" -
+        # surface the message so the LLM can correct it.
+        return {"success": False, "error": f"call failed: {e}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def move_agent(agent: str, x: float, y: float, z: float = 0.0) -> dict[str, Any]:
+    """Move an agent to specific coordinates."""
+    print(f"[TOOL] move_agent({agent}, {x}, {y}, {z})")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/move_agent",
+                json={"agent": agent, "x": x, "y": y, "z": z},
+                timeout=5.0,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                add_log(
+                    f"Moving agent {agent} to ({x}, {y}, {z})",
+                    metadata={"agent_id": agent, "target": [x, y, z], "jammed": result.get("jammed", False)},
+                    source="mcp",
+                    message_type="command",
+                )
+                return {
+                    "success": True,
+                    "message": f"Moving {agent} to ({x}, {y}, {z})" + (
+                        f" (agent is jammed, comm={result.get('communication_quality', 0):.1f})"
+                        if result.get("jammed") else ""
+                    ),
+                    "current_position": result.get("current_position"),
+                    "jammed": result.get("jammed", False),
+                }
+            else:
+                return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def get_agent_status(agent: str = None) -> dict[str, Any]:
+    """Get status of one or all agents."""
+    async with httpx.AsyncClient() as client:
+        try:
+            if agent:
+                response = await client.get(f"{SIMULATION_API_URL}/agents/{agent}", timeout=5.0)
+            else:
+                response = await client.get(f"{SIMULATION_API_URL}/agents", timeout=5.0)
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def get_simulation_status() -> dict[str, Any]:
+    """Get overall simulation status."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{SIMULATION_API_URL}/simulation/state", timeout=5.0)
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def add_agent(x: float, y: float, z: float = 0.0) -> dict[str, Any]:
+    """Create a new agent."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/agents",
+                json={"x": x, "y": y, "z": z},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": result.get("message", "Agent created"), "agent": result.get("agent")}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def remove_agent(agent: str) -> dict[str, Any]:
+    """Remove an agent."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.delete(f"{SIMULATION_API_URL}/agents/{agent}", timeout=5.0)
+            if response.status_code == 200:
+                return {"success": True, "message": f"Removed {agent}"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def add_spoofing_zone(
+    x: float, y: float, z: float = 10.0, radius: float = 15.0, spoof_type: str = "phantom"
+) -> dict[str, Any]:
+    """Create a spoofing zone."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/spoofing_zones",
+                json={"center": [x, y, z], "radius": radius, "spoof_type": spoof_type, "active": True},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": f"Created {spoof_type} spoofing zone at ({x},{y},{z}) r={radius}"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def toggle_crypto_auth(enabled: bool, algorithm: str = "hmac_sha256") -> dict[str, Any]:
+    """Toggle crypto auth."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/crypto_auth",
+                json={"enabled": enabled, "algorithm": algorithm},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": result.get("message", "Crypto toggled")}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def get_protocol_stats() -> dict[str, Any]:
+    """Get MAVLink protocol stats."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{SIMULATION_API_URL}/protocol_stats", timeout=5.0)
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def delete_spoofing_zone(zone_id: str) -> dict[str, Any]:
+    """Remove a spoofing zone by ID."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.delete(
+                f"{SIMULATION_API_URL}/spoofing_zones/{zone_id}", timeout=5.0
+            )
+            if response.status_code == 200:
+                return {"success": True, "message": f"Deleted spoofing zone {zone_id}"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def add_jamming_zone(
+    x: float, y: float, z: float = 10.0, radius: float = 15.0, jam_type: str = "low_jam"
+) -> dict[str, Any]:
+    """Create a jamming zone."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/jamming_zones",
+                json={"center": [x, y, z], "radius": radius, "obstacle_type": jam_type},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {
+                    "success": True,
+                    "message": f"Created {jam_type} jamming zone at ({x}, {y}, {z}) r={radius}",
+                    "zone_id": result.get("zone", {}).get("id"),
+                }
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def delete_jamming_zone(zone_id: str) -> dict[str, Any]:
+    """Remove a jamming zone by ID."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.delete(
+                f"{SIMULATION_API_URL}/jamming_zones/{zone_id}", timeout=5.0
+            )
+            if response.status_code == 200:
+                return {"success": True, "message": f"Deleted jamming zone {zone_id}"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def list_jamming_zones() -> dict[str, Any]:
+    """List all jamming zones."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{SIMULATION_API_URL}/jamming_zones", timeout=5.0)
+            if response.status_code == 200:
+                data = response.json()
+                zones = data.get("zones", [])
+                summary = []
+                for z in zones:
+                    summary.append({
+                        "id": z.get("id"),
+                        "center": z.get("center"),
+                        "radius": z.get("radius"),
+                        "type": z.get("obstacle_type"),
+                        "active": z.get("active"),
+                    })
+                return {"success": True, "count": len(zones), "zones": summary}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def list_spoofing_zones() -> dict[str, Any]:
+    """List all spoofing zones."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{SIMULATION_API_URL}/spoofing_zones", timeout=5.0)
+            if response.status_code == 200:
+                data = response.json()
+                zones = data.get("zones", [])
+                summary = []
+                for z in zones:
+                    summary.append({
+                        "id": z.get("id"),
+                        "center": z.get("center"),
+                        "radius": z.get("radius"),
+                        "type": z.get("spoof_type"),
+                        "active": z.get("active"),
+                    })
+                return {"success": True, "count": len(zones), "zones": summary}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def clear_all_jamming_zones() -> dict[str, Any]:
+    """Remove all jamming zones."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.delete(f"{SIMULATION_API_URL}/jamming_zones", timeout=5.0)
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": result.get("message", "All jamming zones cleared")}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def clear_all_spoofing_zones() -> dict[str, Any]:
+    """Remove all spoofing zones."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.delete(f"{SIMULATION_API_URL}/spoofing_zones", timeout=5.0)
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": result.get("message", "All spoofing zones cleared")}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def start_simulation(
+    formation: str = "communication_aware", path_algorithm: str = "astar"
+) -> dict[str, Any]:
+    """Start the autonomous simulation."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/start",
+                json={"formation": formation, "path_algorithm": path_algorithm},
+                timeout=10.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {
+                    "success": True,
+                    "message": result.get("message", "Simulation started"),
+                    "config": result.get("config"),
+                }
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def stop_simulation() -> dict[str, Any]:
+    """Stop the running simulation."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/stop", timeout=5.0
+            )
+            if response.status_code == 200:
+                return {"success": True, "message": "Simulation stopped"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def reset_simulation() -> dict[str, Any]:
+    """Reset simulation to initial state."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/reset", timeout=5.0
+            )
+            if response.status_code == 200:
+                return {"success": True, "message": "Simulation reset to initial state"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def set_formation(formation: str) -> dict[str, Any]:
+    """Change swarm formation type."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/algorithm",
+                json={"formation": formation},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                return {"success": True, "message": f"Formation changed to {formation}"}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def get_telemetry_history(agent_id: str, limit: int = 10) -> dict[str, Any]:
+    """Get recent telemetry history for an agent from the database."""
+    try:
+        from ..rag import get_telemetry_history as _get_history
+        history = _get_history(agent_id, limit=limit)
+        return {
+            "success": True,
+            "agent_id": agent_id,
+            "count": len(history),
+            "history": history,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+async def toggle_v2v_channel(enabled: bool) -> dict[str, Any]:
+    """Enable or disable the V2V channel model."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SIMULATION_API_URL}/simulation/v2v_channel",
+                json={"enabled": enabled},
+                timeout=5.0,
+            )
+            if response.status_code == 200:
+                result = response.json()
+                return {"success": True, "message": result.get("message", "V2V channel toggled")}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def get_v2v_channel_status() -> dict[str, Any]:
+    """Get V2V channel model status."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                f"{SIMULATION_API_URL}/simulation/v2v_channel", timeout=5.0
+            )
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+
+async def list_tools() -> dict[str, Any]:
+    """Return a compact catalog of every tool registered in TOOL_SCHEMAS."""
+    catalog = []
+    for t in TOOL_SCHEMAS:
+        catalog.append({
+            "name": t["name"],
+            "description": t.get("description", ""),
+            "required_params": list(t.get("required", [])),
+            "all_params": list(t.get("parameters", {}).keys()),
+        })
+    return {"success": True, "count": len(catalog), "tools": catalog}
+
+
+TOOL_EXECUTORS = {
+    "move_agent": move_agent,
+    "get_agent_status": get_agent_status,
+    "get_simulation_status": get_simulation_status,
+    "add_agent": add_agent,
+    "remove_agent": remove_agent,
+    "add_spoofing_zone": add_spoofing_zone,
+    "delete_spoofing_zone": delete_spoofing_zone,
+    "add_jamming_zone": add_jamming_zone,
+    "delete_jamming_zone": delete_jamming_zone,
+    "list_jamming_zones": list_jamming_zones,
+    "list_spoofing_zones": list_spoofing_zones,
+    "clear_all_jamming_zones": clear_all_jamming_zones,
+    "clear_all_spoofing_zones": clear_all_spoofing_zones,
+    "toggle_crypto_auth": toggle_crypto_auth,
+    "get_protocol_stats": get_protocol_stats,
+    "start_simulation": start_simulation,
+    "stop_simulation": stop_simulation,
+    "reset_simulation": reset_simulation,
+    "set_formation": set_formation,
+    "get_telemetry_history": get_telemetry_history,
+    "toggle_v2v_channel": toggle_v2v_channel,
+    "get_v2v_channel_status": get_v2v_channel_status,
+    "list_tools": list_tools,
+}

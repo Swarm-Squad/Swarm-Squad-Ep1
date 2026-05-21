@@ -1,4 +1,4 @@
-# Multi-Vehicle Simulation Communication Model Research
+# Swarm Squad Ep1 Communication Model Research
 
 ## 1. Problem Statement
 
@@ -123,7 +123,7 @@ Combines log-distance and two-ray:
 
 ## 4. Recommended Model: Hybrid Log-Distance with LOS/NLOS Classification
 
-For our multi-vehicle simulation, the optimal choice is a **hybrid model** that combines:
+For Swarm Squad Ep1, the optimal choice is a **hybrid model** that combines:
 
 1. **Geometric LOS/NLOS classification** using jamming zones and obstacles as occluders
 2. **Log-distance path loss** with different exponents for LOS vs NLOS

@@ -1,7 +1,7 @@
 [project]
-name = "vehicle-sim"
+name = "swarm-squad-ep1"
 version = "0.2.0"
-description = "3D Multi-Vehicle Simulation with MCP Chat, Vector DB, and Algorithm Framework"
+description = "Educational UAV swarm simulation with web GUI, chat control, and Python API"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -11,28 +11,40 @@ dependencies = [
     "ollama>=0.4",
     "qdrant-client>=1.12",
     "psycopg2-binary>=2.9",
-    "sentence-transformers>=3.3",
     "python-dotenv>=1.0",
     "jinja2>=3.1",
     "numpy>=1.26",
     "cryptography>=42.0",
     "pathfinding3d>=0.7.2",
-    "pre-commit>=4.5.1",
     "matplotlib>=3.10.8",
+    "sentence-transformers>=5.5.1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
+    "pre-commit>=4.5.1",
 ]
+research = [
+    "matplotlib>=3.10.8",
+    "pandas>=2.2",
+]
+
+[project.scripts]
+swarm-squad-ep1 = "swarm_squad_ep1.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+include = [
+    "src/swarm_squad_ep1/gui/static/**",
+]
+
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/swarm_squad_ep1"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
