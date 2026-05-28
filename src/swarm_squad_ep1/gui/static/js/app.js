@@ -121,7 +121,7 @@ const App = {
     // Refresh on demand or every ~5 seconds during polling.
     if (!force) {
       this.simulationConfigRefreshTick += 1;
-      if (this.simulationConfigRefreshTick % 10 !== 0) return;
+      if (this.simulationConfigRefreshTick % 4 !== 0) return;
     }
     try {
       const response = await fetch("/simulation/config");
@@ -214,6 +214,8 @@ const App = {
     });
     this.currentCryptoAlgorithm =
       cryptoAlgoSelect?.value || selectedCryptoAlgorithm;
+
+    this.updateRuntimeAlgorithmStatus(current, config);
   },
 
   setSelectOptions(selectEl, values, options = {}) {
@@ -241,6 +243,87 @@ const App = {
     } else {
       selectEl.value = uniqueValues[0];
     }
+  },
+
+  resolveSelectLabel(value, labels = {}) {
+    if (!value) return "-";
+    return (
+      labels[value] ||
+      value.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase())
+    );
+  },
+
+  updateRuntimeAlgorithmStatus(current, config) {
+    const detailsEl = document.getElementById("runtime-algo-details");
+    if (!detailsEl) return;
+
+    const path = current?.path_algorithm || this.currentPathAlgorithm || "-";
+    const crypto =
+      current?.crypto_algorithm || this.currentCryptoAlgorithm || "-";
+    const formation =
+      current?.formation ||
+      document.getElementById("formation-select")?.value ||
+      "-";
+    const comm =
+      current?.comm_model ||
+      document.getElementById("comm-model-select")?.value ||
+      "-";
+
+    const customPathNames = new Set(
+      Array.isArray(config?.custom_path_algorithms)
+        ? config.custom_path_algorithms
+            .map((item) => item?.name)
+            .filter((name) => typeof name === "string" && name.length > 0)
+        : [],
+    );
+    const customCryptoNames = new Set(
+      Array.isArray(config?.custom_crypto_algorithms)
+        ? config.custom_crypto_algorithms
+            .map((item) => item?.name)
+            .filter((name) => typeof name === "string" && name.length > 0)
+        : [],
+    );
+
+    const pathLabel = this.resolveSelectLabel(
+      path,
+      config?.path_algorithm_labels || {},
+    );
+    const cryptoLabel = this.resolveSelectLabel(
+      crypto,
+      config?.crypto_algorithm_labels || {},
+    );
+    const formationLabel = this.resolveSelectLabel(formation, {
+      communication_aware: "Communication-Aware",
+    });
+    const commLabel = this.resolveSelectLabel(comm, {
+      v2v_channel: "V2V Channel (LOS/NLOS)",
+      legacy: "Legacy (Distance-Only)",
+    });
+    const pathSuffix = customPathNames.has(path)
+      ? ' <span class="text-cyan-400">(custom)</span>'
+      : "";
+    const cryptoSuffix = customCryptoNames.has(crypto)
+      ? ' <span class="text-cyan-400">(custom)</span>'
+      : "";
+
+    detailsEl.innerHTML = `
+      <div class="flex justify-between gap-2">
+        <span>Formation:</span>
+        <span class="text-foreground text-right">${formationLabel}</span>
+      </div>
+      <div class="flex justify-between gap-2">
+        <span>Path:</span>
+        <span class="text-foreground text-right">${pathLabel}${pathSuffix}</span>
+      </div>
+      <div class="flex justify-between gap-2">
+        <span>Crypto:</span>
+        <span class="text-foreground text-right">${cryptoLabel}${cryptoSuffix}</span>
+      </div>
+      <div class="flex justify-between gap-2">
+        <span>Comm:</span>
+        <span class="text-foreground text-right">${commLabel}</span>
+      </div>
+    `;
   },
 
   syncPathAlgorithmSelection(algorithm) {

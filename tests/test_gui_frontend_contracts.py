@@ -15,6 +15,7 @@ def test_dashboard_shell_and_static_assets(chat_client):
     assert "/static/js/chat.js" in html
     assert "/static/js/app.js" in html
     assert "Beginner Guide" not in html
+    assert "runtime-algo-status" in html
 
     assets = [
         "/static/js/app.js",
@@ -74,3 +75,4 @@ def test_frontend_runtime_config_contract_for_algorithm_selectors(chat_client):
     assert "custom_crypto_algorithms" in js
     assert "current.path_algorithm" in js
     assert "current.crypto_algorithm" in js
+    assert "updateRuntimeAlgorithmStatus" in js

@@ -55,7 +55,7 @@ def test_status_and_state_contract(sim_client):
     state = sim_client.get("/simulation/state")
     assert state.status_code == 200
     state_payload = state.json()
-    assert {"running", "formation", "agents", "timestamp"} <= state_payload.keys()
+    assert {"running", "formation", "agents", "jamming_zones", "spoofing_zones", "timestamp"} <= state_payload.keys()
     assert isinstance(state_payload["agents"], dict)
 
 

@@ -1506,6 +1506,7 @@ async def get_simulation_state():
         "formation": formation_state.to_dict(),
         "agents": {aid: agent.to_dict() for aid, agent in agent_states.items()},
         "jamming_zones": [z.to_dict() for z in jamming_zones.values()],
+        "spoofing_zones": [z.to_dict() for z in spoofing_zones.values()],
         "timestamp": datetime.now().isoformat(),
     }
 
@@ -1868,14 +1869,28 @@ async def run_simulation_loop(destination: list[float]):
         simulation_results["jammed_count_history"].append(jammed_count)
         simulation_results["avg_comm_quality_history"].append(float(avg_comm))
 
-        # Check if reached destination
-        if controller.formation_converged:
-            positions = [agent.position for agent in agent_states.values()]
+        # Check if reached destination.
+        # Support both:
+        # 1) formation-guided completion (legacy behavior),
+        # 2) script-driven direct control where all agents reach the goal but
+        #    formation convergence may be intentionally bypassed.
+        positions = [agent.position for agent in agent_states.values()]
+        if positions:
+            destination_vec = np.array(destination, dtype=float)
             center = np.mean(positions, axis=0)
-            dist = np.linalg.norm(center - np.array(destination))
-
-            if dist < 1.0:
-                print("[SIM API] Simulation complete - destination reached!")
+            center_dist = np.linalg.norm(center - destination_vec)
+            all_agents_close = all(
+                np.linalg.norm(np.array(pos, dtype=float) - destination_vec) < 2.0
+                for pos in positions
+            )
+            reached = (controller.formation_converged and center_dist < 1.0) or all_agents_close
+            if reached:
+                reason = (
+                    "formation_converged"
+                    if controller.formation_converged and center_dist < 1.0
+                    else "all_agents_close"
+                )
+                print(f"[SIM API] Simulation complete - destination reached ({reason})!")
                 simulation_results["destination_reached"] = True
                 simulation_running = False
                 break
