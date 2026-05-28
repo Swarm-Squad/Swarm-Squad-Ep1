@@ -149,6 +149,8 @@ uv run swarm-squad-ep1 research smoke
 
 ## Where to go next
 
+- Classroom student handout: `docs/assignment-student.md`
+- Classroom instructor key/rubric: `docs/assignment-teacher.md`
 - Runtime and command modes: `docs/runtime-and-cli.md`
 - Script cookbook and API usage patterns: `docs/script-customization.md`
 - Troubleshooting by symptoms: `docs/troubleshooting.md`
