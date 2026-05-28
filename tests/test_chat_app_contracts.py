@@ -111,7 +111,9 @@ def test_representative_proxy_route(monkeypatch, chat_client):
     assert response.json()["running"] is False
 
 
-def test_attack_metrics_proxy_fallback_when_backend_unavailable(monkeypatch, chat_client):
+def test_attack_metrics_proxy_fallback_when_backend_unavailable(
+    monkeypatch, chat_client
+):
     monkeypatch.setattr(chat_module.httpx, "AsyncClient", _ErrorAsyncClient)
 
     response = chat_client.get("/simulation/attack_metrics")

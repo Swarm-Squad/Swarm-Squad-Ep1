@@ -14,8 +14,13 @@ from swarm_squad_ep1.algo.base import (
 from swarm_squad_ep1.algo.controller import UnifiedController
 from swarm_squad_ep1.algo.crypto_auth import (
     CryptoAuth,
+    get_available_crypto_algorithms,
+    get_crypto_algorithm_labels,
     get_crypto_auth,
+    list_registered_crypto_algorithms,
+    register_crypto_algorithm,
     reset_crypto_auth,
+    unregister_crypto_algorithm,
 )
 from swarm_squad_ep1.algo.formation import FORMATION_TYPES, FormationGenerator
 from swarm_squad_ep1.algo.jamming_response import JAMMING_STRATEGIES, JammingResponse
@@ -88,6 +93,11 @@ __all__ = [
     "CryptoAuth",
     "get_crypto_auth",
     "reset_crypto_auth",
+    "get_available_crypto_algorithms",
+    "get_crypto_algorithm_labels",
+    "list_registered_crypto_algorithms",
+    "register_crypto_algorithm",
+    "unregister_crypto_algorithm",
     # V2V Channel Model
     "V2VChannelModel",
     "ChannelParams",

@@ -13,7 +13,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from swarm_squad_ep1.algo.base import OBSTACLE_PARAMS, JammingZone, ObstacleType
 from swarm_squad_ep1.algo.controller import get_controller, reset_controller
-from swarm_squad_ep1.algo.crypto_auth import get_crypto_auth, reset_crypto_auth
+from swarm_squad_ep1.algo.crypto_auth import (
+    get_available_crypto_algorithms,
+    get_crypto_algorithm_labels,
+    get_crypto_auth,
+    list_registered_crypto_algorithms,
+    register_crypto_algorithm,
+    reset_crypto_auth,
+    unregister_crypto_algorithm,
+)
 from swarm_squad_ep1.algo.formation import FORMATION_TYPES
 from swarm_squad_ep1.algo.jamming_response import JAMMING_STRATEGIES
 from swarm_squad_ep1.algo.llm_controller import get_llm_controller
@@ -811,6 +819,16 @@ async def get_spoofing_zones():
     }
 
 
+@app.get("/spoofing_zones/{zone_id}")
+async def get_spoofing_zone(zone_id: str):
+    """Get one spoofing zone."""
+    if zone_id not in spoofing_zones:
+        raise HTTPException(
+            status_code=404, detail=f"Spoofing zone {zone_id} not found"
+        )
+    return spoofing_zones[zone_id].to_dict()
+
+
 @app.post("/spoofing_zones")
 async def create_spoofing_zone(zone_data: dict[str, Any]):
     """
@@ -880,6 +898,59 @@ async def create_spoofing_zone(zone_data: dict[str, Any]):
     }
 
 
+@app.put("/spoofing_zones/{zone_id}")
+async def update_spoofing_zone(zone_id: str, zone_data: dict[str, Any]):
+    """Update an existing spoofing zone."""
+    if zone_id not in spoofing_zones:
+        raise HTTPException(
+            status_code=404, detail=f"Spoofing zone {zone_id} not found"
+        )
+
+    zone = spoofing_zones[zone_id]
+
+    if "center" in zone_data:
+        center = zone_data["center"]
+        if not isinstance(center, list) or len(center) < 3:
+            raise HTTPException(
+                status_code=400, detail="Missing or invalid 'center' [x, y, z]"
+            )
+        zone.center = [float(c) for c in center[:3]]
+    if "radius" in zone_data:
+        radius = float(zone_data["radius"])
+        if radius <= 0:
+            raise HTTPException(status_code=400, detail="Missing or invalid 'radius'")
+        zone.radius = radius
+    if "active" in zone_data:
+        zone.active = bool(zone_data["active"])
+    if "phantom_count" in zone_data:
+        zone.phantom_count = int(zone_data["phantom_count"])
+    if "falsification_magnitude" in zone_data:
+        zone.falsification_magnitude = float(zone_data["falsification_magnitude"])
+    if "coordinate_vector" in zone_data:
+        vec = zone_data["coordinate_vector"]
+        if not isinstance(vec, list) or len(vec) < 3:
+            raise HTTPException(
+                status_code=400,
+                detail="Missing or invalid 'coordinate_vector' [x, y, z]",
+            )
+        zone.coordinate_vector = [float(v) for v in vec[:3]]
+    if "spoof_type" in zone_data:
+        type_str = str(zone_data["spoof_type"])
+        try:
+            zone.spoof_type = SpoofType(type_str)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid spoof_type '{type_str}'. Must be 'phantom', 'position_falsification', or 'coordinate'",
+            )
+
+    return {
+        "success": True,
+        "zone": zone.to_dict(),
+        "message": f"Updated spoofing zone {zone_id}",
+    }
+
+
 @app.delete("/spoofing_zones/{zone_id}")
 async def delete_spoofing_zone(zone_id: str):
     """Delete a spoofing zone."""
@@ -913,6 +984,9 @@ async def get_crypto_auth_state():
     return {
         "enabled": crypto.enabled,
         "mavlink_enabled": mavlink_enabled,
+        "algorithms": get_available_crypto_algorithms(),
+        "algorithm_labels": get_crypto_algorithm_labels(),
+        "custom_algorithms": list_registered_crypto_algorithms(),
         "status": crypto.get_status(),
         "timestamp": datetime.now().isoformat(),
     }
@@ -939,13 +1013,13 @@ async def set_crypto_auth_state(data: dict[str, Any]):
     # Set algorithm if provided
     if "algorithm" in data:
         crypto.set_algorithm(data["algorithm"])
-        print(f"[SIM API] Crypto algorithm set to: {crypto.algorithm.value}")
+        print(f"[SIM API] Crypto algorithm set to: {crypto.algorithm}")
 
     # Generate keys for current agents if enabling for the first time
     if enabled and not crypto.has_key(next(iter(agent_states), "")):
         crypto.generate_keys(list(agent_states.keys()))
 
-    algo_label = crypto.algorithm.value
+    algo_label = crypto.algorithm
     print(
         f"[SIM API] Crypto auth {'enabled' if enabled else 'disabled'} ({algo_label})"
     )
@@ -953,6 +1027,8 @@ async def set_crypto_auth_state(data: dict[str, Any]):
         "success": True,
         "enabled": enabled,
         "algorithm": algo_label,
+        "algorithms": get_available_crypto_algorithms(),
+        "algorithm_labels": get_crypto_algorithm_labels(),
         "message": f"Crypto auth {'enabled' if enabled else 'disabled'} ({algo_label})",
     }
 
@@ -1019,7 +1095,7 @@ async def get_protocol_stats():
     return {
         "mavlink_enabled": mavlink_enabled,
         "crypto_auth_enabled": crypto.enabled,
-        "crypto_algorithm": crypto.algorithm.value,
+        "crypto_algorithm": crypto.algorithm,
         "mavlink": bus.stats.to_dict(),
         "crypto": crypto.stats.to_dict(),
         "spoofing_zones_active": sum(1 for z in spoofing_zones.values() if z.active),
@@ -1048,7 +1124,7 @@ async def get_attack_metrics():
 
     return {
         "crypto_enabled": crypto.enabled,
-        "crypto_algorithm": crypto.algorithm.value,
+        "crypto_algorithm": crypto.algorithm,
         "tp": stats["tp"],
         "fp": stats["fp"],
         "fn": stats["fn"],
@@ -1070,16 +1146,28 @@ async def get_attack_metrics():
 @app.get("/simulation/config")
 async def get_simulation_config():
     """Get available simulation configuration options."""
+    controller = get_controller()
+    crypto = get_crypto_auth()
     path_algorithms = get_available_path_algorithms()
+    crypto_algorithms = get_available_crypto_algorithms()
     return {
         "formations": FORMATION_TYPES,
         "path_algorithms": path_algorithms,
         "path_algorithm_labels": get_path_algorithm_labels(),
         "custom_path_algorithms": list_registered_path_algorithms(),
+        "crypto_algorithms": crypto_algorithms,
+        "crypto_algorithm_labels": get_crypto_algorithm_labels(),
+        "custom_crypto_algorithms": list_registered_crypto_algorithms(),
         "jamming_strategies": JAMMING_STRATEGIES,
         "comm_models": ["v2v_channel", "legacy"],
         "current": {
             "running": simulation_running,
+            "formation": controller.formation_type,
+            "path_algorithm": controller.path_algorithm,
+            "crypto_auth_enabled": crypto.enabled,
+            "crypto_algorithm": crypto.algorithm,
+            "comm_model": "v2v_channel" if controller.use_v2v_channel else "legacy",
+            "llm_assistance_enabled": llm_assistance_enabled,
         },
     }
 
@@ -1136,6 +1224,58 @@ async def delete_custom_algorithm(name: str):
     }
 
 
+@app.get("/simulation/custom_crypto_algorithms")
+async def get_custom_crypto_algorithms():
+    """List registered custom crypto algorithms."""
+    algorithms = list_registered_crypto_algorithms()
+    return {
+        "count": len(algorithms),
+        "algorithms": algorithms,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+@app.post("/simulation/custom_crypto_algorithms")
+async def create_custom_crypto_algorithm(data: dict[str, Any]):
+    """Register a custom crypto algorithm using sign/verify import paths."""
+    try:
+        entry = register_crypto_algorithm(
+            name=str(data.get("name", "")),
+            sign_import_path=str(data.get("sign_import_path", "")),
+            verify_import_path=str(data.get("verify_import_path", "")),
+            description=str(data.get("description", "")),
+            replace=bool(data.get("replace", False)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return {
+        "success": True,
+        "algorithm": entry,
+        "crypto_algorithms": get_available_crypto_algorithms(),
+    }
+
+
+@app.delete("/simulation/custom_crypto_algorithms/{name}")
+async def delete_custom_crypto_algorithm(name: str):
+    """Unregister a custom crypto algorithm."""
+    removed = unregister_crypto_algorithm(name)
+    if removed is None:
+        raise HTTPException(
+            status_code=404, detail=f"Custom crypto algorithm '{name}' not found"
+        )
+
+    crypto = get_crypto_auth()
+    if crypto.algorithm == removed["name"]:
+        crypto.set_algorithm("hmac_sha256")
+
+    return {
+        "success": True,
+        "removed": removed,
+        "crypto_algorithms": get_available_crypto_algorithms(),
+    }
+
+
 @app.post("/simulation/start")
 async def start_simulation(config: dict[str, Any], background_tasks: BackgroundTasks):
     """
@@ -1175,7 +1315,7 @@ async def start_simulation(config: dict[str, Any], background_tasks: BackgroundT
         if crypto.enabled:
             crypto.generate_keys(list(agent_states.keys()))
             print(
-                f"[SIM API] Crypto auth enabled ({crypto.algorithm.value}), keys generated for {len(agent_states)} agents"
+                f"[SIM API] Crypto auth enabled ({crypto.algorithm}), keys generated for {len(agent_states)} agents"
             )
         get_spoofing_engine()  # ensure initialized
 

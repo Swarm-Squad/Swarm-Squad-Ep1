@@ -33,6 +33,8 @@ const App = {
   bootstrapSimulationStatus: null,
   simulationConfig: null,
   simulationConfigRefreshTick: 0,
+  currentPathAlgorithm: "astar",
+  currentCryptoAlgorithm: "hmac_sha256",
 
   /**
    * Initialize the application
@@ -135,37 +137,83 @@ const App = {
   applySimulationConfig(config) {
     if (!config) return;
 
+    const current = config.current || {};
     const formationSelect = document.getElementById("formation-select");
     const pathAlgoSelect = document.getElementById("path-algo-select");
     const commModelSelect = document.getElementById("comm-model-select");
+    const cryptoAlgoSelect = document.getElementById("crypto-algo-select");
 
     const formations = [
       "communication_aware",
       ...(Array.isArray(config.formations) ? config.formations : []),
     ];
     this.setSelectOptions(formationSelect, formations, {
-      selected: formationSelect?.value || "communication_aware",
+      selected:
+        current.formation || formationSelect?.value || "communication_aware",
       labels: { communication_aware: "Communication-Aware" },
     });
 
     const pathAlgorithms = Array.isArray(config.path_algorithms)
       ? config.path_algorithms
       : [];
-    this.setSelectOptions(pathAlgoSelect, pathAlgorithms, {
-      selected: pathAlgoSelect?.value || "astar",
+    const customPathNames = Array.isArray(config.custom_path_algorithms)
+      ? config.custom_path_algorithms
+          .map((item) => item?.name)
+          .filter((name) => typeof name === "string" && name.length > 0)
+      : [];
+    const mergedPathAlgorithms = [
+      ...new Set([...pathAlgorithms, ...customPathNames]),
+    ];
+    const selectedPathAlgorithm =
+      current.path_algorithm ||
+      this.currentPathAlgorithm ||
+      pathAlgoSelect?.value ||
+      "astar";
+    if (!mergedPathAlgorithms.includes(selectedPathAlgorithm)) {
+      mergedPathAlgorithms.push(selectedPathAlgorithm);
+    }
+    this.setSelectOptions(pathAlgoSelect, mergedPathAlgorithms, {
+      selected: selectedPathAlgorithm,
       labels: config.path_algorithm_labels || {},
     });
+    this.currentPathAlgorithm = pathAlgoSelect?.value || selectedPathAlgorithm;
 
     const commModels = Array.isArray(config.comm_models)
       ? config.comm_models
       : ["v2v_channel", "legacy"];
     this.setSelectOptions(commModelSelect, commModels, {
-      selected: commModelSelect?.value || "v2v_channel",
+      selected: current.comm_model || commModelSelect?.value || "v2v_channel",
       labels: {
         v2v_channel: "V2V Channel (LOS/NLOS)",
         legacy: "Legacy (Distance-Only)",
       },
     });
+
+    const cryptoAlgorithms = Array.isArray(config.crypto_algorithms)
+      ? config.crypto_algorithms
+      : ["hmac_sha256"];
+    const customCryptoNames = Array.isArray(config.custom_crypto_algorithms)
+      ? config.custom_crypto_algorithms
+          .map((item) => item?.name)
+          .filter((name) => typeof name === "string" && name.length > 0)
+      : [];
+    const mergedCryptoAlgorithms = [
+      ...new Set([...cryptoAlgorithms, ...customCryptoNames]),
+    ];
+    const selectedCryptoAlgorithm =
+      current.crypto_algorithm ||
+      this.currentCryptoAlgorithm ||
+      cryptoAlgoSelect?.value ||
+      "hmac_sha256";
+    if (!mergedCryptoAlgorithms.includes(selectedCryptoAlgorithm)) {
+      mergedCryptoAlgorithms.push(selectedCryptoAlgorithm);
+    }
+    this.setSelectOptions(cryptoAlgoSelect, mergedCryptoAlgorithms, {
+      selected: selectedCryptoAlgorithm,
+      labels: config.crypto_algorithm_labels || {},
+    });
+    this.currentCryptoAlgorithm =
+      cryptoAlgoSelect?.value || selectedCryptoAlgorithm;
   },
 
   setSelectOptions(selectEl, values, options = {}) {
@@ -193,6 +241,62 @@ const App = {
     } else {
       selectEl.value = uniqueValues[0];
     }
+  },
+
+  syncPathAlgorithmSelection(algorithm) {
+    if (!algorithm) return;
+    const pathSelect = document.getElementById("path-algo-select");
+    if (!pathSelect) return;
+
+    const available = Array.from(pathSelect.options).map(
+      (option) => option.value,
+    );
+    if (available.includes(algorithm)) {
+      pathSelect.value = algorithm;
+      this.currentPathAlgorithm = algorithm;
+      return;
+    }
+
+    const config = this.simulationConfig || {};
+    const configAlgorithms = Array.isArray(config.path_algorithms)
+      ? [...config.path_algorithms]
+      : [];
+    if (!configAlgorithms.includes(algorithm)) {
+      configAlgorithms.push(algorithm);
+    }
+    this.setSelectOptions(pathSelect, configAlgorithms, {
+      selected: algorithm,
+      labels: config.path_algorithm_labels || {},
+    });
+    this.currentPathAlgorithm = algorithm;
+  },
+
+  syncCryptoAlgorithmSelection(algorithm) {
+    if (!algorithm) return;
+    const algoSelect = document.getElementById("crypto-algo-select");
+    if (!algoSelect) return;
+
+    const available = Array.from(algoSelect.options).map(
+      (option) => option.value,
+    );
+    if (available.includes(algorithm)) {
+      algoSelect.value = algorithm;
+      this.currentCryptoAlgorithm = algorithm;
+      return;
+    }
+
+    const config = this.simulationConfig || {};
+    const configAlgorithms = Array.isArray(config.crypto_algorithms)
+      ? [...config.crypto_algorithms]
+      : [];
+    if (!configAlgorithms.includes(algorithm)) {
+      configAlgorithms.push(algorithm);
+    }
+    this.setSelectOptions(algoSelect, configAlgorithms, {
+      selected: algorithm,
+      labels: config.crypto_algorithm_labels || {},
+    });
+    this.currentCryptoAlgorithm = algorithm;
   },
 
   /**
@@ -248,9 +352,11 @@ const App = {
 
     const pathAlgoSelect = document.getElementById("path-algo-select");
     if (pathAlgoSelect) {
-      pathAlgoSelect.addEventListener("change", (e) =>
-        applyAlgorithmChange("path_algorithm", e.target.value),
-      );
+      pathAlgoSelect.addEventListener("change", (e) => {
+        const selected = e.target.value;
+        App.currentPathAlgorithm = selected;
+        applyAlgorithmChange("path_algorithm", selected);
+      });
     }
 
     const commModelSelect = document.getElementById("comm-model-select");
@@ -1123,10 +1229,7 @@ const App = {
 
     // Sync algorithm dropdown
     if (data.crypto_algorithm) {
-      const algoSelect = document.getElementById("crypto-algo-select");
-      if (algoSelect && algoSelect.value !== data.crypto_algorithm) {
-        algoSelect.value = data.crypto_algorithm;
-      }
+      this.syncCryptoAlgorithmSelection(data.crypto_algorithm);
     }
 
     // Update header indicators
@@ -1358,6 +1461,7 @@ async function toggleCryptoAuth() {
     if (response.ok && result.success) {
       toggle.dataset.enabled = newEnabled.toString();
       App.cryptoAuthEnabled = newEnabled;
+      App.currentCryptoAlgorithm = algo;
       // Refresh the Attack Metrics badge immediately so the user sees the
       // new crypto state without waiting for the next poll.
       App.fetchAttackMetrics?.();
@@ -1413,6 +1517,9 @@ async function setCryptoAlgorithm(algo) {
       body: JSON.stringify({ enabled: isEnabled, algorithm: algo }),
     });
     const result = await response.json();
+    if (response.ok && result.success) {
+      App.currentCryptoAlgorithm = algo;
+    }
     console.log(`[App] Crypto algorithm set to: ${algo}`, result);
   } catch (error) {
     console.error("Failed to set crypto algorithm:", error);
@@ -1553,6 +1660,9 @@ async function startSimulation() {
     document.getElementById("crypto-algo-select")?.value || "hmac_sha256";
   const commModel =
     document.getElementById("comm-model-select")?.value || "v2v_channel";
+
+  App.currentPathAlgorithm = pathAlgo;
+  App.currentCryptoAlgorithm = cryptoAlgo;
 
   // Apply comm model setting before starting
   try {
@@ -1725,10 +1835,11 @@ async function syncLLMAssistanceState() {
  */
 async function syncCryptoAuthState() {
   try {
-    const response = await fetch("/protocol_stats");
+    const response = await fetch("/simulation/crypto_auth");
     if (response.ok) {
       const data = await response.json();
-      App.cryptoAuthEnabled = !!data.crypto_auth_enabled;
+      const status = data.status || {};
+      App.cryptoAuthEnabled = !!(data.enabled ?? status.enabled);
       const toggle = document.getElementById("crypto-toggle");
       const knob = document.getElementById("crypto-toggle-knob");
       if (toggle && knob) {
@@ -1745,9 +1856,21 @@ async function syncCryptoAuthState() {
           knob.style.transform = "translateX(0)";
         }
       }
-      if (data.crypto_algorithm) {
-        const algoSelect = document.getElementById("crypto-algo-select");
-        if (algoSelect) algoSelect.value = data.crypto_algorithm;
+
+      const algoSelect = document.getElementById("crypto-algo-select");
+      const algorithms = Array.isArray(data.algorithms) ? data.algorithms : [];
+      if (algoSelect && algorithms.length > 0) {
+        App.setSelectOptions(algoSelect, algorithms, {
+          selected:
+            status.algorithm ||
+            App.currentCryptoAlgorithm ||
+            algoSelect.value ||
+            "hmac_sha256",
+          labels: data.algorithm_labels || {},
+        });
+      }
+      if (status.algorithm) {
+        App.syncCryptoAlgorithmSelection(status.algorithm);
       }
     }
   } catch (error) {

@@ -49,6 +49,25 @@ class SwarmSquadClient:
     def add_agent(self, x: float, y: float, z: float = 0.0) -> dict[str, Any]:
         return self._request("POST", "/agents", {"x": x, "y": y, "z": z})
 
+    def update_agent(
+        self,
+        agent_id: str,
+        *,
+        position: tuple[float, float, float] | None = None,
+        jammed: bool | None = None,
+        communication_quality: float | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if position is not None:
+            payload["position"] = list(position)
+        if jammed is not None:
+            payload["jammed"] = bool(jammed)
+        if communication_quality is not None:
+            payload["communication_quality"] = float(communication_quality)
+        if not payload:
+            return {"success": False, "error": "No update fields provided"}
+        return self._request("PUT", f"/agents/{agent_id}", payload)
+
     def remove_agent(self, agent_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/agents/{agent_id}")
 
@@ -73,6 +92,8 @@ class SwarmSquadClient:
         path_algorithm: str = "astar",
         crypto_auth: bool | None = None,
         crypto_algorithm: str = "hmac_sha256",
+        destination: tuple[float, float, float] | None = None,
+        default_obstacle_type: str | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "formation": formation,
@@ -81,6 +102,10 @@ class SwarmSquadClient:
         if crypto_auth is not None:
             payload["crypto_auth"] = bool(crypto_auth)
             payload["crypto_algorithm"] = crypto_algorithm
+        if destination is not None:
+            payload["destination"] = list(destination)
+        if default_obstacle_type is not None:
+            payload["default_obstacle_type"] = default_obstacle_type
         return self._request("POST", "/simulation/start", payload)
 
     def stop_simulation(self) -> dict[str, Any]:
@@ -109,6 +134,17 @@ class SwarmSquadClient:
 
     def simulation_results(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/results")
+
+    def download_simulation_results(self, format: str = "json") -> dict[str, Any] | str:
+        import httpx
+
+        url = f"{self.base_url.rstrip('/')}/simulation/results/download"
+        with httpx.Client(timeout=self.timeout) as client:
+            response = client.get(url, params={"format": format})
+        response.raise_for_status()
+        if format == "csv":
+            return response.text
+        return response.json()
 
     def simulate_step(self) -> dict[str, Any]:
         return self._request("POST", "/simulate_step")
@@ -141,6 +177,34 @@ class SwarmSquadClient:
     def list_jamming_zones(self) -> dict[str, Any]:
         return self._request("GET", "/jamming_zones")
 
+    def get_jamming_zone(self, zone_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/jamming_zones/{zone_id}")
+
+    def update_jamming_zone(
+        self,
+        zone_id: str,
+        *,
+        center: tuple[float, float, float] | None = None,
+        radius: float | None = None,
+        obstacle_type: str | None = None,
+        intensity: float | None = None,
+        active: bool | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if center is not None:
+            payload["center"] = list(center)
+        if radius is not None:
+            payload["radius"] = float(radius)
+        if obstacle_type is not None:
+            payload["obstacle_type"] = obstacle_type
+        if intensity is not None:
+            payload["intensity"] = float(intensity)
+        if active is not None:
+            payload["active"] = bool(active)
+        if not payload:
+            return {"success": False, "error": "No jamming zone fields provided"}
+        return self._request("PUT", f"/jamming_zones/{zone_id}", payload)
+
     def delete_jamming_zone(self, zone_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/jamming_zones/{zone_id}")
 
@@ -171,6 +235,40 @@ class SwarmSquadClient:
 
     def list_spoofing_zones(self) -> dict[str, Any]:
         return self._request("GET", "/spoofing_zones")
+
+    def get_spoofing_zone(self, zone_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/spoofing_zones/{zone_id}")
+
+    def update_spoofing_zone(
+        self,
+        zone_id: str,
+        *,
+        center: tuple[float, float, float] | None = None,
+        radius: float | None = None,
+        spoof_type: str | None = None,
+        phantom_count: int | None = None,
+        falsification_magnitude: float | None = None,
+        coordinate_vector: tuple[float, float, float] | None = None,
+        active: bool | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if center is not None:
+            payload["center"] = list(center)
+        if radius is not None:
+            payload["radius"] = float(radius)
+        if spoof_type is not None:
+            payload["spoof_type"] = spoof_type
+        if phantom_count is not None:
+            payload["phantom_count"] = int(phantom_count)
+        if falsification_magnitude is not None:
+            payload["falsification_magnitude"] = float(falsification_magnitude)
+        if coordinate_vector is not None:
+            payload["coordinate_vector"] = list(coordinate_vector)
+        if active is not None:
+            payload["active"] = bool(active)
+        if not payload:
+            return {"success": False, "error": "No spoofing zone fields provided"}
+        return self._request("PUT", f"/spoofing_zones/{zone_id}", payload)
 
     def delete_spoofing_zone(self, zone_id: str) -> dict[str, Any]:
         return self._request("DELETE", f"/spoofing_zones/{zone_id}")
@@ -224,6 +322,15 @@ class SwarmSquadClient:
     def llm_assistance_status(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/llm_assistance")
 
+    def llm_targets(self) -> dict[str, Any]:
+        return self._request("GET", "/llm_targets")
+
+    def clear_llm_target(self, agent_id: str) -> dict[str, Any]:
+        return self._request("DELETE", f"/llm_targets/{agent_id}")
+
+    def clear_all_llm_targets(self) -> dict[str, Any]:
+        return self._request("POST", "/llm_targets/clear_all")
+
     def list_custom_algorithms(self) -> dict[str, Any]:
         return self._request("GET", "/simulation/custom_algorithms")
 
@@ -250,6 +357,33 @@ class SwarmSquadClient:
 
     def remove_custom_algorithm(self, name: str) -> dict[str, Any]:
         return self._request("DELETE", f"/simulation/custom_algorithms/{name}")
+
+    def list_custom_crypto_algorithms(self) -> dict[str, Any]:
+        return self._request("GET", "/simulation/custom_crypto_algorithms")
+
+    def register_custom_crypto_algorithm(
+        self,
+        *,
+        name: str,
+        sign_import_path: str,
+        verify_import_path: str,
+        description: str = "",
+        replace: bool = False,
+    ) -> dict[str, Any]:
+        return self._request(
+            "POST",
+            "/simulation/custom_crypto_algorithms",
+            {
+                "name": name,
+                "sign_import_path": sign_import_path,
+                "verify_import_path": verify_import_path,
+                "description": description,
+                "replace": replace,
+            },
+        )
+
+    def remove_custom_crypto_algorithm(self, name: str) -> dict[str, Any]:
+        return self._request("DELETE", f"/simulation/custom_crypto_algorithms/{name}")
 
     def apply_preset(self, preset: str, seed: int = 0) -> dict[str, Any]:
         """Reset live simulation and configure attack/defense state from a preset."""

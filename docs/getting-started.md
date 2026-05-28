@@ -80,7 +80,7 @@ What to confirm:
 ## First guided mission in the GUI
 
 1. Open `http://localhost:5000`.
-2. In the right panel, choose a preset in the beginner section.
+2. In the right panel, choose formation/path/comm settings.
 3. Press Start simulation.
 4. Watch:
    - agent motion in 3D,
@@ -126,6 +126,18 @@ Expected result:
 
 - Your script updates the running backend.
 - GUI immediately reflects changed zones/algorithm/state.
+
+For the full phased script that covers all major knobs (agents, zones, comm model,
+custom path, custom crypto, LLM toggle, metrics, cleanup), run:
+
+```bash
+uv run python examples/ep1_custom_control_loop.py
+```
+
+Related docs:
+
+- `docs/script-customization.md`
+- `docs/client-api-reference.md`
 
 ## Fast validation commands
 

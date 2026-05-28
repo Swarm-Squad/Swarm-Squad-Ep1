@@ -61,3 +61,16 @@ def test_status_contract_includes_boundaries(chat_client):
     assert {"x_range", "y_range", "z_range", "mission_end"} <= payload[
         "boundaries"
     ].keys()
+
+
+def test_frontend_runtime_config_contract_for_algorithm_selectors(chat_client):
+    response = chat_client.get("/static/js/app.js")
+    assert response.status_code == 200
+    js = response.text
+    assert "path_algorithms" in js
+    assert "custom_path_algorithms" in js
+    assert "crypto_algorithms" in js
+    assert "crypto_algorithm_labels" in js
+    assert "custom_crypto_algorithms" in js
+    assert "current.path_algorithm" in js
+    assert "current.crypto_algorithm" in js

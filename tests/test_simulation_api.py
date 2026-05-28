@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+
 import pytest
 
 import swarm_squad_ep1.simulation.api as sim_api
@@ -12,6 +15,26 @@ def scripted_test_path(start, goal, jamming_zones, **kwargs):
     """Simple custom path algorithm used for endpoint/registry tests."""
     mid = (start + goal) / 2
     return [start, mid, goal]
+
+
+def scripted_crypto_sign(
+    *, key: bytes, data: bytes, sender_id: str, crypto=None
+) -> bytes:
+    sender = sender_id.encode("utf-8")
+    return hmac.new(key, sender + data, hashlib.sha256).digest()
+
+
+def scripted_crypto_verify(
+    *,
+    key: bytes,
+    data: bytes,
+    signature: bytes,
+    sender_id: str,
+    crypto=None,
+) -> bool:
+    sender = sender_id.encode("utf-8")
+    expected = hmac.new(key, sender + data, hashlib.sha256).digest()
+    return hmac.compare_digest(signature, expected)
 
 
 def _first_agent_id(sim_client) -> str:
@@ -111,6 +134,39 @@ def test_spoofing_zone_crud(sim_client):
     cleared = sim_client.delete("/spoofing_zones")
     assert cleared.status_code == 200
     assert cleared.json()["success"] is True
+
+
+def test_spoofing_zone_get_and_update_endpoints(sim_client):
+    created = sim_client.post(
+        "/spoofing_zones",
+        json={
+            "center": [22.0, 35.0, 4.0],
+            "radius": 9.0,
+            "spoof_type": "phantom",
+            "phantom_count": 2,
+        },
+    )
+    assert created.status_code == 200
+    zone_id = created.json()["zone"]["id"]
+
+    fetched = sim_client.get(f"/spoofing_zones/{zone_id}")
+    assert fetched.status_code == 200
+    assert fetched.json()["id"] == zone_id
+
+    updated = sim_client.put(
+        f"/spoofing_zones/{zone_id}",
+        json={
+            "spoof_type": "coordinate",
+            "coordinate_vector": [4.0, -2.0, 0.0],
+            "radius": 12.0,
+            "active": True,
+        },
+    )
+    assert updated.status_code == 200
+    payload = updated.json()["zone"]
+    assert payload["spoof_type"] == "coordinate"
+    assert payload["radius"] == 12.0
+    assert payload["coordinate_vector"] == [4.0, -2.0, 0.0]
 
 
 def test_crypto_auth_and_v2v_channel_endpoints(sim_client):
@@ -213,8 +269,16 @@ def test_simulation_config_includes_dynamic_algorithm_fields(sim_client):
     assert "path_algorithms" in payload
     assert "path_algorithm_labels" in payload
     assert "custom_path_algorithms" in payload
+    assert "crypto_algorithms" in payload
+    assert "crypto_algorithm_labels" in payload
+    assert "custom_crypto_algorithms" in payload
     assert "comm_models" in payload
+    assert "current" in payload
     assert "astar" in payload["path_algorithms"]
+    assert "hmac_sha256" in payload["crypto_algorithms"]
+    assert {"running", "formation", "path_algorithm", "crypto_algorithm"} <= payload[
+        "current"
+    ].keys()
 
 
 def test_custom_algorithm_registry_endpoints(sim_client):
@@ -263,3 +327,40 @@ def test_invalid_path_algorithm_is_rejected(sim_client):
     )
     assert bad_start.status_code == 400
     assert "Unknown algorithm" in bad_start.json()["detail"]
+
+
+def test_custom_crypto_registry_endpoints(sim_client):
+    listed = sim_client.get("/simulation/custom_crypto_algorithms")
+    assert listed.status_code == 200
+    assert "algorithms" in listed.json()
+
+    create = sim_client.post(
+        "/simulation/custom_crypto_algorithms",
+        json={
+            "name": "scripted_hmac",
+            "sign_import_path": "tests.test_simulation_api:scripted_crypto_sign",
+            "verify_import_path": "tests.test_simulation_api:scripted_crypto_verify",
+            "description": "Scripted HMAC crypto",
+        },
+    )
+    assert create.status_code == 200
+    create_payload = create.json()
+    assert create_payload["success"] is True
+    assert "scripted_hmac" in create_payload["crypto_algorithms"]
+
+    config = sim_client.get("/simulation/config").json()
+    assert "scripted_hmac" in config["crypto_algorithms"]
+    assert config["crypto_algorithm_labels"]["scripted_hmac"] == "Scripted HMAC crypto"
+
+    update_crypto = sim_client.post(
+        "/simulation/crypto_auth",
+        json={"enabled": True, "algorithm": "scripted_hmac"},
+    )
+    assert update_crypto.status_code == 200
+    assert update_crypto.json()["success"] is True
+    assert update_crypto.json()["algorithm"] == "scripted_hmac"
+
+    remove = sim_client.delete("/simulation/custom_crypto_algorithms/scripted_hmac")
+    assert remove.status_code == 200
+    assert remove.json()["success"] is True
+    assert "scripted_hmac" not in remove.json()["crypto_algorithms"]

@@ -20,6 +20,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
+from swarm_squad_ep1.algo.custom_crypto_algorithms import (
+    get_custom_crypto_algorithm,
+    has_custom_crypto_algorithm,
+    list_custom_crypto_algorithms,
+    register_custom_crypto_algorithm,
+    unregister_custom_crypto_algorithm,
+)
 from swarm_squad_ep1.algo.mavlink import MAVLinkMessage
 
 
@@ -29,11 +36,52 @@ class CryptoAlgorithm(str, Enum):
     AES_256_CTR = "aes_256_ctr"
 
 
+BUILTIN_CRYPTO_ALGORITHMS = [item.value for item in CryptoAlgorithm]
+
 ALGORITHM_LABELS = {
-    CryptoAlgorithm.HMAC_SHA256: "HMAC-SHA256",
-    CryptoAlgorithm.CHACHA20_POLY1305: "ChaCha20-Poly1305",
-    CryptoAlgorithm.AES_256_CTR: "AES-256-CTR",
+    CryptoAlgorithm.HMAC_SHA256.value: "HMAC-SHA256",
+    CryptoAlgorithm.CHACHA20_POLY1305.value: "ChaCha20-Poly1305",
+    CryptoAlgorithm.AES_256_CTR.value: "AES-256-CTR",
 }
+
+
+def get_available_crypto_algorithms() -> list[str]:
+    custom_names = [item["name"] for item in list_custom_crypto_algorithms()]
+    extras = [name for name in custom_names if name not in BUILTIN_CRYPTO_ALGORITHMS]
+    return [*BUILTIN_CRYPTO_ALGORITHMS, *extras]
+
+
+def get_crypto_algorithm_labels() -> dict[str, str]:
+    labels = dict(ALGORITHM_LABELS)
+    for item in list_custom_crypto_algorithms():
+        labels[item["name"]] = item.get("description") or item["name"].replace("_", " ")
+    return labels
+
+
+def register_crypto_algorithm(
+    *,
+    name: str,
+    sign_import_path: str,
+    verify_import_path: str,
+    description: str = "",
+    replace: bool = False,
+) -> dict[str, str]:
+    return register_custom_crypto_algorithm(
+        name=name,
+        sign_import_path=sign_import_path,
+        verify_import_path=verify_import_path,
+        description=description,
+        replace=replace,
+        reserved_names=BUILTIN_CRYPTO_ALGORITHMS,
+    )
+
+
+def list_registered_crypto_algorithms() -> list[dict[str, str]]:
+    return list_custom_crypto_algorithms()
+
+
+def unregister_crypto_algorithm(name: str) -> Optional[dict[str, str]]:
+    return unregister_custom_crypto_algorithm(name)
 
 
 @dataclass
@@ -96,16 +144,19 @@ class CryptoAuth:
 
     def __init__(self):
         self.enabled: bool = False
-        self.algorithm: CryptoAlgorithm = CryptoAlgorithm.HMAC_SHA256
+        self.algorithm: str = CryptoAlgorithm.HMAC_SHA256.value
         self._agent_keys: dict[str, bytes] = {}
         self.stats = CryptoStats()
         self._nonce_counters: dict[str, int] = {}
 
     def set_algorithm(self, algo: str):
-        try:
-            self.algorithm = CryptoAlgorithm(algo)
-        except ValueError:
-            self.algorithm = CryptoAlgorithm.HMAC_SHA256
+        normalized = (algo or "").strip().lower()
+        if normalized in BUILTIN_CRYPTO_ALGORITHMS or has_custom_crypto_algorithm(
+            normalized
+        ):
+            self.algorithm = normalized
+            return
+        self.algorithm = CryptoAlgorithm.HMAC_SHA256.value
 
     def generate_keys(self, agent_ids: list[str]):
         """Generate fresh 32-byte keys for all real agents."""
@@ -138,12 +189,16 @@ class CryptoAuth:
         t0 = time.perf_counter_ns()
         payload_bytes = self._serialize_payload(msg)
 
-        if self.algorithm == CryptoAlgorithm.HMAC_SHA256:
+        if self.algorithm == CryptoAlgorithm.HMAC_SHA256.value:
             msg.signature = self._sign_hmac(key, payload_bytes)
-        elif self.algorithm == CryptoAlgorithm.CHACHA20_POLY1305:
+        elif self.algorithm == CryptoAlgorithm.CHACHA20_POLY1305.value:
             msg.signature = self._sign_chacha20(key, payload_bytes, msg.sender_id)
-        elif self.algorithm == CryptoAlgorithm.AES_256_CTR:
+        elif self.algorithm == CryptoAlgorithm.AES_256_CTR.value:
             msg.signature = self._sign_aes_ctr(key, payload_bytes, msg.sender_id)
+        elif has_custom_crypto_algorithm(self.algorithm):
+            msg.signature = self._sign_custom(key, payload_bytes, msg.sender_id)
+        else:
+            msg.signature = self._sign_hmac(key, payload_bytes)
 
         elapsed_us = (time.perf_counter_ns() - t0) / 1000.0
         self.stats.sign_time_us += elapsed_us
@@ -162,14 +217,18 @@ class CryptoAuth:
         t0 = time.perf_counter_ns()
         payload_bytes = self._serialize_payload(msg)
 
-        if self.algorithm == CryptoAlgorithm.HMAC_SHA256:
+        if self.algorithm == CryptoAlgorithm.HMAC_SHA256.value:
             valid = self._verify_hmac(key, payload_bytes, msg.signature)
-        elif self.algorithm == CryptoAlgorithm.CHACHA20_POLY1305:
+        elif self.algorithm == CryptoAlgorithm.CHACHA20_POLY1305.value:
             valid = self._verify_chacha20(key, payload_bytes, msg.signature)
-        elif self.algorithm == CryptoAlgorithm.AES_256_CTR:
+        elif self.algorithm == CryptoAlgorithm.AES_256_CTR.value:
             valid = self._verify_aes_ctr(key, payload_bytes, msg.signature)
+        elif has_custom_crypto_algorithm(self.algorithm):
+            valid = self._verify_custom(
+                key, payload_bytes, msg.signature, msg.sender_id
+            )
         else:
-            valid = False
+            valid = self._verify_hmac(key, payload_bytes, msg.signature)
 
         elapsed_us = (time.perf_counter_ns() - t0) / 1000.0
         self.stats.verify_time_us += elapsed_us
@@ -210,18 +269,18 @@ class CryptoAuth:
                         "sender": msg.sender_id,
                         "type": msg.msg_type.name,
                         "spoofed": msg.is_spoofed,
-                        "algorithm": self.algorithm.value,
+                        "algorithm": self.algorithm,
                     }
                 )
         return accepted
 
     def get_status(self) -> dict:
+        labels = get_crypto_algorithm_labels()
         return {
             "enabled": self.enabled,
-            "algorithm": self.algorithm.value,
-            "algorithm_label": ALGORITHM_LABELS.get(
-                self.algorithm, self.algorithm.value
-            ),
+            "algorithm": self.algorithm,
+            "algorithm_label": labels.get(self.algorithm, self.algorithm),
+            "available_algorithms": get_available_crypto_algorithms(),
             "registered_agents": list(self._agent_keys.keys()),
             "stats": self.stats.to_dict(),
         }
@@ -330,6 +389,49 @@ class CryptoAuth:
         decryptor = cipher.decryptor()
         plaintext = decryptor.update(ct) + decryptor.finalize()
         return plaintext == data
+
+    def _sign_custom(self, key: bytes, data: bytes, sender_id: str) -> bytes:
+        entry = get_custom_crypto_algorithm(self.algorithm)
+        if entry is None:
+            return self._sign_hmac(key, data)
+        try:
+            signature = entry.sign_callable(
+                key=key,
+                data=data,
+                sender_id=sender_id,
+                crypto=self,
+            )
+            if isinstance(signature, bytearray):
+                signature = bytes(signature)
+            if isinstance(signature, bytes):
+                return signature
+        except Exception as exc:
+            print(
+                f"[CryptoAuth] Custom sign failed for '{self.algorithm}', using HMAC fallback: {exc}"
+            )
+        return self._sign_hmac(key, data)
+
+    def _verify_custom(
+        self, key: bytes, data: bytes, signature: bytes, sender_id: str
+    ) -> bool:
+        entry = get_custom_crypto_algorithm(self.algorithm)
+        if entry is None:
+            return self._verify_hmac(key, data, signature)
+        try:
+            verdict = entry.verify_callable(
+                key=key,
+                data=data,
+                signature=signature,
+                sender_id=sender_id,
+                crypto=self,
+            )
+            if isinstance(verdict, bool):
+                return verdict
+        except Exception as exc:
+            print(
+                f"[CryptoAuth] Custom verify failed for '{self.algorithm}', using HMAC fallback: {exc}"
+            )
+        return self._verify_hmac(key, data, signature)
 
     # ----------------------------------------------------------------
     # Helpers
