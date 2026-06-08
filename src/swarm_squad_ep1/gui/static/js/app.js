@@ -33,8 +33,11 @@ const App = {
   bootstrapSimulationStatus: null,
   simulationConfig: null,
   simulationConfigRefreshTick: 0,
+  currentFormation: "communication_aware",
   currentPathAlgorithm: "astar",
+  currentCommModel: "v2v_channel",
   currentCryptoAlgorithm: "hmac_sha256",
+  currentSpoofType: "phantom",
 
   /**
    * Initialize the application
@@ -138,6 +141,7 @@ const App = {
     if (!config) return;
 
     const current = config.current || {};
+    const useServerCurrent = !!current.running;
     const formationSelect = document.getElementById("formation-select");
     const pathAlgoSelect = document.getElementById("path-algo-select");
     const commModelSelect = document.getElementById("comm-model-select");
@@ -147,11 +151,20 @@ const App = {
       "communication_aware",
       ...(Array.isArray(config.formations) ? config.formations : []),
     ];
+    const selectedFormation = useServerCurrent
+      ? current.formation ||
+        this.currentFormation ||
+        formationSelect?.value ||
+        "communication_aware"
+      : this.currentFormation ||
+        formationSelect?.value ||
+        current.formation ||
+        "communication_aware";
     this.setSelectOptions(formationSelect, formations, {
-      selected:
-        current.formation || formationSelect?.value || "communication_aware",
+      selected: selectedFormation,
       labels: { communication_aware: "Communication-Aware" },
     });
+    this.currentFormation = formationSelect?.value || selectedFormation;
 
     const pathAlgorithms = Array.isArray(config.path_algorithms)
       ? config.path_algorithms
@@ -164,11 +177,15 @@ const App = {
     const mergedPathAlgorithms = [
       ...new Set([...pathAlgorithms, ...customPathNames]),
     ];
-    const selectedPathAlgorithm =
-      current.path_algorithm ||
-      this.currentPathAlgorithm ||
-      pathAlgoSelect?.value ||
-      "astar";
+    const selectedPathAlgorithm = useServerCurrent
+      ? current.path_algorithm ||
+        this.currentPathAlgorithm ||
+        pathAlgoSelect?.value ||
+        "astar"
+      : this.currentPathAlgorithm ||
+        pathAlgoSelect?.value ||
+        current.path_algorithm ||
+        "astar";
     if (!mergedPathAlgorithms.includes(selectedPathAlgorithm)) {
       mergedPathAlgorithms.push(selectedPathAlgorithm);
     }
@@ -181,13 +198,23 @@ const App = {
     const commModels = Array.isArray(config.comm_models)
       ? config.comm_models
       : ["v2v_channel", "legacy"];
+    const selectedCommModel = useServerCurrent
+      ? current.comm_model ||
+        this.currentCommModel ||
+        commModelSelect?.value ||
+        "v2v_channel"
+      : this.currentCommModel ||
+        commModelSelect?.value ||
+        current.comm_model ||
+        "v2v_channel";
     this.setSelectOptions(commModelSelect, commModels, {
-      selected: current.comm_model || commModelSelect?.value || "v2v_channel",
+      selected: selectedCommModel,
       labels: {
         v2v_channel: "V2V Channel (LOS/NLOS)",
         legacy: "Legacy (Distance-Only)",
       },
     });
+    this.currentCommModel = commModelSelect?.value || selectedCommModel;
 
     const cryptoAlgorithms = Array.isArray(config.crypto_algorithms)
       ? config.crypto_algorithms
@@ -200,11 +227,15 @@ const App = {
     const mergedCryptoAlgorithms = [
       ...new Set([...cryptoAlgorithms, ...customCryptoNames]),
     ];
-    const selectedCryptoAlgorithm =
-      current.crypto_algorithm ||
-      this.currentCryptoAlgorithm ||
-      cryptoAlgoSelect?.value ||
-      "hmac_sha256";
+    const selectedCryptoAlgorithm = useServerCurrent
+      ? current.crypto_algorithm ||
+        this.currentCryptoAlgorithm ||
+        cryptoAlgoSelect?.value ||
+        "hmac_sha256"
+      : this.currentCryptoAlgorithm ||
+        cryptoAlgoSelect?.value ||
+        current.crypto_algorithm ||
+        "hmac_sha256";
     if (!mergedCryptoAlgorithms.includes(selectedCryptoAlgorithm)) {
       mergedCryptoAlgorithms.push(selectedCryptoAlgorithm);
     }
@@ -428,9 +459,11 @@ const App = {
 
     const formationSelect = document.getElementById("formation-select");
     if (formationSelect) {
-      formationSelect.addEventListener("change", (e) =>
-        applyAlgorithmChange("formation", e.target.value),
-      );
+      formationSelect.addEventListener("change", (e) => {
+        const selected = e.target.value;
+        App.currentFormation = selected;
+        applyAlgorithmChange("formation", selected);
+      });
     }
 
     const pathAlgoSelect = document.getElementById("path-algo-select");
@@ -445,14 +478,16 @@ const App = {
     const commModelSelect = document.getElementById("comm-model-select");
     if (commModelSelect) {
       commModelSelect.addEventListener("change", async (e) => {
-        const enabled = e.target.value === "v2v_channel";
+        const selected = e.target.value;
+        App.currentCommModel = selected;
+        const enabled = selected === "v2v_channel";
         try {
           await fetch("/simulation/v2v_channel", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ enabled }),
           });
-          console.log(`[App] Comm model: ${e.target.value} (v2v=${enabled})`);
+          console.log(`[App] Comm model: ${selected} (v2v=${enabled})`);
           const statusEl = document.getElementById("v2v-status");
           if (statusEl) statusEl.classList.toggle("hidden", !enabled);
         } catch (err) {
@@ -943,6 +978,27 @@ const App = {
       const response = await fetch("/simulation/state");
       const data = await response.json();
 
+      if (data.current) {
+        const current = data.current;
+        if (current.formation) {
+          this.currentFormation = current.formation;
+          const formationSelect = document.getElementById("formation-select");
+          if (formationSelect) formationSelect.value = current.formation;
+        }
+        if (current.path_algorithm) {
+          this.syncPathAlgorithmSelection(current.path_algorithm);
+        }
+        if (current.comm_model) {
+          this.currentCommModel = current.comm_model;
+          const commModelSelect = document.getElementById("comm-model-select");
+          if (commModelSelect) commModelSelect.value = current.comm_model;
+        }
+        if (current.crypto_algorithm) {
+          this.syncCryptoAlgorithmSelection(current.crypto_algorithm);
+        }
+        this.updateRuntimeAlgorithmStatus(current, this.simulationConfig || {});
+      }
+
       this.updateFormationStatus(data.formation);
 
       // Check if simulation just completed
@@ -1424,11 +1480,10 @@ function showAddSpoofingModal() {
   }
   modal.classList.remove("hidden");
   modal.classList.add("flex");
-  // Sync attack type from algorithm control dropdown, but override "none" with "phantom"
-  const algoType = document.getElementById("spoof-type-select")?.value;
   const modalType = document.getElementById("spoof-modal-type");
   if (modalType) {
-    modalType.value = algoType && algoType !== "none" ? algoType : "phantom";
+    modalType.value = App.currentSpoofType || modalType.value || "phantom";
+    updateSpoofingAttackFieldVisibility(modalType.value);
   }
   if (window.lucide) lucide.createIcons();
 }
@@ -1438,6 +1493,28 @@ function hideAddSpoofingModal() {
   if (modal) {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
+  }
+}
+
+function updateSpoofingAttackFieldVisibility(spoofType = null) {
+  const type =
+    spoofType ||
+    document.getElementById("spoof-modal-type")?.value ||
+    "phantom";
+  const phantomGroup = document.getElementById("spoof-phantom-group");
+  const magnitudeGroup = document.getElementById("spoof-magnitude-group");
+  const coordinateGroup = document.getElementById("spoof-coordinate-group");
+  if (phantomGroup) {
+    phantomGroup.classList.toggle("hidden", type !== "phantom");
+  }
+  if (magnitudeGroup) {
+    magnitudeGroup.classList.toggle(
+      "hidden",
+      type !== "position_falsification",
+    );
+  }
+  if (coordinateGroup) {
+    coordinateGroup.classList.toggle("hidden", type !== "coordinate");
   }
 }
 
@@ -1453,6 +1530,12 @@ async function createSpoofingZone() {
     parseInt(document.getElementById("spoof-phantom-count")?.value) || 2;
   const magnitude =
     parseFloat(document.getElementById("spoof-magnitude")?.value) || 8;
+  const coordX =
+    parseFloat(document.getElementById("spoof-coord-x")?.value) || 10;
+  const coordY =
+    parseFloat(document.getElementById("spoof-coord-y")?.value) || 10;
+  const coordZ =
+    parseFloat(document.getElementById("spoof-coord-z")?.value) || 0;
 
   console.log("[App] Creating spoofing zone:", {
     center: [x, y, z],
@@ -1470,7 +1553,7 @@ async function createSpoofingZone() {
         spoof_type: spoofType,
         phantom_count: phantomCount,
         falsification_magnitude: magnitude,
-        coordinate_vector: [10, 10, 0],
+        coordinate_vector: [coordX, coordY, coordZ],
         active: true,
       }),
     });
@@ -1479,6 +1562,7 @@ async function createSpoofingZone() {
     console.log("[App] Spoofing zone response:", result);
 
     if (response.ok && result.success) {
+      App.currentSpoofType = spoofType;
       hideAddSpoofingModal();
       App.fetchSpoofingZones();
       // Auto-expand spoofing panel to show the new zone
@@ -1744,7 +1828,9 @@ async function startSimulation() {
   const commModel =
     document.getElementById("comm-model-select")?.value || "v2v_channel";
 
+  App.currentFormation = formation;
   App.currentPathAlgorithm = pathAlgo;
+  App.currentCommModel = commModel;
   App.currentCryptoAlgorithm = cryptoAlgo;
 
   // Apply comm model setting before starting
@@ -1782,6 +1868,7 @@ async function startSimulation() {
 }
 
 async function stopSimulation() {
+  suppressNextAutoResultsModal = true;
   try {
     const response = await fetch("/simulation/stop", {
       method: "POST",
@@ -1810,11 +1897,13 @@ async function stopSimulation() {
       }
     }
   } catch (error) {
+    suppressNextAutoResultsModal = false;
     console.error("Failed to stop simulation:", error);
   }
 }
 
 async function resetSimulation() {
+  suppressNextAutoResultsModal = true;
   try {
     // Check if there are results to show BEFORE resetting
     // (reset will clear the results on the backend)
@@ -1842,6 +1931,7 @@ async function resetSimulation() {
       }
     }
   } catch (error) {
+    suppressNextAutoResultsModal = false;
     console.error("Failed to reset simulation:", error);
   }
 }
@@ -1967,6 +2057,8 @@ async function syncCryptoAuthState() {
 
 let resultsChart = null;
 let lastSimulationRunning = false;
+let suppressNextAutoResultsModal = false;
+let lastResultsModalShownAt = 0;
 
 /**
  * Show simulation results modal
@@ -1974,6 +2066,7 @@ let lastSimulationRunning = false;
 async function showResultsModal() {
   const modal = document.getElementById("results-modal");
   if (modal) {
+    lastResultsModalShownAt = Date.now();
     modal.classList.remove("hidden");
     modal.classList.add("flex");
     lucide.createIcons();
@@ -1988,6 +2081,7 @@ async function showResultsModal() {
 function showResultsModalWithData(results) {
   const modal = document.getElementById("results-modal");
   if (modal && results) {
+    lastResultsModalShownAt = Date.now();
     modal.classList.remove("hidden");
     modal.classList.add("flex");
     lucide.createIcons();
@@ -2570,12 +2664,24 @@ function downloadBlob(blob, filename) {
  * Check if simulation just completed and show results
  */
 function checkSimulationCompletion(running) {
+  if (suppressNextAutoResultsModal) {
+    suppressNextAutoResultsModal = false;
+    if (running !== undefined && running !== null) {
+      lastSimulationRunning = running;
+    }
+    return;
+  }
+
   // Only trigger if running is explicitly false (not undefined/null)
   if (lastSimulationRunning && running === false) {
     // Simulation just stopped - show results after a brief delay
     setTimeout(() => {
       // Double-check simulation is still stopped before showing modal
       // This prevents false triggers from brief API delays
+      const modal = document.getElementById("results-modal");
+      const shownRecently = Date.now() - lastResultsModalShownAt < 1200;
+      if (shownRecently) return;
+      if (modal && !modal.classList.contains("hidden")) return;
       if (!App.simulationRunning) {
         showResultsModal();
       }

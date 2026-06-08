@@ -15,7 +15,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from swarm_squad_ep1.chat.llm import answer_question
-from swarm_squad_ep1.chat.tools import TOOL_SCHEMAS, move_agent
+from swarm_squad_ep1.chat.tools import (
+    TOOL_EXECUTORS,
+    TOOL_SCHEMAS,
+    move_agent,
+)
+from swarm_squad_ep1.chat.tools import (
+    list_tools as list_tools_catalog,
+)
 from swarm_squad_ep1.config import (
     EDU_BEGINNER_MODE,
     EDU_DEFAULT_PRESET,
@@ -127,6 +134,44 @@ async def _fetch_simulation_status(timeout: float = 5.0) -> dict:
             "Simulation /status payload missing required boundaries contract"
         )
     return payload
+
+
+def _read_proxy_payload(response: httpx.Response):
+    """Decode proxied response payload, falling back to text wrappers."""
+    try:
+        return response.json()
+    except Exception:
+        text = (response.text or "").strip()
+        return {"detail": text or "Upstream response was not JSON"}
+
+
+async def _proxy_sim_json(
+    method: str,
+    path: str,
+    *,
+    json_body: dict | None = None,
+    params: dict | None = None,
+    timeout: float = 5.0,
+    on_exception_payload: dict | None = None,
+) -> JSONResponse:
+    """Proxy a JSON endpoint to the simulation API preserving status codes."""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.request(
+                method,
+                f"{SIMULATION_API_URL}{path}",
+                json=json_body,
+                params=params,
+                timeout=timeout,
+            )
+        return JSONResponse(
+            status_code=response.status_code, content=_read_proxy_payload(response)
+        )
+    except Exception as exc:
+        payload = {"success": False, "error": str(exc)}
+        if on_exception_payload:
+            payload.update(on_exception_payload)
+        return JSONResponse(status_code=503, content=payload)
 
 
 async def llm_target_loop():
@@ -298,16 +343,23 @@ async def list_tools_endpoint():
     Used by the frontend to render a helpful welcome message and a
     discoverable "what can you do" panel.
     """
-    tools = []
-    for t in TOOL_SCHEMAS:
-        tools.append(
-            {
-                "name": t["name"],
-                "description": t.get("description", ""),
-                "required": list(t.get("required", [])),
-                "params": list(t.get("parameters", {}).keys()),
-            }
-        )
+    catalog = await list_tools_catalog()
+    tools = catalog.get("tools", [])
+    available_names = {tool.get("name") for tool in tools}
+    registry_health = catalog.get("registry_health", {})
+
+    # Safety net: surface runtime registry drift right on /tools for easier debugging.
+    schema_names = {t["name"] for t in TOOL_SCHEMAS}
+    executor_names = set(TOOL_EXECUTORS.keys())
+    runtime_missing_executors = sorted(schema_names - executor_names)
+    runtime_extra_executors = sorted(executor_names - schema_names)
+    if runtime_missing_executors or runtime_extra_executors:
+        registry_health = {
+            **registry_health,
+            "missing_executors": runtime_missing_executors,
+            "extra_executors": runtime_extra_executors,
+        }
+
     # Short stable categorization for UI grouping
     categories = {
         "agents": [
@@ -340,7 +392,25 @@ async def list_tools_endpoint():
         "channel": ["toggle_v2v_channel", "get_v2v_channel_status"],
         "meta": ["list_tools"],
     }
-    return {"count": len(tools), "tools": tools, "categories": categories}
+    filtered_categories = {
+        group: [name for name in names if name in available_names]
+        for group, names in categories.items()
+    }
+    categorized = {name for names in filtered_categories.values() for name in names}
+    uncategorized = sorted(
+        name
+        for name in available_names
+        if isinstance(name, str) and name not in categorized
+    )
+    if uncategorized:
+        filtered_categories["other"] = uncategorized
+
+    return {
+        "count": len(tools),
+        "tools": tools,
+        "categories": filtered_categories,
+        "registry_health": registry_health,
+    }
 
 
 @app.get("/app_config")
@@ -501,7 +571,7 @@ async def chat(request: Request):
         import traceback
 
         traceback.print_exc()
-        return {"response": f"Error: {str(e)}"}
+        return JSONResponse(status_code=500, content={"response": f"Error: {str(e)}"})
 
 
 def _is_move_command(message: str) -> bool:
@@ -536,7 +606,9 @@ async def _handle_move_command(message: str) -> str:
         y = float(coord_match.group(2))
         z = float(coord_match.group(3)) if coord_match.group(3) else 0.0
         result = await move_agent(agent_id, x, y, z)
-        return result.get("message", "Move command sent.")
+        if result.get("success"):
+            return result.get("message", "Move command sent.")
+        return f"Failed to move {agent_id}: {result.get('error', 'unknown error')}"
 
     # Complex command - use LLM to parse
     print(f"[CHAT] Using LLM to parse complex move command for {agent_id}")
@@ -546,6 +618,8 @@ async def _handle_move_command(message: str) -> str:
         x, y, z = parsed["x"], parsed["y"], parsed["z"]
         result = await move_agent(agent_id, x, y, z)
         explanation = parsed.get("explanation", "")
+        if not result.get("success"):
+            return f"Failed to move {agent_id}: {result.get('error', 'unknown error')}"
         response = result.get("message", "Move command sent.")
         if explanation:
             response += f" ({explanation})"
@@ -693,67 +767,38 @@ async def get_postgresql_data():
 @app.get("/agents")
 async def proxy_agents():
     """Proxy to simulation API for agents."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{SIMULATION_API_URL}/agents", timeout=5.0)
-            return response.json()
-    except Exception as e:
-        return {"agents": {}, "error": str(e)}
+    return await _proxy_sim_json(
+        "GET", "/agents", on_exception_payload={"agents": {}}, timeout=5.0
+    )
 
 
 @app.post("/agents")
 async def proxy_create_agent(request: Request):
     """Create a new agent - proxy to simulation API."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/agents", json=data, timeout=5.0
-            )
-            if response.status_code >= 400:
-                return JSONResponse(
-                    status_code=response.status_code, content=response.json()
-                )
-            return response.json()
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+    data = await request.json()
+    return await _proxy_sim_json("POST", "/agents", json_body=data, timeout=5.0)
 
 
 @app.delete("/agents/{agent_id}")
 async def proxy_delete_agent(agent_id: str):
     """Delete an agent - proxy to simulation API."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{SIMULATION_API_URL}/agents/{agent_id}", timeout=5.0
-            )
-            if response.status_code >= 400:
-                return JSONResponse(
-                    status_code=response.status_code, content=response.json()
-                )
-            return response.json()
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+    return await _proxy_sim_json("DELETE", f"/agents/{agent_id}", timeout=5.0)
 
 
 @app.get("/visualization")
 async def proxy_visualization(trail_length: str = "short"):
     """Get visualization data (communication links, waypoints, trails)."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/visualization",
-                params={"trail_length": trail_length},
-                timeout=5.0,
-            )
-            return response.json()
-    except Exception as e:
-        return {
+    return await _proxy_sim_json(
+        "GET",
+        "/visualization",
+        params={"trail_length": trail_length},
+        timeout=5.0,
+        on_exception_payload={
             "communication_links": [],
             "waypoints": {},
             "traveled_paths": {},
-            "error": str(e),
-        }
+        },
+    )
 
 
 # ============================================================================
@@ -764,41 +809,22 @@ async def proxy_visualization(trail_length: str = "short"):
 @app.get("/jamming_zones")
 async def proxy_jamming_zones():
     """Get all jamming zones from simulation API."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/jamming_zones", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"zones": [], "error": str(e)}
+    return await _proxy_sim_json(
+        "GET", "/jamming_zones", timeout=5.0, on_exception_payload={"zones": []}
+    )
 
 
 @app.post("/jamming_zones")
 async def proxy_create_jamming_zone(request: Request):
     """Create a new jamming zone."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/jamming_zones", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json("POST", "/jamming_zones", json_body=data, timeout=5.0)
 
 
 @app.delete("/jamming_zones/{zone_id}")
 async def proxy_delete_jamming_zone(zone_id: str):
     """Delete a jamming zone."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{SIMULATION_API_URL}/jamming_zones/{zone_id}", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("DELETE", f"/jamming_zones/{zone_id}", timeout=5.0)
 
 
 # ============================================================================
@@ -809,54 +835,31 @@ async def proxy_delete_jamming_zone(zone_id: str):
 @app.get("/spoofing_zones")
 async def proxy_spoofing_zones():
     """Get all spoofing zones."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/spoofing_zones", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"zones": [], "count": 0, "error": str(e)}
+    return await _proxy_sim_json(
+        "GET",
+        "/spoofing_zones",
+        timeout=5.0,
+        on_exception_payload={"zones": [], "count": 0},
+    )
 
 
 @app.post("/spoofing_zones")
 async def proxy_create_spoofing_zone(request: Request):
     """Create a spoofing zone."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/spoofing_zones", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json("POST", "/spoofing_zones", json_body=data, timeout=5.0)
 
 
 @app.delete("/spoofing_zones/{zone_id}")
 async def proxy_delete_spoofing_zone(zone_id: str):
     """Delete a spoofing zone."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{SIMULATION_API_URL}/spoofing_zones/{zone_id}", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("DELETE", f"/spoofing_zones/{zone_id}", timeout=5.0)
 
 
 @app.delete("/spoofing_zones")
 async def proxy_clear_spoofing_zones():
     """Clear all spoofing zones."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{SIMULATION_API_URL}/spoofing_zones", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("DELETE", "/spoofing_zones", timeout=5.0)
 
 
 # ============================================================================
@@ -867,41 +870,32 @@ async def proxy_clear_spoofing_zones():
 @app.get("/simulation/crypto_auth")
 async def proxy_get_crypto_auth():
     """Get crypto auth status."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/crypto_auth", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"enabled": False, "error": str(e)}
+    return await _proxy_sim_json(
+        "GET",
+        "/simulation/crypto_auth",
+        timeout=5.0,
+        on_exception_payload={"enabled": False},
+    )
 
 
 @app.post("/simulation/crypto_auth")
 async def proxy_set_crypto_auth(request: Request):
     """Toggle crypto auth."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/crypto_auth", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json(
+        "POST", "/simulation/crypto_auth", json_body=data, timeout=5.0
+    )
 
 
 @app.get("/protocol_stats")
 async def proxy_protocol_stats():
     """Get MAVLink protocol statistics."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/protocol_stats", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"mavlink_enabled": False, "error": str(e)}
+    return await _proxy_sim_json(
+        "GET",
+        "/protocol_stats",
+        timeout=5.0,
+        on_exception_payload={"mavlink_enabled": False},
+    )
 
 
 @app.get("/simulation/attack_metrics")
@@ -936,108 +930,58 @@ async def proxy_attack_metrics():
 @app.get("/simulation/config")
 async def proxy_simulation_config():
     """Get simulation configuration options."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/config", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"error": str(e)}
+    return await _proxy_sim_json("GET", "/simulation/config", timeout=5.0)
 
 
 @app.post("/simulation/algorithm")
 async def proxy_simulation_algorithm(request: Request):
     """Update formation / path algorithm / obstacle type mid-simulation."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/algorithm", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json(
+        "POST", "/simulation/algorithm", json_body=data, timeout=5.0
+    )
 
 
 @app.get("/simulation/v2v_channel")
 async def proxy_v2v_channel_get():
     """Get V2V channel model status."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/v2v_channel", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("GET", "/simulation/v2v_channel", timeout=5.0)
 
 
 @app.post("/simulation/v2v_channel")
 async def proxy_v2v_channel_post(request: Request):
     """Toggle V2V channel model."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/v2v_channel", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json(
+        "POST", "/simulation/v2v_channel", json_body=data, timeout=5.0
+    )
 
 
 @app.post("/simulation/start")
 async def proxy_simulation_start(request: Request):
     """Start simulation."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/start", json=data, timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json(
+        "POST", "/simulation/start", json_body=data, timeout=5.0
+    )
 
 
 @app.post("/simulation/stop")
 async def proxy_simulation_stop():
     """Stop simulation."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/stop", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("POST", "/simulation/stop", timeout=5.0)
 
 
 @app.post("/simulation/reset")
 async def proxy_simulation_reset():
     """Reset simulation."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/reset", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    return await _proxy_sim_json("POST", "/simulation/reset", timeout=5.0)
 
 
 @app.get("/simulation/state")
 async def proxy_simulation_state():
     """Get simulation state."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/state", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"error": str(e)}
+    return await _proxy_sim_json("GET", "/simulation/state", timeout=5.0)
 
 
 # ============================================================================
@@ -1048,45 +992,33 @@ async def proxy_simulation_state():
 @app.get("/simulation/llm_assistance")
 async def proxy_get_llm_assistance():
     """Get LLM assistance state."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/llm_assistance", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"enabled": True, "error": str(e)}
+    return await _proxy_sim_json(
+        "GET",
+        "/simulation/llm_assistance",
+        timeout=5.0,
+        on_exception_payload={"enabled": True},
+    )
 
 
 @app.post("/simulation/llm_assistance")
 async def proxy_set_llm_assistance(request: Request):
     """Set LLM assistance state."""
-    try:
-        data = await request.json()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{SIMULATION_API_URL}/simulation/llm_assistance",
-                json=data,
-                timeout=5.0,
-            )
-            return response.json()
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+    data = await request.json()
+    return await _proxy_sim_json(
+        "POST", "/simulation/llm_assistance", json_body=data, timeout=5.0
+    )
 
 
 @app.get("/llm_activity")
 async def proxy_llm_activity(limit: int = 10):
     """Get recent LLM activity for chat panel."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/llm_activity",
-                params={"limit": limit},
-                timeout=5.0,
-            )
-            return response.json()
-    except Exception as e:
-        return {"activity": [], "error": str(e)}
+    return await _proxy_sim_json(
+        "GET",
+        "/llm_activity",
+        params={"limit": limit},
+        timeout=5.0,
+        on_exception_payload={"activity": []},
+    )
 
 
 @app.get("/llm_context")
@@ -1097,18 +1029,18 @@ async def proxy_llm_context():
             response = await client.get(
                 f"{SIMULATION_API_URL}/llm_context", timeout=5.0
             )
-            data = response.json()
+            data = _read_proxy_payload(response)
 
             # Inject the last user chat interaction so the "Last LLM Prompt" panel
             # is populated even when no agents are being autonomously assisted.
-            if _last_chat_prompt:
+            if _last_chat_prompt and isinstance(data, dict):
                 prompts = data.get("last_prompts") or []
                 prompts.append(_last_chat_prompt)
                 data["last_prompts"] = prompts
 
-            return data
+            return JSONResponse(status_code=response.status_code, content=data)
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=503, content={"error": str(e)})
 
 
 # ============================================================================
@@ -1119,14 +1051,7 @@ async def proxy_llm_context():
 @app.get("/simulation/results")
 async def proxy_simulation_results():
     """Get simulation results."""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/results", timeout=5.0
-            )
-            return response.json()
-    except Exception as e:
-        return {"error": str(e)}
+    return await _proxy_sim_json("GET", "/simulation/results", timeout=5.0)
 
 
 @app.get("/simulation/results/download")
@@ -1144,14 +1069,17 @@ async def proxy_simulation_results_download(format: str = "json"):
 
                 return PlainTextResponse(
                     content=response.text,
+                    status_code=response.status_code,
                     media_type="text/csv",
                     headers={
                         "Content-Disposition": "attachment; filename=simulation_results.csv"
                     },
                 )
-            return response.json()
+            return JSONResponse(
+                status_code=response.status_code, content=_read_proxy_payload(response)
+            )
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=503, content={"error": str(e)})
 
 
 # For running standalone

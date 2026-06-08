@@ -89,6 +89,7 @@ TOOL_SCHEMAS = [
                 "type": "string",
                 "description": "'phantom', 'position_falsification', or 'coordinate'",
                 "default": "phantom",
+                "enum": ["phantom", "position_falsification", "coordinate"],
             },
         },
         "required": ["x", "y"],
@@ -105,6 +106,7 @@ TOOL_SCHEMAS = [
                 "type": "string",
                 "description": "'hmac_sha256', 'chacha20_poly1305', or 'aes_256_ctr'",
                 "default": "hmac_sha256",
+                "enum": ["hmac_sha256", "chacha20_poly1305", "aes_256_ctr"],
             },
         },
         "required": ["enabled"],
@@ -142,6 +144,7 @@ TOOL_SCHEMAS = [
                 "type": "string",
                 "description": "'physical', 'low_jam', or 'high_jam'",
                 "default": "low_jam",
+                "enum": ["physical", "low_jam", "high_jam"],
             },
         },
         "required": ["x", "y"],
@@ -189,11 +192,29 @@ TOOL_SCHEMAS = [
                 "type": "string",
                 "description": "Formation type: 'communication_aware', 'v_formation', 'line', 'circle', 'wedge', 'column', 'diamond'",
                 "default": "communication_aware",
+                "enum": [
+                    "communication_aware",
+                    "v_formation",
+                    "line",
+                    "circle",
+                    "wedge",
+                    "column",
+                    "diamond",
+                ],
             },
             "path_algorithm": {
                 "type": "string",
-                "description": "Path algorithm: 'astar', 'direct', 'theta_star', 'dijkstra', 'bfs', 'greedy'",
+                "description": "Path algorithm: 'astar', 'direct', 'theta_star', 'dijkstra', 'bfs', 'greedy', 'bi_astar'",
                 "default": "astar",
+                "enum": [
+                    "astar",
+                    "direct",
+                    "theta_star",
+                    "dijkstra",
+                    "bfs",
+                    "greedy",
+                    "bi_astar",
+                ],
             },
         },
         "required": [],
@@ -217,6 +238,15 @@ TOOL_SCHEMAS = [
             "formation": {
                 "type": "string",
                 "description": "Formation type: 'communication_aware', 'v_formation', 'line', 'circle', 'wedge', 'column', 'diamond'",
+                "enum": [
+                    "communication_aware",
+                    "v_formation",
+                    "line",
+                    "circle",
+                    "wedge",
+                    "column",
+                    "diamond",
+                ],
             },
         },
         "required": ["formation"],
@@ -289,6 +319,16 @@ def _tool_args_schema(tool: dict) -> dict:
             prop["description"] = pinfo["description"]
         if "default" in pinfo and pinfo["default"] is not None:
             prop["default"] = pinfo["default"]
+        for keyword in (
+            "enum",
+            "minimum",
+            "maximum",
+            "minItems",
+            "maxItems",
+            "pattern",
+        ):
+            if keyword in pinfo:
+                prop[keyword] = pinfo[keyword]
         properties[pname] = prop
     return {
         "type": "object",
@@ -839,8 +879,18 @@ async def get_v2v_channel_status() -> dict[str, Any]:
             return {"success": False, "error": str(e)}
 
 
-async def list_tools() -> dict[str, Any]:
-    """Return a compact catalog of every tool registered in TOOL_SCHEMAS."""
+def get_tool_registry_health() -> dict[str, list[str]]:
+    """Return schema/executor drift info for debugging and tests."""
+    schema_names = {t["name"] for t in TOOL_SCHEMAS}
+    executor_names = set(TOOL_EXECUTORS.keys())
+    return {
+        "missing_executors": sorted(schema_names - executor_names),
+        "extra_executors": sorted(executor_names - schema_names),
+    }
+
+
+def get_tool_catalog() -> list[dict[str, Any]]:
+    """Return a compact, UI-friendly view of available tools."""
     catalog = []
     for t in TOOL_SCHEMAS:
         catalog.append(
@@ -851,7 +901,18 @@ async def list_tools() -> dict[str, Any]:
                 "all_params": list(t.get("parameters", {}).keys()),
             }
         )
-    return {"success": True, "count": len(catalog), "tools": catalog}
+    return catalog
+
+
+async def list_tools() -> dict[str, Any]:
+    """Return a compact catalog of every tool registered in TOOL_SCHEMAS."""
+    catalog = get_tool_catalog()
+    return {
+        "success": True,
+        "count": len(catalog),
+        "tools": catalog,
+        "registry_health": get_tool_registry_health(),
+    }
 
 
 TOOL_EXECUTORS = {

@@ -76,3 +76,22 @@ def test_frontend_runtime_config_contract_for_algorithm_selectors(chat_client):
     assert "current.path_algorithm" in js
     assert "current.crypto_algorithm" in js
     assert "updateRuntimeAlgorithmStatus" in js
+
+
+def test_frontend_reliability_hooks_for_right_panel(chat_client):
+    js_response = chat_client.get("/static/js/app.js")
+    assert js_response.status_code == 200
+    js = js_response.text
+    assert "useServerCurrent" in js
+    assert "currentFormation" in js
+    assert "currentCommModel" in js
+    assert "updateSpoofingAttackFieldVisibility" in js
+    assert "suppressNextAutoResultsModal" in js
+    assert "lastResultsModalShownAt" in js
+
+    html_response = chat_client.get("/static/index.html")
+    assert html_response.status_code == 200
+    html = html_response.text
+    assert "spoof-coordinate-group" in html
+    assert "spoof-magnitude-group" in html
+    assert "spoof-phantom-group" in html

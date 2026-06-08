@@ -1,7 +1,11 @@
 # Getting Started
 
-This guide is for first-time users who want to run Swarm Squad Ep1, inspect the GUI,
-and control the same simulation from Python scripts.
+This guide is for first-time users who want to run Swarm Squad Ep1.
+
+Before diving in, choose your track:
+
+- GUI-only track (no Python required): `docs/getting-started-gui.md`
+- Python + GUI track (custom scripts): `docs/getting-started-python.md`
 
 ## What Swarm Squad Ep1 includes
 
@@ -149,8 +153,12 @@ uv run swarm-squad-ep1 research smoke
 
 ## Where to go next
 
-- Classroom student handout: `docs/assignment-student.md`
-- Classroom instructor key/rubric: `docs/assignment-teacher.md`
+- GUI track student assignment: `docs/assignment-gui-student.md`
+- GUI track teacher manual: `docs/assignment-gui-teacher.md`
+- Python track student assignment: `docs/assignment-python-student.md`
+- Python track teacher manual: `docs/assignment-python-teacher.md`
+- GUI quick start: `docs/getting-started-gui.md`
+- Python quick start: `docs/getting-started-python.md`
 - Runtime and command modes: `docs/runtime-and-cli.md`
 - Script cookbook and API usage patterns: `docs/script-customization.md`
 - Troubleshooting by symptoms: `docs/troubleshooting.md`

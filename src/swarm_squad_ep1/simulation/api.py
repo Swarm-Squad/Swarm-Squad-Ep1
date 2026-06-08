@@ -1498,11 +1498,19 @@ async def get_simulation_state():
     controller = get_controller()
     formation_state = controller.get_formation_state()
     llm_controller = get_llm_controller()
+    crypto = get_crypto_auth()
 
     return {
         "running": simulation_running,
         "llm_assistance_enabled": llm_assistance_enabled,
         "llm_assistance_status": llm_controller.get_status(),
+        "current": {
+            "formation": controller.formation_type,
+            "path_algorithm": controller.path_algorithm,
+            "comm_model": "v2v_channel" if controller.use_v2v_channel else "legacy",
+            "crypto_auth_enabled": crypto.enabled,
+            "crypto_algorithm": crypto.algorithm,
+        },
         "formation": formation_state.to_dict(),
         "agents": {aid: agent.to_dict() for aid, agent in agent_states.items()},
         "jamming_zones": [z.to_dict() for z in jamming_zones.values()],
@@ -1883,14 +1891,18 @@ async def run_simulation_loop(destination: list[float]):
                 np.linalg.norm(np.array(pos, dtype=float) - destination_vec) < 2.0
                 for pos in positions
             )
-            reached = (controller.formation_converged and center_dist < 1.0) or all_agents_close
+            reached = (
+                controller.formation_converged and center_dist < 1.0
+            ) or all_agents_close
             if reached:
                 reason = (
                     "formation_converged"
                     if controller.formation_converged and center_dist < 1.0
                     else "all_agents_close"
                 )
-                print(f"[SIM API] Simulation complete - destination reached ({reason})!")
+                print(
+                    f"[SIM API] Simulation complete - destination reached ({reason})!"
+                )
                 simulation_results["destination_reached"] = True
                 simulation_running = False
                 break

@@ -174,7 +174,11 @@ def _wait_for_destination(
             break
         time.sleep(poll_s)
 
-    return bool(latest_results.get("destination_reached")), last_distance, latest_results
+    return (
+        bool(latest_results.get("destination_reached")),
+        last_distance,
+        latest_results,
+    )
 
 
 def main() -> None:

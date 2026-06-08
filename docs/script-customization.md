@@ -44,6 +44,14 @@ Use `examples/ep1_custom_control_loop.py` as the reference script. It runs ten p
 
 This script is intentionally compact and safe to re-run.
 
+## Assignment starter (simpler)
+
+For classroom labs, start with `examples/ep1_assignment_starter.py`.
+
+- It runs a small scenario matrix (baseline, jamming, spoofing, spoofing+crypto).
+- It prints and saves a compact metrics report to `assignment_starter_results.json`.
+- It is designed to be copied into `student_assignment.py` and extended.
+
 ## Knob mapping (goal -> client methods)
 
 Simulation lifecycle:
