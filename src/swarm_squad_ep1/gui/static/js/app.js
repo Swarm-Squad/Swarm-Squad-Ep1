@@ -38,6 +38,10 @@ const App = {
   currentCommModel: "v2v_channel",
   currentCryptoAlgorithm: "hmac_sha256",
   currentSpoofType: "phantom",
+  lastAttackMetrics: null,
+  attackMetricsRequestInFlight: false,
+  simulationConfigRequestInFlight: false,
+  simulationStateRequestInFlight: false,
 
   /**
    * Initialize the application
@@ -126,6 +130,8 @@ const App = {
       this.simulationConfigRefreshTick += 1;
       if (this.simulationConfigRefreshTick % 4 !== 0) return;
     }
+    if (this.simulationConfigRequestInFlight) return;
+    this.simulationConfigRequestInFlight = true;
     try {
       const response = await fetch("/simulation/config");
       if (!response.ok) return;
@@ -134,6 +140,8 @@ const App = {
       this.applySimulationConfig(config);
     } catch (error) {
       console.warn("[App] Failed to load simulation config:", error);
+    } finally {
+      this.simulationConfigRequestInFlight = false;
     }
   },
 
@@ -141,7 +149,8 @@ const App = {
     if (!config) return;
 
     const current = config.current || {};
-    const useServerCurrent = !!current.running;
+    // Only let server state drive selectors after this client has started a run.
+    const useServerCurrent = this.simulationRunning && !!current.running;
     const formationSelect = document.getElementById("formation-select");
     const pathAlgoSelect = document.getElementById("path-algo-select");
     const commModelSelect = document.getElementById("comm-model-select");
@@ -757,6 +766,8 @@ const App = {
    * Fetch spoof-detection / attack metrics.
    */
   async fetchAttackMetrics() {
+    if (this.attackMetricsRequestInFlight) return;
+    this.attackMetricsRequestInFlight = true;
     try {
       const response = await fetch("/simulation/attack_metrics");
       if (!response.ok) {
@@ -771,6 +782,8 @@ const App = {
     } catch (error) {
       console.warn("[App] attack_metrics fetch failed:", error);
       this._syncBadgeOnly();
+    } finally {
+      this.attackMetricsRequestInFlight = false;
     }
   },
 
@@ -785,10 +798,32 @@ const App = {
 
   updateAttackMetricsPanel(data) {
     if (!data) return;
-    const pct = (v) =>
-      typeof v === "number" && !Number.isNaN(v)
-        ? `${(v * 100).toFixed(1)}%`
-        : "-";
+    const source = data.source || "";
+    const isFallbackPayload =
+      source === "chat_fallback" || source === "chat_cached_fallback";
+    if (isFallbackPayload && this.lastAttackMetrics) {
+      // Keep previously-known values during transient proxy timeouts.
+      data = { ...this.lastAttackMetrics, ...data };
+    } else if (!isFallbackPayload) {
+      this.lastAttackMetrics = data;
+    }
+
+    const num = (v) => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      if (typeof v === "string" && v.trim().length > 0) {
+        const parsed = Number.parseFloat(v);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+      return null;
+    };
+    const pct = (v) => {
+      const parsed = num(v);
+      return parsed !== null ? `${(parsed * 100).toFixed(1)}%` : "-";
+    };
+    const fmt = (v, digits = 2) => {
+      const parsed = num(v);
+      return parsed !== null ? parsed.toFixed(digits) : "-";
+    };
     const set = (id, v) => {
       const el = document.getElementById(id);
       if (el) el.textContent = v;
@@ -802,13 +837,15 @@ const App = {
     const fn = data.fn ?? 0;
     const tn = data.tn ?? 0;
     const hasData = tp + fp + fn + tn > 0;
+    const hasPositives = tp + fn > 0;
+    const hasNegatives = fp + tn > 0;
+    const hasPredictedPositives = tp + fp > 0;
     const count = (v) => (hasData ? v : "idle");
-    const rate = (v) => (hasData ? pct(v) : "-");
 
-    set("am-det-rate", rate(data.detection_rate));
-    set("am-fpr", rate(data.false_positive_rate));
-    set("am-precision", rate(data.precision));
-    set("am-recall", rate(data.recall));
+    set("am-det-rate", hasPositives ? pct(data.detection_rate) : "-");
+    set("am-fpr", hasNegatives ? pct(data.false_positive_rate) : "-");
+    set("am-precision", hasPredictedPositives ? pct(data.precision) : "-");
+    set("am-recall", hasPositives ? pct(data.recall) : "-");
     set("am-tp", count(tp));
     set("am-fp", count(fp));
     set("am-fn", count(fn));
@@ -829,8 +866,12 @@ const App = {
     if (active) {
       const byType = data.active_attacks_by_type || {};
       const types = Object.keys(byType);
+      const jammingCount = data.jamming_zones_active ?? 0;
       if (types.length === 0) {
-        active.textContent = "No active spoofing attacks";
+        active.textContent =
+          jammingCount > 0
+            ? `No active spoofing attacks (${jammingCount} jamming zone${jammingCount === 1 ? "" : "s"} active)`
+            : "No active spoofing attacks";
       } else {
         active.innerHTML = types
           .map(
@@ -840,6 +881,54 @@ const App = {
           .join("");
       }
     }
+
+    const scopeNote = document.getElementById("am-scope-note");
+    if (scopeNote) {
+      let note =
+        data.metric_scope_note || "TP/FP/FN/TN are spoof-detection metrics.";
+      if (data.stale) {
+        note += " (showing last known values while simulation API is busy)";
+      }
+      scopeNote.textContent = note;
+    }
+
+    this.updateRunSummaryPanel(data);
+  },
+
+  updateRunSummaryPanel(summary) {
+    if (!summary) return;
+    const num = (v) => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      if (typeof v === "string" && v.trim().length > 0) {
+        const parsed = Number.parseFloat(v);
+        if (Number.isFinite(parsed)) return parsed;
+      }
+      return null;
+    };
+    const fmt = (v, digits = 2) => {
+      const parsed = num(v);
+      return parsed !== null ? parsed.toFixed(digits) : "-";
+    };
+    const set = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = v;
+    };
+
+    const durationValue = num(summary.duration_seconds);
+    const stepsValue = num(summary.steps);
+    set(
+      "am-run-duration",
+      durationValue !== null ? `${durationValue.toFixed(1)}s` : "-",
+    );
+    set(
+      "am-run-steps",
+      stepsValue !== null ? `${Math.max(0, Math.round(stepsValue))}` : "0",
+    );
+    set("am-run-avg-jn", fmt(summary.avg_Jn, 4));
+    set("am-run-avg-rn", fmt(summary.avg_rn, 2));
+    set("am-run-avg-path", fmt(summary.avg_traveled_path, 1));
+    set("am-run-final-jn", fmt(summary.final_Jn, 4));
+    set("am-run-final-rn", fmt(summary.final_rn, 2));
   },
 
   /**
@@ -974,11 +1063,15 @@ const App = {
    * Fetch simulation state (formation metrics)
    */
   async fetchSimulationState() {
+    if (this.simulationStateRequestInFlight) return;
+    this.simulationStateRequestInFlight = true;
     try {
       const response = await fetch("/simulation/state");
       const data = await response.json();
 
-      if (data.current) {
+      // Do not override pre-start user selections with backend idle defaults.
+      // Sync selector values from backend only while simulation is running.
+      if (data.running && data.current) {
         const current = data.current;
         if (current.formation) {
           this.currentFormation = current.formation;
@@ -996,8 +1089,16 @@ const App = {
         if (current.crypto_algorithm) {
           this.syncCryptoAlgorithmSelection(current.crypto_algorithm);
         }
-        this.updateRuntimeAlgorithmStatus(current, this.simulationConfig || {});
       }
+      if (data.run_summary) {
+        // Secondary live source for the Attack Metrics run summary.
+        // This keeps values fresh even if /simulation/attack_metrics stalls.
+        this.updateRunSummaryPanel(data.run_summary);
+      }
+      this.updateRuntimeAlgorithmStatus(
+        data.current || {},
+        this.simulationConfig || {},
+      );
 
       this.updateFormationStatus(data.formation);
 
@@ -1011,6 +1112,8 @@ const App = {
       document.getElementById("btn-sim-stop").disabled = !data.running;
     } catch (error) {
       // Simulation endpoint might not exist yet
+    } finally {
+      this.simulationStateRequestInFlight = false;
     }
   },
 
@@ -1835,11 +1938,16 @@ async function startSimulation() {
 
   // Apply comm model setting before starting
   try {
-    await fetch("/simulation/v2v_channel", {
+    const commResponse = await fetch("/simulation/v2v_channel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled: commModel === "v2v_channel" }),
     });
+    if (!commResponse.ok) {
+      console.warn(
+        `[App] Pre-start comm-model update returned ${commResponse.status}`,
+      );
+    }
   } catch (e) {
     console.warn("[App] Could not set V2V channel state:", e);
   }
@@ -1857,10 +1965,41 @@ async function startSimulation() {
     });
 
     if (response.ok) {
+      const payload = await response.json();
+      const runningConfig = payload?.config || {};
+      if (runningConfig.formation) {
+        App.currentFormation = runningConfig.formation;
+        const formationSelect = document.getElementById("formation-select");
+        if (formationSelect) formationSelect.value = runningConfig.formation;
+      }
+      if (runningConfig.path_algorithm) {
+        App.syncPathAlgorithmSelection(runningConfig.path_algorithm);
+      }
+      if (runningConfig.crypto_algorithm) {
+        App.syncCryptoAlgorithmSelection(runningConfig.crypto_algorithm);
+      }
       App.simulationRunning = true;
       document.getElementById("btn-sim-start").disabled = true;
       document.getElementById("btn-sim-stop").disabled = false;
+
+      // Re-apply communication model after start in case the pre-start
+      // request timed out while the backend was busy.
+      try {
+        await fetch("/simulation/v2v_channel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: commModel === "v2v_channel" }),
+        });
+      } catch (e) {
+        console.warn("[App] Post-start comm-model sync failed:", e);
+      }
+
       console.log("[App] Simulation started");
+    } else {
+      const failure = await response
+        .json()
+        .catch(() => ({ detail: response.statusText }));
+      alert(`Failed to start simulation: ${failure.detail || "Unknown error"}`);
     }
   } catch (error) {
     console.error("Failed to start simulation:", error);

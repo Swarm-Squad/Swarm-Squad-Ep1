@@ -71,6 +71,16 @@ class FormationGenerator:
         generator = self._generators.get(self.formation_type, self._v_formation)
         offsets = generator(num_agents)
 
+        # Normalize offsets so their centroid is at the origin.
+        # This keeps the requested ``center`` aligned with the actual swarm center
+        # for leader-centric templates (v/wedge/column), preventing backward drift.
+        if offsets:
+            centroid = np.mean(
+                [np.array(offset, dtype=float) for offset in offsets.values()], axis=0
+            )
+            for idx in offsets:
+                offsets[idx] = np.array(offsets[idx], dtype=float) - centroid
+
         # Rotate offsets by heading
         if heading != 0:
             cos_h = np.cos(heading)

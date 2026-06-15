@@ -1105,6 +1105,56 @@ async def get_protocol_stats():
     }
 
 
+def _build_attack_run_summary() -> dict[str, float | int]:
+    """Build live-or-final run summary for the attack metrics panel."""
+    jn_history = simulation_results.get("Jn_history", []) or []
+    rn_history = simulation_results.get("rn_history", []) or []
+
+    duration_seconds = float(simulation_results.get("duration_seconds", 0.0) or 0.0)
+    start_time = simulation_results.get("start_time")
+    if simulation_running and start_time:
+        try:
+            start = datetime.fromisoformat(start_time)
+            duration_seconds = (datetime.now() - start).total_seconds()
+        except Exception:
+            pass
+
+    avg_jn = (
+        float(sum(jn_history) / len(jn_history))
+        if jn_history
+        else float(simulation_results.get("avg_Jn", 0.0) or 0.0)
+    )
+    avg_rn = (
+        float(sum(rn_history) / len(rn_history))
+        if rn_history
+        else float(simulation_results.get("avg_rn", 0.0) or 0.0)
+    )
+    final_jn = (
+        float(jn_history[-1])
+        if jn_history
+        else float(simulation_results.get("final_Jn", 0.0) or 0.0)
+    )
+    final_rn = (
+        float(rn_history[-1])
+        if rn_history
+        else float(simulation_results.get("final_rn", 0.0) or 0.0)
+    )
+
+    # Use finalized path summary when available. During a run this may remain 0
+    # until finalization computes aggregate path lengths.
+    avg_path = float(simulation_results.get("avg_traveled_path", 0.0) or 0.0)
+
+    return {
+        "duration_seconds": round(duration_seconds, 1),
+        "steps": int(simulation_results.get("steps", 0) or 0),
+        "avg_Jn": round(avg_jn, 4),
+        "avg_rn": round(avg_rn, 2),
+        "avg_traveled_path": round(avg_path, 1),
+        "final_Jn": round(final_jn, 4),
+        "final_rn": round(final_rn, 2),
+    }
+
+
 @app.get("/simulation/attack_metrics")
 async def get_attack_metrics():
     """Spoof-detection metrics (TP/FP/FN/TN, detection rate, FPR, precision).
@@ -1122,9 +1172,26 @@ async def get_attack_metrics():
         if z.active:
             by_type[z.spoof_type.value] = by_type.get(z.spoof_type.value, 0) + 1
 
+    controller = get_controller()
+    run_summary = _build_attack_run_summary()
+    per_agent_quality = controller.get_all_agent_comm_quality()
+    avg_agent_comm_quality = (
+        round(sum(per_agent_quality.values()) / len(per_agent_quality), 4)
+        if per_agent_quality
+        else 0.0
+    )
+
     return {
+        "metric_scope": "spoof_detection",
+        "metric_scope_note": (
+            "TP/FP/FN/TN measure spoof-detection outcomes. "
+            "Use Jn/rn and protocol stats to evaluate jamming/comm quality."
+        ),
         "crypto_enabled": crypto.enabled,
         "crypto_algorithm": crypto.algorithm,
+        "comm_model": "v2v_channel" if controller.use_v2v_channel else "legacy",
+        "comm_quality_source": "controller_pairwise_quality",
+        "avg_agent_comm_quality": avg_agent_comm_quality,
         "tp": stats["tp"],
         "fp": stats["fp"],
         "fn": stats["fn"],
@@ -1134,6 +1201,9 @@ async def get_attack_metrics():
         "precision": stats["precision"],
         "recall": stats["recall"],
         "active_attacks_by_type": by_type,
+        "spoofing_zones_active": sum(1 for z in spoofing_zones.values() if z.active),
+        "jamming_zones_active": sum(1 for z in jamming_zones.values() if z.active),
+        **run_summary,
         "timestamp": datetime.now().isoformat(),
     }
 
@@ -1362,8 +1432,9 @@ async def start_simulation(config: dict[str, Any], background_tasks: BackgroundT
 
     simulation_running = True
 
-    # Start simulation loop in background
-    background_tasks.add_task(run_simulation_loop, destination)
+    # Start simulation loop in a dedicated asyncio task so request handling
+    # remains responsive during heavy controller/path-planning work.
+    simulation_task = asyncio.create_task(run_simulation_loop(destination))
 
     print(f"[SIM API] Simulation started with config: {config}")
 
@@ -1499,6 +1570,7 @@ async def get_simulation_state():
     formation_state = controller.get_formation_state()
     llm_controller = get_llm_controller()
     crypto = get_crypto_auth()
+    run_summary = _build_attack_run_summary()
 
     return {
         "running": simulation_running,
@@ -1511,6 +1583,7 @@ async def get_simulation_state():
             "crypto_auth_enabled": crypto.enabled,
             "crypto_algorithm": crypto.algorithm,
         },
+        "run_summary": run_summary,
         "formation": formation_state.to_dict(),
         "agents": {aid: agent.to_dict() for aid, agent in agent_states.items()},
         "jamming_zones": [z.to_dict() for z in jamming_zones.values()],
@@ -1732,13 +1805,19 @@ async def run_simulation_loop(destination: list[float]):
             perceived_positions = bus.get_perceived_positions(list(agent_states.keys()))
 
         # Compute commands from formation controller
-        commands = controller.compute_commands(
-            agents=agent_states,
-            destination=tuple(destination),
-            jamming_zones=zones_list,
-            dt=0.1,
-            perceived_positions=perceived_positions,
-        )
+        try:
+            commands = await asyncio.to_thread(
+                controller.compute_commands,
+                agents=agent_states,
+                destination=tuple(destination),
+                jamming_zones=zones_list,
+                dt=0.1,
+                perceived_positions=perceived_positions,
+            )
+        except Exception as exc:
+            print(f"[SIM API] Controller compute failed: {exc}")
+            simulation_running = False
+            break
 
         # LLM Assistance: Check if any agents need help
         if llm_assistance_enabled:

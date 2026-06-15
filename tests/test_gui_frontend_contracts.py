@@ -88,6 +88,10 @@ def test_frontend_reliability_hooks_for_right_panel(chat_client):
     assert "updateSpoofingAttackFieldVisibility" in js
     assert "suppressNextAutoResultsModal" in js
     assert "lastResultsModalShownAt" in js
+    assert "if (data.running && data.current)" in js
+    assert "Do not override pre-start user selections" in js
+    assert "am-run-duration" in js
+    assert "metric_scope_note" in js
 
     html_response = chat_client.get("/static/index.html")
     assert html_response.status_code == 200
@@ -95,3 +99,6 @@ def test_frontend_reliability_hooks_for_right_panel(chat_client):
     assert "spoof-coordinate-group" in html
     assert "spoof-magnitude-group" in html
     assert "spoof-phantom-group" in html
+    assert "am-scope-note" in html
+    assert "am-run-duration" in html
+    assert "am-run-avg-jn" in html

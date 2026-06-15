@@ -205,6 +205,73 @@ def test_crypto_auth_and_v2v_channel_endpoints(sim_client):
     assert v2v_set.json()["success"] is True
 
 
+def test_attack_metrics_contract_includes_scope_and_run_summary(sim_client):
+    response = sim_client.get("/simulation/attack_metrics")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["metric_scope"] == "spoof_detection"
+    assert payload["comm_model"] in {"v2v_channel", "legacy"}
+    assert {
+        "tp",
+        "fp",
+        "fn",
+        "tn",
+        "detection_rate",
+        "false_positive_rate",
+        "precision",
+        "recall",
+        "active_attacks_by_type",
+        "duration_seconds",
+        "steps",
+        "avg_Jn",
+        "avg_rn",
+        "avg_traveled_path",
+        "final_Jn",
+        "final_rn",
+        "avg_agent_comm_quality",
+    } <= payload.keys()
+
+
+def test_attack_metrics_context_for_jamming_only_vs_spoofing(sim_client):
+    sim_client.delete("/jamming_zones")
+    sim_client.delete("/spoofing_zones")
+
+    created_jam = sim_client.post(
+        "/jamming_zones",
+        json={
+            "center": [5.0, 5.0, 5.0],
+            "radius": 8.0,
+            "obstacle_type": "high_jam",
+        },
+    )
+    assert created_jam.status_code == 200
+
+    jamming_only = sim_client.get("/simulation/attack_metrics")
+    assert jamming_only.status_code == 200
+    jamming_payload = jamming_only.json()
+    assert jamming_payload["metric_scope"] == "spoof_detection"
+    assert jamming_payload["jamming_zones_active"] >= 1
+    assert jamming_payload["spoofing_zones_active"] == 0
+    assert jamming_payload["active_attacks_by_type"] == {}
+
+    created_spoof = sim_client.post(
+        "/spoofing_zones",
+        json={
+            "center": [12.0, 20.0, 6.0],
+            "radius": 10.0,
+            "spoof_type": "coordinate",
+        },
+    )
+    assert created_spoof.status_code == 200
+
+    spoofing_active = sim_client.get("/simulation/attack_metrics")
+    assert spoofing_active.status_code == 200
+    spoof_payload = spoofing_active.json()
+    assert spoof_payload["spoofing_zones_active"] >= 1
+    assert spoof_payload["active_attacks_by_type"].get("coordinate", 0) >= 1
+
+
 def test_simulation_start_stop_reset_algorithm_and_results(sim_client, monkeypatch):
     async def _noop_loop(destination):  # pragma: no cover - async callback shape only
         return None
@@ -294,6 +361,7 @@ def test_simulation_config_includes_dynamic_algorithm_fields(sim_client):
     assert {"running", "formation", "path_algorithm", "crypto_algorithm"} <= payload[
         "current"
     ].keys()
+    assert payload["current"]["path_algorithm"] == "astar"
 
 
 def test_custom_algorithm_registry_endpoints(sim_client):

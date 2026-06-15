@@ -63,6 +63,14 @@ _llm_target_task = None
 # so users can confirm their message reached the model even before agents are jammed.
 _last_chat_prompt: dict = {}
 
+# Simulation proxy endpoints can block during expensive replans. Use a longer
+# floor timeout so transient CPU spikes do not appear as hard 503 outages.
+SIM_PROXY_TIMEOUT_SECONDS = 20.0
+
+# Preserve the most recent successful attack-metrics payload so the dashboard
+# keeps meaningful values instead of resetting to zeros during proxy timeouts.
+_last_attack_metrics_snapshot: dict | None = None
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -99,8 +107,15 @@ def _default_status_payload() -> dict:
 def _default_attack_metrics_payload(error: str | None = None) -> dict:
     """Stable fallback for attack-metrics polling when sim API is unavailable."""
     payload = {
+        "metric_scope": "spoof_detection",
+        "metric_scope_note": (
+            "TP/FP/FN/TN measure spoof-detection outcomes. "
+            "Use Jn/rn and protocol stats to evaluate jamming/comm quality."
+        ),
         "crypto_enabled": False,
         "crypto_algorithm": "-",
+        "comm_model": "unknown",
+        "comm_quality_source": "chat_fallback",
         "tp": 0,
         "fp": 0,
         "fn": 0,
@@ -110,9 +125,41 @@ def _default_attack_metrics_payload(error: str | None = None) -> dict:
         "precision": 0.0,
         "recall": 0.0,
         "active_attacks_by_type": {},
+        "spoofing_zones_active": 0,
+        "jamming_zones_active": 0,
+        "duration_seconds": 0.0,
+        "steps": 0,
+        "avg_Jn": 0.0,
+        "avg_rn": 0.0,
+        "avg_traveled_path": 0.0,
+        "final_Jn": 0.0,
+        "final_rn": 0.0,
         "source": "chat_fallback",
         "timestamp": datetime.now().isoformat(),
     }
+    if error:
+        payload["error"] = error
+    return payload
+
+
+def _remember_attack_metrics_payload(payload: dict) -> None:
+    """Store the latest valid attack-metrics payload for stale fallback."""
+    global _last_attack_metrics_snapshot
+    snapshot = dict(payload)
+    snapshot.setdefault("source", "simulation_api")
+    snapshot.setdefault("timestamp", datetime.now().isoformat())
+    _last_attack_metrics_snapshot = snapshot
+
+
+def _cached_attack_metrics_payload(error: str | None = None) -> dict:
+    """Prefer the last good payload over an all-zero fallback."""
+    if _last_attack_metrics_snapshot is None:
+        return _default_attack_metrics_payload(error)
+
+    payload = dict(_last_attack_metrics_snapshot)
+    payload["source"] = "chat_cached_fallback"
+    payload["timestamp"] = datetime.now().isoformat()
+    payload["stale"] = True
     if error:
         payload["error"] = error
     return payload
@@ -155,6 +202,7 @@ async def _proxy_sim_json(
     on_exception_payload: dict | None = None,
 ) -> JSONResponse:
     """Proxy a JSON endpoint to the simulation API preserving status codes."""
+    effective_timeout = max(timeout, SIM_PROXY_TIMEOUT_SECONDS)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.request(
@@ -162,7 +210,7 @@ async def _proxy_sim_json(
                 f"{SIMULATION_API_URL}{path}",
                 json=json_body,
                 params=params,
-                timeout=timeout,
+                timeout=effective_timeout,
             )
         return JSONResponse(
             status_code=response.status_code, content=_read_proxy_payload(response)
@@ -908,18 +956,20 @@ async def proxy_attack_metrics():
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{SIMULATION_API_URL}/simulation/attack_metrics", timeout=5.0
+                f"{SIMULATION_API_URL}/simulation/attack_metrics",
+                timeout=max(5.0, SIM_PROXY_TIMEOUT_SECONDS),
             )
             if response.status_code >= 400:
-                return _default_attack_metrics_payload(
+                return _cached_attack_metrics_payload(
                     f"simulation_api_status={response.status_code}"
                 )
             payload = response.json()
             payload.setdefault("timestamp", datetime.now().isoformat())
             payload.setdefault("source", "simulation_api")
+            _remember_attack_metrics_payload(payload)
             return payload
     except Exception as e:
-        return _default_attack_metrics_payload(str(e))
+        return _cached_attack_metrics_payload(str(e))
 
 
 # ============================================================================

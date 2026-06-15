@@ -109,7 +109,7 @@ class UnifiedController(MultiVehicleController):
             behav_params = get_behavior_params()
 
             formation_type = formation_type or DEFAULT_FORMATION
-            path_algorithm = path_algorithm or "direct"  # Default to direct
+            path_algorithm = path_algorithm or "astar"  # Default to A*
 
             alpha = alpha if alpha is not None else form_params["alpha"]
             delta = delta if delta is not None else form_params["delta"]
@@ -143,7 +143,7 @@ class UnifiedController(MultiVehicleController):
         else:
             # Hardcoded defaults
             formation_type = formation_type or "communication_aware"
-            path_algorithm = path_algorithm or "direct"
+            path_algorithm = path_algorithm or "astar"
             alpha = alpha if alpha is not None else 1e-5
             delta = delta if delta is not None else 2.0
             r0 = r0 if r0 is not None else 5.0
@@ -454,8 +454,8 @@ class UnifiedController(MultiVehicleController):
                 # Move formation center toward destination
                 # The target center advances toward destination each step
                 move_speed = min(
-                    self.v * dt * 10, dist_to_dest
-                )  # Move at reasonable speed
+                    max(1.0, self.attraction_magnitude * 2.5), dist_to_dest
+                )
                 target_center = current_center + direction * move_speed
             else:
                 formation_heading = 0.0
@@ -648,12 +648,29 @@ class UnifiedController(MultiVehicleController):
 
                 # Apply jamming response if jammed
                 if is_jammed:
+                    # Reactive response while jammed should consider active jamming zones
+                    # even before swarm-wide discovery has converged.
+                    response_obstacles = list(known_obstacles)
+                    known_ids = {zone.id for zone in response_obstacles}
+                    for zone in invisible_jamming:
+                        if zone.id not in known_ids:
+                            response_obstacles.append(zone)
+                            known_ids.add(zone.id)
                     dest_control = self.jamming_handler.compute_response(
-                        agent_id, pos, dest_control, effective_target, known_obstacles
+                        agent_id,
+                        pos,
+                        dest_control,
+                        effective_target,
+                        response_obstacles,
                     )
 
-                # Only apply destination control after convergence
-                if self.formation_converged:
+                # Communication-aware mode preserves its converge-then-go behavior.
+                # Geometric formations should still receive destination/jamming control
+                # continuously so attack zones can influence motion immediately.
+                if (
+                    self.formation_converged
+                    or self.formation_type != "communication_aware"
+                ):
                     control_inputs[i] += dest_control
 
                 # Store NET control vector for visualization (only when avoidance is active)
@@ -809,6 +826,17 @@ class UnifiedController(MultiVehicleController):
         for i, agent_id in enumerate(agent_ids):
             # Clamp control inputs to prevent extreme values
             vel = control_inputs[i]
+            # Apply local jamming speed attenuation across all formation modes.
+            # This prevents jamming zones from feeling like "no-op" areas in geometric runs.
+            local_degradation = 1.0
+            for zone in jamming_zones:
+                if zone.active:
+                    local_degradation *= zone.get_degradation_factor(
+                        positions[i].tolist()
+                    )
+            if local_degradation < 0.999:
+                vel = vel * max(0.15, float(local_degradation))
+
             vel_magnitude = np.linalg.norm(vel)
             if vel_magnitude > max_control_magnitude:
                 vel = vel * (max_control_magnitude / vel_magnitude)
@@ -1377,13 +1405,21 @@ class UnifiedController(MultiVehicleController):
             # phi_rij = gij * aij is stored in _comm_matrix
             neighbor_count = 0
             phi_sum = 0.0
+            all_link_phi = []
             for j in range(n):
-                if i != j and self._neighbor_matrix[i, j] > self.PT:
+                if i == j:
+                    continue
+                all_link_phi.append(float(self._comm_matrix[i, j]))
+                if self._neighbor_matrix[i, j] > self.PT:
                     phi_sum += self._comm_matrix[i, j]
                     neighbor_count += 1
 
             if neighbor_count > 0:
                 agent_comm_quality[aid] = phi_sum / neighbor_count
+            elif all_link_phi:
+                # Keep comm-quality telemetry meaningful even when no links exceed PT.
+                # This ensures comm model output is visible across all formations.
+                agent_comm_quality[aid] = float(sum(all_link_phi) / len(all_link_phi))
             else:
                 agent_comm_quality[aid] = 0.0
 

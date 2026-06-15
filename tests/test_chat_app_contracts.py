@@ -190,7 +190,21 @@ def test_attack_metrics_proxy_fallback_when_backend_unavailable(
     assert response.status_code == 200
     payload = response.json()
     assert payload["source"] == "chat_fallback"
-    assert {"tp", "fp", "fn", "tn", "detection_rate"} <= payload.keys()
+    assert payload["metric_scope"] == "spoof_detection"
+    assert {
+        "tp",
+        "fp",
+        "fn",
+        "tn",
+        "detection_rate",
+        "duration_seconds",
+        "steps",
+        "avg_Jn",
+        "avg_rn",
+        "avg_traveled_path",
+        "final_Jn",
+        "final_rn",
+    } <= payload.keys()
 
 
 def test_fast_move_path_surfaces_failure(monkeypatch, chat_client):

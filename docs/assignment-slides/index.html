@@ -1,0 +1,2500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swarm Squad Ep1 · Resilient AAM Swarms · Teacher Lecture Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ Theme colors (current: Indigo Porcelain) ============
+       To swap themes, copy the matching :root block from references/themes.md
+       and replace the lines marked below. Other rgba() values consume
+       var(--ink-rgb) / var(--paper-rgb), so no per-occurrence edits needed. */
+    --ink:#0a1f3d;
+    --ink-rgb:10,31,61;
+    --paper:#f1f3f5;
+    --paper-rgb:241,243,245;
+    --paper-tint:#e4e8ec;
+    --ink-tint:#152a4a;
+
+    /* ============ Fonts (theme-invariant) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{color:var(--ink);background:var(--paper)}
+  .slide.dark{color:var(--paper);background:var(--ink)}
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.78);backdrop-filter:blur(3px)}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.78);backdrop-filter:blur(3px)}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.16);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.12);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============ */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ Typography rules ============
+     - Serif (Noto Serif SC / Playfair): headings, pull quotes, numbers
+     - Sans-serif (Noto Sans SC): body text, descriptions
+     - Monospace (IBM Plex Mono): kicker, meta labels, foot
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.9vw;line-height:1.4;opacity:.85}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.fit-contain > img{object-fit:contain;object-position:center center}
+  .frame-img.r-16x9{aspect-ratio:16/9;max-height:64vh}
+  .frame-img.r-16x10{aspect-ratio:16/10;max-height:56vh}
+  .frame-img.r-4x3{aspect-ratio:4/3;max-height:56vh}
+  .frame-img.r-3x2{aspect-ratio:3/2;max-height:46vh}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .frame-img.r-1x1{aspect-ratio:1/1;max-height:50vh}
+  .frame-img.h-16{height:16vh}
+  .frame-img.h-18{height:18vh}
+  .frame-img.h-22{height:22vh}
+  .frame-img.h-26{height:26vh}
+  .frame-img.h-28{height:28vh}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语 ---------- */
+  .lead{
+    font-family:var(--serif-zh);
+    font-weight:400;
+    font-size:1.75vw;
+    line-height:1.5;
+    opacity:.86;
+  }
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字适度放大；若页面有标题+引文在上方，可内联 style 覆盖为更小值 */
+  .grid-4 .stat-card .stat-nb{font-size:5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  .img-cap{
+    display:block;
+    margin-top:.8vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot 补位（layouts.md 简单写法） ---------- */
+  .chrome{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .foot{font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+
+  /* ============ 动效系统(Motion One 驱动) ============
+     所有 [data-anim] 元素默认隐藏,进入页面时由 JS 逐个揭示。
+     - cascade(默认):按 DOM 顺序 stagger 120ms 淡入 + y:16→0
+     - hero(hero 页自动):慢一点的 stagger 180ms
+     - quote(含 [data-anim="line"]):逐行 600ms 淡入
+     - directional(含 [data-anim="left|right"]):左→分隔线→右
+     - pipeline(data-animate="pipeline"):Space/→ 手动推进
+     Motion One 没加载成功时(CDN 断 + 本地丢),所有 [data-anim] 会兜底显示。
+  */
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
+  body.motion-ready [data-animate="pipeline"] [data-anim]{opacity:.15}
+  body.low-power #deck{transition:none!important}
+  body.low-power *,
+  body.low-power *::before,
+  body.low-power *::after{animation:none!important;transition:none!important}
+  body.low-power.motion-ready [data-anim],
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<script>
+  (function(){
+    const KEY = 'guizang-ppt-low-power';
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stored = localStorage.getItem(KEY);
+    window.__lowPowerMode = stored === '1' || (stored === null && reduced);
+    function updateHint(){
+      const hint = document.getElementById('hint');
+      if(hint) hint.textContent = `← → navigate · B ${window.__lowPowerMode ? 'animate' : 'static'} · ESC index`;
+    }
+    window.__setLowPowerMode = function(on, opts={}){
+      window.__lowPowerMode = !!on;
+      document.body.classList.toggle('low-power', window.__lowPowerMode);
+      if(opts.persist !== false) localStorage.setItem(KEY, window.__lowPowerMode ? '1' : '0');
+      if(window.__lowPowerMode && document.getAnimations){
+        document.getAnimations().forEach(a=>a.cancel());
+      }
+      updateHint();
+      dispatchEvent(new CustomEvent('ppt-low-power-change', {detail:{on:window.__lowPowerMode}}));
+      if(window.__playSlide) window.__playSlide(window.__currentSlideIndex || 0);
+    };
+    document.body.classList.toggle('low-power', window.__lowPowerMode);
+    addEventListener('DOMContentLoaded', updateHint, {once:true});
+  })();
+</script>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint">← → navigate · B static · ESC index</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     Slides start here. 32 sections follow.
+     ============================================================ -->
+
+<!-- ============================================================
+     SWARM SQUAD EP1 · TEACHER LECTURE DECK · 32 SLIDES
+     Style A (Electronic Magazine) · Indigo Porcelain theme
+     Citations inline as [#]; bibliography on slide 32
+     ============================================================ -->
+
+<!-- ============ SLIDE 1 · Layout 1 Hero Cover · hero dark ============ -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Swarm Squad</div>
+    <!-- <div>Vol.01 · 01 / 32</div> -->
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim></div>
+    <h1 class="h-hero" style="font-size:8.6vw" data-anim>Resilient AAM Swarms</h1>
+    <h2 class="h-sub" data-anim></h2>
+    <p class="lead" style="max-width:62vw" data-anim>
+      Swarm fundamentals, swarm-system cybersecurity, the Python you actually need, the Swarm Squad Ep1 simulator, and walkthroughs for both assignment tracks.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>Instructor name</span><span>·</span><span>Course code</span><span>·</span><span>Date</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Swarms · Cybersecurity · Simulation</div>
+    <div>· 2026 ·</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2 · Layout 2 Act Divider · hero light · Course Map ============ -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Outline · Four acts</div>
+    <div>Map · 02 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:5vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>The Map</div>
+    <h1 class="h-hero" style="font-size:7.4vw" data-anim>Four acts.<br/>One simulator.</h1>
+    <div data-anim style="display:grid;grid-template-columns:repeat(4,1fr);gap:3vw;margin-top:2vh;max-width:84vw">
+      <div style="padding-top:1.6vh;border-top:2px solid currentColor">
+        <div class="meta" style="opacity:.6">Act I</div>
+        <h3 class="h-md" style="margin-top:.6vh">Swarm concepts &amp; cybersecurity</h3>
+        <p class="body-zh" style="font-size:max(14px,1.05vw);margin-top:.8vh;opacity:.78">Definitions, threat model, defenses.</p>
+      </div>
+      <div style="padding-top:1.6vh;border-top:2px solid currentColor">
+        <div class="meta" style="opacity:.6">Act II</div>
+        <h3 class="h-md" style="margin-top:.6vh">Python you actually need</h3>
+        <p class="body-zh" style="font-size:max(14px,1.05vw);margin-top:.8vh;opacity:.78">Six primitives, setup pipeline.</p>
+      </div>
+      <div style="padding-top:1.6vh;border-top:2px solid currentColor">
+        <div class="meta" style="opacity:.6">Act III</div>
+        <h3 class="h-md" style="margin-top:.6vh">Operating the simulator</h3>
+        <p class="body-zh" style="font-size:max(14px,1.05vw);margin-top:.8vh;opacity:.78">Topology, panels, client API.</p>
+      </div>
+      <div style="padding-top:1.6vh;border-top:3px solid currentColor">
+        <div class="meta" style="opacity:.6">Act IV</div>
+        <h3 class="h-md" style="margin-top:.6vh">Two assignment tracks</h3>
+        <p class="body-zh" style="font-size:max(14px,1.05vw);margin-top:.8vh;opacity:.78">GUI-only and Python+GUI.</p>
+      </div>
+    </div>
+    <p class="lead" style="max-width:58vw;font-size:1.4vw;opacity:.7" data-anim>
+      <!-- Roughly 90 minutes including a live demo. References at the very end. -->
+    </p>
+  </div>
+  <div class="foot">
+    <!-- <div>How the next 32 pages flow</div> -->
+    <div>Map</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3 · Layout 7 Hero Question · hero dark · Why swarms ============ -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Argument 01 · Why swarms, why now</div>
+    <div>03 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:7vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>The Premise</div>
+    <h1 class="h-hero" style="font-size:6.8vw; line-height:1.08">
+      <span data-anim="line" style="display:block">Distributed autonomy</span>
+      <span data-anim="line" style="display:block">is becoming the <em>default</em></span>
+      <span data-anim="line" style="display:block">for aerial systems.</span>
+    </h1>
+    <p class="lead" style="max-width:56vw" data-anim>
+      A flock is not centrally choreographed. Each agent acts on local perception and simple rules; the global behaviour emerges. Reynolds formalised this in 1987 [1] and every modern aerial swarm builds on it.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>Reynolds 1987 · boids</span><span>·</span><span>separation · alignment · cohesion</span><span>·</span><span>[1]</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 03 · Premise</div>
+    <div>The Question</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4 · Layout 3 Big Numbers · light · 3 forces driving AAM ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Three forces · Why AAM swarms now</div>
+    <div>Act I · 04 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Three forces driving the field</div>
+    <h2 class="h-xl" data-anim>Scale · Autonomy · Threat.</h2>
+    <p class="lead" style="margin-bottom:4vh; max-width:64vw" data-anim>
+      The market is large, the architectures are decentralising, and the attack surface grows with every extra agent.
+    </p>
+
+    <div class="grid-3" style="margin-top:4vh; align-items:start; gap:5vw">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Force 01 · Scale</div>
+        <div style="font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;margin-top:.4vh">$224B</div>
+        <div style="font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:.4vh">global AAM market by 2035 · ~22.2% CAGR [12]</div>
+        <div class="stat-note">The FAA UAM Concept of Operations v2.0 (May 2023) sketches a crawl-walk-run path from helicopter-like flights to dense, corridor-based operations [2].</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Force 02 · Autonomy</div>
+        <div style="font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;margin-top:.4vh">N <span style="font-size:.42em;opacity:.62;font-weight:500">vs 1 brain</span></div>
+        <div style="font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:.4vh">decentralised coordination from local interactions</div>
+        <div class="stat-note">Swarm engineering aims at robust, scalable, flexible behaviour from local interactions. This is exactly what contested airspace demands [3][4].</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Force 03 · Threat surface</div>
+        <div style="font-family:var(--serif-en);font-weight:800;font-size:5.8vw;line-height:.9;letter-spacing:-.03em;margin-top:.4vh">3 <span style="font-size:.42em;opacity:.62;font-weight:500">attack surfaces</span></div>
+        <div style="font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:.4vh">comm · perception · mission</div>
+        <div class="stat-note">Drone-security surveys catalogue jamming, spoofing, MITM, and DoS across all three layers [5][6].</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 04 · Why now · sources [2][3][4][5][6][12]</div>
+    <div>Act I · Big numbers</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5 · Layout 5 grid-3-3 · light · 6 core terms ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Glossary · Six recurring terms</div>
+    <div>Act I · 05 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:4.5vh">
+    <div class="kicker" data-anim>Vocabulary</div>
+    <h2 class="h-xl" data-anim>Six terms that frame the rest of the deck.</h2>
+
+    <div class="grid-3-3" style="margin-top:4vh">
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">01</div>
+        <h3 class="h-md">Formation</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">The geometric pattern agents try to hold: line, V, circle, communication-aware, and others.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">02</div>
+        <h3 class="h-md">Path planning</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">The algorithm that chooses how to get from A to B: A*, Theta*, Dijkstra, BFS, and more.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">03</div>
+        <h3 class="h-md">Communication model</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">How agents exchange state and intent: V2V channel or a baseline legacy model.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">04</div>
+        <h3 class="h-md">Jamming</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">Active RF interference that degrades the comm channel, modeled as <code style="font-family:var(--mono);font-size:.92em">low_jam</code> or <code style="font-family:var(--mono);font-size:.92em">high_jam</code>.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">05</div>
+        <h3 class="h-md">Spoofing</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">Forged messages or positions: phantom, position-falsification, or coordinate shift.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">06</div>
+        <h3 class="h-md" style="color:var(--ink)">Crypto-auth</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.55">Keyed message signatures (e.g. HMAC-SHA256) that let receivers reject tampered messages [9].</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 05 · Glossary</div>
+    <div>Act I · Six terms</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 6 · Layout 10 + SVG arch · dark · Swarm reference architecture ============ -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Architecture · Reference stack</div>
+    <div>Act I · 06 / 32</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:4vh">
+    <div style="display:flex; flex-direction:column; gap:2.4vh">
+      <div class="kicker" data-anim>Reference architecture</div>
+      <h2 class="h-xl" style="font-size:5vw" data-anim>Every swarm is<br/>three layers.</h2>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        Perception turns sensor and radio inputs into a model of self plus neighbours. Coordination applies local rules and formation control on top of that model. Action executes the chosen path.
+      </p>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        Each layer is a <em>separate</em> attack surface (see slide 11) [3].
+      </p>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 320 380" style="width:100%;height:auto;max-height:64vh" aria-hidden="true">
+        <defs>
+          <marker id="s6arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(241,243,245,.85)"/>
+          </marker>
+        </defs>
+        <g stroke="rgba(241,243,245,.92)" stroke-width="1.4" fill="none">
+          <rect x="20" y="20"  width="280" height="86" />
+          <rect x="20" y="146" width="280" height="86" />
+          <rect x="20" y="272" width="280" height="86" />
+          <line x1="160" y1="106" x2="160" y2="146" marker-end="url(#s6arrow)"/>
+          <line x1="160" y1="232" x2="160" y2="272" marker-end="url(#s6arrow)"/>
+        </g>
+        <g fill="rgba(241,243,245,.96)" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="2.4" text-anchor="middle">
+          <text x="160" y="50" font-weight="600">PERCEPTION</text>
+          <text x="160" y="74" font-size="11" opacity=".72" letter-spacing="1.8">sensors / GPS / neighbour beacons</text>
+          <text x="160" y="176" font-weight="600">COORDINATION</text>
+          <text x="160" y="200" font-size="11" opacity=".72" letter-spacing="1.8">local rules / formation / comm</text>
+          <text x="160" y="302" font-weight="600">ACTION</text>
+          <text x="160" y="326" font-size="11" opacity=".72" letter-spacing="1.8">path planner / autopilot</text>
+        </g>
+        <g fill="rgba(255,255,255,.36)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2" text-anchor="start">
+          <text x="22" y="14">LAYER 01</text>
+          <text x="22" y="140">LAYER 02</text>
+          <text x="22" y="266">LAYER 03</text>
+        </g>
+      </svg>
+      <figcaption class="img-cap">Figure 1 · Three-layer swarm architecture</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 06 · Reference architecture · [3]</div>
+    <div>Act I</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 7 · Layout 9 3-col adaptation · light · 3 coordination paradigms ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Paradigms · Where control lives</div>
+    <div>Act I · 07 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Three paradigms</div>
+    <h2 class="h-xl" style="margin-bottom:3vh" data-anim>Where does the control live?</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3vw;margin-top:5vh;align-items:stretch">
+      <div data-anim style="padding:3vh 1.6vw;border-left:3px solid currentColor;opacity:.62">
+        <div class="kicker" style="opacity:1;margin-bottom:1.4vh">Centralised</div>
+        <h3 class="h-md" style="margin-bottom:1.2vh">Ground station plans for everyone.</h3>
+        <p class="body-zh" style="font-size:max(14px,1.06vw)">Easy to optimise; brittle when comms drop. A single radio outage can stall the whole mission.</p>
+        <ul style="margin-top:1.6vh;padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh;font-family:var(--sans-zh);font-size:max(13px,1vw);line-height:1.5">
+          <li>Single planning point</li>
+          <li>Optimal but fragile</li>
+        </ul>
+      </div>
+      <div data-anim style="padding:3vh 1.6vw;border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:1;margin-bottom:1.4vh">Decentralised</div>
+        <h3 class="h-md" style="margin-bottom:1.2vh">Each agent decides from local neighbours.</h3>
+        <p class="body-zh" style="font-size:max(14px,1.06vw)">Hard to prove optimal; degrades gracefully. Pure boid-style behaviours sit here [3].</p>
+        <ul style="margin-top:1.6vh;padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh;font-family:var(--sans-zh);font-size:max(13px,1vw);line-height:1.5">
+          <li>Local rules only</li>
+          <li>Survives partial failures</li>
+        </ul>
+      </div>
+      <div data-anim style="padding:3vh 1.6vw;border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:1;margin-bottom:1.4vh">Hybrid <span class="meta" style="opacity:.55;margin-left:.4em">· used here</span></div>
+        <h3 class="h-md" style="margin-bottom:1.2vh">Thin centre, local autonomy.</h3>
+        <p class="body-zh" style="font-size:max(14px,1.06vw)">High-level intent from a leader, low-level execution local. The pattern Swarm Squad implements [4].</p>
+        <ul style="margin-top:1.6vh;padding-left:1.2em;display:flex;flex-direction:column;gap:.8vh;font-family:var(--sans-zh);font-size:max(13px,1vw);line-height:1.5">
+          <li>Best of both</li>
+          <li>Most modern UAV systems</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 07 · Paradigms · [3][4]</div>
+    <div>Act I</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 8 · Layout 9 + SVG boid rules · dark · Bio vs engineered ============ -->
+<section class="slide dark" data-animate="directional">
+  <div class="chrome">
+    <div>Origins · Biological vs engineered</div>
+    <div>Act I · 08 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Where the design language came from</div>
+    <h2 class="h-xl" style="margin-bottom:5vh" data-anim>Birds, then code.</h2>
+
+    <div class="grid-2-6-6" style="gap:5vw 4vh; align-items:start">
+      <div data-anim="left" style="padding:3vh 1.4vw;border-left:3px solid currentColor;opacity:.78">
+        <div class="kicker" style="opacity:1">Biological</div>
+        <h3 class="h-md" style="margin-top:1.4vh">Local rules,<br/>global flocks.</h3>
+        <p class="body-zh" style="margin-top:2vh; font-size:max(14px,1.05vw)">
+          Reynolds' three rules (separation, alignment, cohesion) produce convincing flock motion with no leader at all [1].
+        </p>
+        <svg viewBox="0 0 360 130" style="width:100%;height:auto;margin-top:3vh;max-height:24vh" aria-hidden="true">
+          <defs>
+            <marker id="s8a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(241,243,245,.92)"/>
+            </marker>
+          </defs>
+          <g fill="rgba(241,243,245,.92)">
+            <circle cx="40" cy="60" r="6"/><circle cx="80" cy="80" r="6"/><circle cx="100" cy="40" r="6"/>
+            <circle cx="170" cy="50" r="6"/><circle cx="200" cy="68" r="6"/><circle cx="230" cy="48" r="6"/>
+            <circle cx="290" cy="68" r="6"/><circle cx="320" cy="58" r="6"/><circle cx="305" cy="86" r="6"/>
+          </g>
+          <g stroke="rgba(241,243,245,.65)" stroke-width="1.3" fill="none" marker-end="url(#s8a)">
+            <line x1="48"  y1="55"  x2="76"  y2="38" />
+            <line x1="86"  y1="78"  x2="118" y2="92" />
+            <line x1="105" y1="38"  x2="138" y2="20" />
+            <line x1="178" y1="50"  x2="208" y2="50" />
+            <line x1="206" y1="64"  x2="236" y2="62" />
+            <line x1="234" y1="46"  x2="262" y2="46" />
+            <line x1="296" y1="68"  x2="306" y2="74" />
+            <line x1="316" y1="60"  x2="306" y2="68" />
+            <line x1="301" y1="84"  x2="306" y2="74" />
+          </g>
+          <g fill="rgba(241,243,245,.6)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2" text-anchor="middle">
+            <text x="80"  y="118">SEPARATION</text>
+            <text x="206" y="118">ALIGNMENT</text>
+            <text x="305" y="118">COHESION</text>
+          </g>
+        </svg>
+        <p class="meta" style="margin-top:1.4vh; opacity:.65">Figure 2 · Reynolds' three local rules</p>
+      </div>
+      <div data-anim="right" style="padding:3vh 1.4vw;border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:1">Engineered (UAV)</div>
+        <h3 class="h-md" style="margin-top:1.4vh">Local rules,<br/>plus mission.</h3>
+        <p class="body-zh" style="margin-top:2vh; font-size:max(14px,1.05vw)">
+          Engineered swarms keep the local-interaction recipe but layer on path planning, formation modes, and explicit comm protocols so the swarm can actually go somewhere useful [4].
+        </p>
+        <ul style="margin-top:3vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1.2vh; font-family:var(--sans-zh); font-size:max(14px,1.08vw); line-height:1.55">
+          <li>Formation + path planner + comm model</li>
+          <li>Heterogeneous payloads possible</li>
+          <li>Robust on purpose, by design</li>
+          <li>Cryptographic message integrity is opt-in</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 08 · Bio vs engineered · [1][4]</div>
+    <div>Act I</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 9 · Layout 5 grid-4 + SVG formations · light · 4 formation modes ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Formations · Four of the seven modes in this sim</div>
+    <div>Act I · 09 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:4.5vh">
+    <div class="kicker" data-anim>The four you will test against attacks</div>
+    <h2 class="h-xl" data-anim>Four formation modes.</h2>
+
+    <div class="grid-4" style="margin-top:4vh; gap:4vh 4vw">
+      <div data-anim style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:center;padding:1.6vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4)">
+        <svg viewBox="0 0 120 80" style="width:7.5vw;max-width:120px;height:auto" aria-hidden="true">
+          <g fill="currentColor">
+            <circle cx="20" cy="40" r="7"/><circle cx="44" cy="40" r="7"/><circle cx="68" cy="40" r="7"/><circle cx="92" cy="40" r="7"/>
+          </g>
+        </svg>
+        <div>
+          <div class="meta" style="opacity:.55">· 01 / LINE</div>
+          <h3 class="h-md" style="margin-top:.4vh">Line</h3>
+          <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:.6vh">Single-file convoy. Simplest; one drop-out breaks the chain.</p>
+        </div>
+      </div>
+      <div data-anim style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:center;padding:1.6vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4)">
+        <svg viewBox="0 0 120 80" style="width:7.5vw;max-width:120px;height:auto" aria-hidden="true">
+          <g fill="currentColor">
+            <circle cx="60" cy="16" r="7"/>
+            <circle cx="36" cy="40" r="7"/><circle cx="84" cy="40" r="7"/>
+            <circle cx="12" cy="64" r="7"/><circle cx="108" cy="64" r="7"/>
+          </g>
+        </svg>
+        <div>
+          <div class="meta" style="opacity:.55">· 02 / V_FORMATION</div>
+          <h3 class="h-md" style="margin-top:.4vh">V formation</h3>
+          <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:.6vh">Goose-inspired. Reduces drag for trailing agents; widest view for the leader.</p>
+        </div>
+      </div>
+      <div data-anim style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:center;padding:1.6vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4)">
+        <svg viewBox="0 0 120 80" style="width:7.5vw;max-width:120px;height:auto" aria-hidden="true">
+          <g fill="currentColor">
+            <circle cx="60" cy="14" r="6"/>
+            <circle cx="100" cy="32" r="6"/>
+            <circle cx="100" cy="60" r="6"/>
+            <circle cx="60" cy="74" r="6"/>
+            <circle cx="20" cy="60" r="6"/>
+            <circle cx="20" cy="32" r="6"/>
+          </g>
+        </svg>
+        <div>
+          <div class="meta" style="opacity:.55">· 03 / CIRCLE</div>
+          <h3 class="h-md" style="margin-top:.4vh">Circle</h3>
+          <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:.6vh">All-eyes-out perimeter. Used for surveillance and protecting a centre point.</p>
+        </div>
+      </div>
+      <div data-anim style="display:grid;grid-template-columns:auto 1fr;gap:1.4vw;align-items:center;padding:1.6vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4)">
+        <svg viewBox="0 0 120 80" style="width:7.5vw;max-width:120px;height:auto" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3">
+            <line x1="60" y1="40" x2="22" y2="22"/>
+            <line x1="60" y1="40" x2="98" y2="22"/>
+            <line x1="60" y1="40" x2="22" y2="58"/>
+            <line x1="60" y1="40" x2="98" y2="58"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="60" cy="40" r="8"/>
+            <circle cx="22" cy="22" r="6"/><circle cx="98" cy="22" r="6"/>
+            <circle cx="22" cy="58" r="6"/><circle cx="98" cy="58" r="6"/>
+          </g>
+        </svg>
+        <div>
+          <div class="meta" style="opacity:.55">· 04 / COMM_AWARE · default</div>
+          <h3 class="h-md" style="margin-top:.4vh">Communication-aware</h3>
+          <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:.6vh">Spacing adapts to live link quality. Tightens under jamming, spreads when comms are healthy.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 09 · Formations · Figure 3</div>
+    <div>Act I</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 10 · Layout 7 Hero · hero dark · Attack surface manifesto ============ -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act II · Cybersecurity of swarms</div>
+    <div>10 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>Manifesto · 01</div>
+    <h1 class="h-hero" style="font-size:6.8vw; line-height:1.08">
+      <span data-anim="line" style="display:block">Every extra agent</span>
+      <span data-anim="line" style="display:block">is an extra <em>attack surface</em>.</span>
+    </h1>
+    <p class="lead" style="max-width:62vw" data-anim>
+      A single drone fails closed when comms drop. A swarm has to keep cooperating, so it has to keep talking, and every conversation a swarm holds is something an adversary can listen to, jam, or forge [5].
+    </p>
+    <div class="meta-row" data-anim>
+      <span>Hassija, Chamola et al. 2021</span><span>·</span><span>IEEE Surveys &amp; Tutorials</span><span>·</span><span>[5]</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 10 · The premise of Act II</div>
+    <div>Act II · Manifesto</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 11 · Layout 10 + SVG rings · light · Threat model ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Threat model · Three concentric surfaces</div>
+    <div>Act II · 11 / 32</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:5vh">
+    <div style="display:flex; flex-direction:column; gap:2.4vh">
+      <div class="kicker" data-anim>Threat model</div>
+      <h2 class="h-xl" style="font-size:5.4vw" data-anim>Three nested surfaces<br/>the adversary can hit.</h2>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        Recent UAV cybersecurity surveys group attacks into a small number of repeating patterns. Three concentric surfaces describe most of them [5][6][8].
+      </p>
+      <ul style="margin-top:2vh;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:1.4vh;font-family:var(--sans-zh);font-size:max(14px,1.08vw);line-height:1.5" data-anim>
+        <li style="padding-left:1.4em;position:relative"><span style="position:absolute;left:0;top:.45em;width:8px;height:8px;background:currentColor"></span><strong>RF / Comm.</strong> Jam the channel, drop the link.</li>
+        <li style="padding-left:1.4em;position:relative"><span style="position:absolute;left:0;top:.45em;width:8px;height:8px;background:currentColor"></span><strong>Perception.</strong> Spoof GPS, fake neighbours, forge messages.</li>
+        <li style="padding-left:1.4em;position:relative"><span style="position:absolute;left:0;top:.45em;width:8px;height:8px;background:var(--ink)"></span><strong>Mission / control.</strong> Hijack waypoints, drain endurance, fork the swarm.</li>
+      </ul>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 360 380" style="width:100%;height:auto;max-height:58vh" aria-hidden="true">
+        <defs>
+          <marker id="s11arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(10,31,61,.85)"/>
+          </marker>
+        </defs>
+        <circle cx="180" cy="190" r="160" fill="none" stroke="rgba(10,31,61,.32)" stroke-width="1" stroke-dasharray="4 4"/>
+        <circle cx="180" cy="190" r="116" fill="none" stroke="rgba(10,31,61,.7)" stroke-width="1.4"/>
+        <circle cx="180" cy="190" r="66"  fill="none" stroke="rgba(10,31,61,.7)" stroke-width="1.4"/>
+        <circle cx="180" cy="190" r="30"  fill="rgba(10,31,61,.92)" stroke="none"/>
+        <g stroke="rgba(10,31,61,.85)" stroke-width="1.6" fill="none">
+          <line x1="180" y1="20"  x2="180" y2="40"  marker-end="url(#s11arr)"/>
+          <line x1="20"  y1="190" x2="40"  y2="190" marker-end="url(#s11arr)"/>
+          <line x1="340" y1="190" x2="360" y2="190" marker-end="url(#s11arr)"/>
+        </g>
+        <g fill="rgba(10,31,61,.78)" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" letter-spacing="2" text-anchor="middle">
+          <text x="180" y="62">RF / COMM</text>
+          <text x="180" y="108">PERCEPTION</text>
+          <text x="180" y="194" fill="#ffffff">MISSION</text>
+        </g>
+        <g fill="rgba(10,31,61,.55)" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" text-anchor="middle">
+          <text x="180" y="16">ATTACKER →</text>
+        </g>
+      </svg>
+      <figcaption class="img-cap">Figure 4 · Concentric attack surfaces</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 11 · Threat model · [5][6][8]</div>
+    <div>Act II</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 12 · Layout 9 + SVG cones · dark · Jamming low vs high ============ -->
+<section class="slide dark" data-animate="directional">
+  <div class="chrome">
+    <div>Threat A · Jamming severity</div>
+    <div>Act II · 12 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Compare · Same scenario, two power levels</div>
+    <h2 class="h-xl" style="margin-bottom:4vh" data-anim>Jamming: low vs high.</h2>
+
+    <div class="grid-2-6-6" style="gap:5vw 4vh; align-items:start; margin-top:2vh">
+      <div data-anim="left" style="padding:2vh 1.4vw;border-left:3px solid currentColor;opacity:.82">
+        <div class="kicker" style="opacity:1">Before · <code style="font-family:var(--mono);font-size:.88em">low_jam</code></div>
+        <h3 class="h-md" style="margin-top:1vh">Mild degradation.</h3>
+        <svg viewBox="0 0 360 110" style="width:100%;max-height:14vh;height:auto;margin-top:1.4vh" aria-hidden="true">
+          <defs>
+            <radialGradient id="s12low" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="rgba(241,243,245,.32)"/>
+              <stop offset="100%" stop-color="rgba(241,243,245,0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="180" cy="55" r="55" fill="url(#s12low)" stroke="rgba(241,243,245,.6)" stroke-width="1" stroke-dasharray="4 4"/>
+          <g fill="rgba(241,243,245,.92)">
+            <circle cx="60"  cy="55" r="5"/>
+            <circle cx="120" cy="55" r="5"/>
+            <circle cx="180" cy="55" r="5"/>
+            <circle cx="240" cy="55" r="5"/>
+            <circle cx="300" cy="55" r="5"/>
+          </g>
+          <text x="180" y="104" fill="rgba(241,243,245,.6)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2" text-anchor="middle">RADIUS 16 · INTENSITY .55</text>
+        </svg>
+        <p class="body-zh" style="margin-top:1.6vh; font-size:max(13px,1vw); line-height:1.5">
+          Messages get retried or dropped occasionally. Formation holds; mission steps grow slowly. A useful baseline-contested condition.
+        </p>
+        <p class="meta" style="margin-top:1.4vh; opacity:.7">→ destination still reached</p>
+      </div>
+      <div data-anim="right" style="padding:2vh 1.4vw;border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:1">After · <code style="font-family:var(--mono);font-size:.88em">high_jam</code></div>
+        <h3 class="h-md" style="margin-top:1vh">Severe degradation.</h3>
+        <svg viewBox="0 0 360 110" style="width:100%;max-height:14vh;height:auto;margin-top:1.4vh" aria-hidden="true">
+          <defs>
+            <radialGradient id="s12high" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="rgba(241,243,245,.72)"/>
+              <stop offset="100%" stop-color="rgba(241,243,245,0)"/>
+            </radialGradient>
+          </defs>
+          <circle cx="180" cy="55" r="95" fill="url(#s12high)" stroke="rgba(241,243,245,.92)" stroke-width="1.4" stroke-dasharray="4 4"/>
+          <g fill="rgba(241,243,245,.92)">
+            <circle cx="60"  cy="55" r="5"/>
+            <circle cx="120" cy="55" r="5" opacity=".4"/>
+            <circle cx="180" cy="55" r="5" opacity=".2"/>
+            <circle cx="240" cy="55" r="5" opacity=".4"/>
+            <circle cx="300" cy="55" r="5"/>
+          </g>
+          <text x="180" y="104" fill="rgba(241,243,245,.6)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2" text-anchor="middle">RADIUS 22 · INTENSITY .95</text>
+        </svg>
+        <p class="body-zh" style="margin-top:1.6vh; font-size:max(13px,1vw); line-height:1.5">
+          Link near-collapse inside the zone. Coordination breaks; agents fall behind. Where proactive routing or LLM rerouting earn their keep [5][6].
+        </p>
+        <p class="meta" style="margin-top:1.4vh; opacity:.7">→ mission may fail or time out</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 12 · Jamming · Figure 5 · [5][6]</div>
+    <div>Act II · Before / After</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 13 · Layout 5 grid-3 + SVG spoofing · light · 3 spoofing modes ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Threat B · Three spoofing modes</div>
+    <div>Act II · 13 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:4.5vh">
+    <div class="kicker" data-anim>Spoofing</div>
+    <h2 class="h-xl" style="margin-bottom:2vh" data-anim>Three ways to lie to a swarm.</h2>
+    <p class="lead" style="margin-bottom:3vh; max-width:64vw; font-size:1.4vw" data-anim>
+      Civil GPS is unauthenticated by design. Humphreys' 2012 White Sands demonstration hijacked a real UAV with low-power counterfeit signals from half a mile away [7].
+    </p>
+
+    <div class="grid-3" style="margin-top:2.4vh; gap:3vw; align-items:start">
+      <div data-anim style="padding:1.8vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">01 / <code style="font-family:var(--mono);font-size:.95em">phantom</code></div>
+        <h3 class="h-md" style="margin-top:.8vh;font-size:max(17px,1.9vw)">Phantom agents</h3>
+        <svg viewBox="0 0 240 90" style="width:100%;max-height:13vh;height:auto;margin-top:1vh" aria-hidden="true">
+          <g fill="currentColor">
+            <circle cx="50"  cy="40" r="7"/>
+            <circle cx="110" cy="50" r="7"/>
+            <circle cx="170" cy="38" r="7"/>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 3">
+            <circle cx="80"  cy="76" r="7"/>
+            <circle cx="200" cy="76" r="7"/>
+          </g>
+        </svg>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">Inject fake agents (dashed). The swarm tries to make room for neighbours that aren't there.</p>
+      </div>
+
+      <div data-anim style="padding:1.8vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">02 / <code style="font-family:var(--mono);font-size:.95em">position_falsification</code></div>
+        <h3 class="h-md" style="margin-top:.8vh;font-size:max(17px,1.9vw)">Position falsification</h3>
+        <svg viewBox="0 0 240 90" style="width:100%;max-height:13vh;height:auto;margin-top:1vh" aria-hidden="true">
+          <defs>
+            <marker id="s13a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g fill="currentColor">
+            <circle cx="50"  cy="40" r="7"/>
+            <circle cx="110" cy="50" r="7"/>
+            <circle cx="170" cy="38" r="7"/>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2">
+            <line x1="50"  y1="40" x2="76"  y2="74" marker-end="url(#s13a)"/>
+            <line x1="110" y1="50" x2="92"  y2="22" marker-end="url(#s13a)"/>
+            <line x1="170" y1="38" x2="200" y2="68" marker-end="url(#s13a)"/>
+          </g>
+        </svg>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">Random offsets on real positions. Formation control over-corrects against noise.</p>
+      </div>
+
+      <div data-anim style="padding:1.8vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">03 / <code style="font-family:var(--mono);font-size:.95em">coordinate</code></div>
+        <h3 class="h-md" style="margin-top:.8vh;font-size:max(17px,1.9vw)">Coordinate shift</h3>
+        <svg viewBox="0 0 240 90" style="width:100%;max-height:13vh;height:auto;margin-top:1vh" aria-hidden="true">
+          <defs>
+            <marker id="s13b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g fill="currentColor">
+            <circle cx="50"  cy="30" r="7"/>
+            <circle cx="110" cy="40" r="7"/>
+            <circle cx="170" cy="28" r="7"/>
+          </g>
+          <g stroke="currentColor" stroke-width="1.6" fill="none">
+            <line x1="50"  y1="30" x2="86"  y2="62" marker-end="url(#s13b)"/>
+            <line x1="110" y1="40" x2="146" y2="72" marker-end="url(#s13b)"/>
+            <line x1="170" y1="28" x2="206" y2="60" marker-end="url(#s13b)"/>
+          </g>
+        </svg>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">Same fake offset for all; the swarm drifts coherently. Hardest to spot visually.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 13 · Spoofing · Figure 6 · [5][7]</div>
+    <div>Act II</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 14 · Layout 9 · dark · Crypto OFF vs ON ============ -->
+<section class="slide dark" data-animate="directional">
+  <div class="chrome">
+    <div>Countermeasure · Cryptographic message authentication</div>
+    <div>Act II · 14 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Compare · Same spoofer, different defence</div>
+    <h2 class="h-xl" style="margin-bottom:5vh" data-anim>Crypto OFF vs ON.</h2>
+
+    <div class="grid-2-6-6" style="gap:5vw 4vh; align-items:start">
+      <div data-anim="left" style="padding:3vh 1.4vw;border-left:3px solid currentColor;opacity:.78">
+        <div class="kicker" style="opacity:1">Before · Crypto OFF</div>
+        <h3 class="h-md" style="margin-top:1.4vh">Receiver trusts<br/>whatever arrives.</h3>
+        <p class="body-zh" style="margin-top:2vh; font-size:max(14px,1.06vw); line-height:1.55">
+          Without keyed authentication, the swarm can't distinguish a forged message from a real one. Spoofed positions enter the control loop directly; <code style="font-family:var(--mono);font-size:.92em">detection_rate</code> stays near zero.
+        </p>
+        <ul style="margin-top:2.4vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1vh; font-family:var(--sans-zh); font-size:max(13px,1vw); line-height:1.5">
+          <li>FN (false negative) rate high</li>
+          <li>Mission outcome reflects the spoof</li>
+        </ul>
+      </div>
+      <div data-anim="right" style="padding:3vh 1.4vw;border-left:3px solid currentColor">
+        <div class="kicker" style="opacity:1">After · Crypto ON · <code style="font-family:var(--mono);font-size:.88em">hmac_sha256</code></div>
+        <h3 class="h-md" style="margin-top:1.4vh">Tampered messages<br/>get <em>rejected</em>.</h3>
+        <p class="body-zh" style="margin-top:2vh; font-size:max(14px,1.06vw); line-height:1.55">
+          HMAC-SHA256 is the NIST FIPS 198-1 standard for keyed message authentication [9]. With a shared key, any modified or forged message fails verification. <code style="font-family:var(--mono);font-size:.92em">detection_rate</code> typically jumps; <code style="font-family:var(--mono);font-size:.92em">tp</code> and <code style="font-family:var(--mono);font-size:.92em">tn</code> grow [8].
+        </p>
+        <ul style="margin-top:2.4vh; padding-left:1.2em; display:flex; flex-direction:column; gap:1vh; font-family:var(--sans-zh); font-size:max(13px,1vw); line-height:1.5">
+          <li>Spoofed packets → <code style="font-family:var(--mono);font-size:.92em">rejected</code> counter</li>
+          <li>Crypto does <strong>not</strong> remove jamming (different layer)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 14 · Defence · [8][9]</div>
+    <div>Act II · Before / After</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 15 · Layout 3 + SVG confusion matrix · light · Detection metrics ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Metrics · The four numbers students must capture</div>
+    <div>Act II · 15 / 32</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:5vh">
+    <div style="display:flex;flex-direction:column;gap:2.4vh">
+      <div class="kicker" data-anim>Spoof-detection KPI</div>
+      <h2 class="h-xl" style="font-size:5.4vw" data-anim>The four numbers behind <em>detection_rate</em>.</h2>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        Every Attack Metrics panel reports a 2x2 confusion matrix (true vs false, positive vs negative) plus a derived <code style="font-family:var(--mono);font-size:.92em">detection_rate</code>. The rubric weighs these numbers, not screenshots alone.
+      </p>
+      <div class="callout" data-anim style="margin-top:1vh">
+        detection_rate = TP / (TP + FN)
+        <div class="callout-src">The single ratio your rubric weighs most</div>
+      </div>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 360 320" style="width:100%;height:auto;max-height:62vh" aria-hidden="true">
+        <g stroke="rgba(10,31,61,.7)" stroke-width="1.2" fill="none">
+          <rect x="80" y="50" width="240" height="240"/>
+          <line x1="200" y1="50" x2="200" y2="290"/>
+          <line x1="80"  y1="170" x2="320" y2="170"/>
+        </g>
+        <g fill="rgba(10,31,61,.96)" font-family="Playfair Display, serif" font-weight="800" font-size="34" text-anchor="middle">
+          <text x="140" y="125">TP</text>
+          <text x="260" y="125" opacity=".55">FP</text>
+          <text x="140" y="245" opacity=".55">FN</text>
+          <text x="260" y="245">TN</text>
+        </g>
+        <g fill="rgba(10,31,61,.6)" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" text-anchor="middle">
+          <text x="140" y="148">caught</text>
+          <text x="260" y="148">false alarm</text>
+          <text x="140" y="268">missed</text>
+          <text x="260" y="268">clean</text>
+        </g>
+        <g fill="rgba(10,31,61,.55)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.4" text-anchor="middle">
+          <text x="140" y="36">PREDICTED SPOOF</text>
+          <text x="260" y="36">PREDICTED OK</text>
+        </g>
+        <g fill="rgba(10,31,61,.55)" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="2.4" text-anchor="middle">
+          <text x="56" y="110" transform="rotate(-90 56 110)">ACTUAL SPOOF</text>
+          <text x="56" y="230" transform="rotate(-90 56 230)">ACTUAL OK</text>
+        </g>
+        <rect x="80" y="50" width="120" height="120" fill="rgba(10,31,61,.06)"/>
+        <rect x="200" y="170" width="120" height="120" fill="rgba(10,31,61,.06)"/>
+      </svg>
+      <figcaption class="img-cap">Figure 7 · 2x2 confusion matrix · TP and TN are the desirable cells</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 15 · Detection metrics</div>
+    <div>Act II · Figure 7</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 16 · Layout 2 Act Divider · hero light · Python primitives ============ -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act III · Python you actually need</div>
+    <div>Act III · 16 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>Act III · Reassurance</div>
+    <h1 class="h-hero" style="font-size:7vw; line-height:1.1" data-anim>
+      Six primitives.<br/>That is the <em>whole list</em>.
+    </h1>
+    <p class="lead" style="max-width:62vw" data-anim>
+      Students often think the Python track demands "real programming". For this assignment it does not. If they can import a package, store a value, call a function with keyword arguments, and read a returned dictionary, they can complete every required task.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>For Assignment 2 only</span><span>·</span><span>see next slide for the list</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 16 · Reassurance</div>
+    <div>Act III</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 17 · Layout 5 grid-3-3 · light · 6 Python primitives ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Python · Six primitives that cover the assignment</div>
+    <div>Act III · 17 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:3.4vh">
+    <div class="kicker" data-anim>The whole list</div>
+    <h2 class="h-xl" style="font-size:5.4vw" data-anim>Six primitives. You will use every one.</h2>
+
+    <div class="grid-3-3" style="margin-top:2.4vh;gap:1.4vh 2vw">
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">01 / IMPORT</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">Import</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">from swarm_squad_ep1.client import SwarmSquadClient</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Pull the library in once at the top.</p>
+      </div>
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">02 / VARIABLE</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">Variable assignment</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">client = SwarmSquadClient()</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Store the object so you can call methods on it later.</p>
+      </div>
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">03 / CALL</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">Function call</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">client.reset_simulation()</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Parentheses mean "do it now". Empty parens are fine.</p>
+      </div>
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">04 / KWARGS</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">Keyword arguments</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">add_jamming_zone(center=(12,45,10),
+    radius=16, jam_type="low_jam")</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Pass arguments by name; order does not matter.</p>
+      </div>
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">05 / LIST &amp; TUPLE</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">List &amp; tuple</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">coords = (10.0, 45.0, 10.0)
+scenarios = ["baseline", "low_jam"]</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Tuples for fixed coords; lists for sequences.</p>
+      </div>
+      <div data-anim style="padding:1.2vh 1.2vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.4vh">
+        <div class="meta" style="opacity:.55;font-size:max(10px,.72vw)">06 / DICT</div>
+        <h3 style="font-family:var(--serif-zh);font-weight:600;font-size:max(15px,1.55vw);line-height:1.15">Dictionary read</h3>
+        <pre style="font-family:var(--mono);font-size:max(11px,.78vw);line-height:1.4;background:rgba(10,31,61,.06);padding:.6vh .8vw;overflow:hidden;margin:0">attack = client.attack_metrics()
+rate = attack["detection_rate"]</pre>
+        <p style="font-family:var(--sans-zh);font-size:max(12px,.86vw);line-height:1.4;opacity:.72;margin:0">Methods return JSON-as-dict; read fields with brackets.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 17 · Python primitives</div>
+    <div>Act III</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 18 · Layout 6 Pipeline · light · Setup pipeline ============ -->
+<section class="slide light" data-animate="pipeline">
+  <div class="chrome">
+    <div>First-time setup · Clone to running stack</div>
+    <div>Act III · 18 / 32</div>
+  </div>
+  <div class="frame">
+    <div class="kicker">Pipeline · first-time setup</div>
+    <h2 class="h-xl">One terminal session.<br/>Full stack up.</h2>
+
+    <div class="pipeline-section" style="margin-top:5vh">
+      <div class="pipeline-label">Setup · run once per machine</div>
+      <div class="pipeline">
+        <div class="step" data-anim="step">
+          <div class="step-nb">01</div>
+          <div class="step-title" style="font-size:1.3vw">Make env</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.92em">uv venv</code> creates an isolated Python 3.11+ env in the repo root.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">02</div>
+          <div class="step-title" style="font-size:1.3vw">Install deps</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.92em">uv sync --extra dev</code> pulls runtime + dev deps (pytest, ruff).</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">03</div>
+          <div class="step-title" style="font-size:1.3vw">Start services</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.92em">docker compose up -d</code> backgrounds Qdrant + Ollama deps.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">04</div>
+          <div class="step-title" style="font-size:1.3vw">Run Ollama</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.92em">ollama serve</code> keeps the LLM daemon up.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">05</div>
+          <div class="step-title" style="font-size:1.3vw">Launch</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.92em">uv run swarm-squad-ep1</code> starts GUI :5000 + sim :5001.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Verify · in a second terminal</div>
+      <div class="pipeline" data-cols="3">
+        <div class="step" data-anim="step">
+          <div class="step-nb">06</div>
+          <div class="step-title">curl /health</div>
+          <div class="step-desc">Chat service reports simulation API online.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">07</div>
+          <div class="step-title">browse :5000</div>
+          <div class="step-desc">3D GUI loads with control panels.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">08</div>
+          <div class="step-title">uv run pytest -q</div>
+          <div class="step-desc">Fast sanity for the assignment classroom.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 18 · Setup · press → to walk steps</div>
+    <div>Pipeline</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 19 · Layout 10 + SVG two-terminal · dark · Two-terminal workflow ============ -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Workflow · Two terminals + a browser</div>
+    <div>Act III · 19 / 32</div>
+  </div>
+  <div class="frame grid-2-8-4" style="padding-top:4vh">
+    <div>
+      <div class="kicker" data-anim>For the Python track (Assignment 2)</div>
+      <h2 class="h-xl" style="font-size:5.4vw" data-anim>Backend in A.<br/>Script in B.<br/>Browser in between.</h2>
+      <p class="body-zh" style="margin-top:2.4vh; font-size:max(15px,1.15vw)" data-anim>
+        Terminal A's backend and the script in Terminal B share the same simulation state. The browser tab always reflects what the script most recently did. Refresh after each scenario for clean screenshots.
+      </p>
+      <div class="callout" data-anim style="margin-top:2vh;padding:1.6vh 1.8vw;font-size:max(13px,1.02vw)">
+        Starter file: <code style="font-family:var(--mono);font-size:.9em">examples/ep1_assignment_starter.py</code>. Fork it, do not start from scratch.
+        <div class="callout-src" style="margin-top:.8vh">Teacher manual recommendation</div>
+      </div>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 260 380" style="width:100%;height:auto;max-height:64vh" aria-hidden="true">
+        <defs>
+          <marker id="s19a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(241,243,245,.8)"/>
+          </marker>
+        </defs>
+        <g stroke="rgba(241,243,245,.85)" stroke-width="1.4" fill="none">
+          <rect x="14" y="14"  width="232" height="100"/>
+          <rect x="14" y="148" width="232" height="100"/>
+          <rect x="14" y="282" width="232" height="84"/>
+        </g>
+        <g fill="rgba(241,243,245,.92)" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1">
+          <text x="24" y="34" font-weight="600">$ TERMINAL A</text>
+          <text x="24" y="56">uv run swarm-squad-ep1</text>
+          <text x="24" y="78" opacity=".62">[chat] :5000</text>
+          <text x="24" y="94" opacity=".62">[sim]  :5001</text>
+          <text x="24" y="110" opacity=".62">· backend stays up</text>
+
+          <text x="24" y="168" font-weight="600">  BROWSER</text>
+          <text x="24" y="190">localhost:5000</text>
+          <text x="24" y="210" opacity=".62">3D scene + panels</text>
+          <text x="24" y="226" opacity=".62">refresh re-polls state</text>
+          <text x="24" y="244" opacity=".62">· mirrors backend</text>
+
+          <text x="24" y="302" font-weight="600">$ TERMINAL B</text>
+          <text x="24" y="324">uv run python \</text>
+          <text x="24" y="340">  student_assignment.py</text>
+          <text x="24" y="358" opacity=".62">· scenario loop</text>
+        </g>
+        <g stroke="rgba(241,243,245,.7)" stroke-width="1.4" fill="none" marker-end="url(#s19a)">
+          <line x1="130" y1="114" x2="130" y2="148"/>
+          <line x1="130" y1="248" x2="130" y2="282"/>
+        </g>
+      </svg>
+      <figcaption class="img-cap">Figure 8 · Two-terminal classroom workflow</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 19 · Workflow · Figure 8</div>
+    <div>Act III</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 20 · Layout 10 + SVG topology · light · Simulator topology ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Act IV · The Swarm Squad Ep1 simulator</div>
+    <div>Act IV · 20 / 32</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:5vh">
+    <div style="display:flex;flex-direction:column;gap:2.4vh">
+      <div class="kicker" data-anim>Topology</div>
+      <h2 class="h-xl" style="font-size:5.4vw" data-anim>Browser, chat, simulation.<br/>Plus one Python facade.</h2>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        User scripts speak directly to layer 3 via <code style="font-family:var(--mono);font-size:.92em">SwarmSquadClient</code>; the browser sees the same state on the next poll. That is what makes "script in Terminal B, GUI in browser" work.
+      </p>
+      <div class="callout" data-anim>
+        See <code style="font-family:var(--mono);font-size:.92em">docs/system-overview.md</code> for the full mermaid topology.
+        <div class="callout-src">System overview</div>
+      </div>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 420 360" style="width:100%;height:auto;max-height:62vh" aria-hidden="true">
+        <defs>
+          <marker id="s20arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(10,31,61,.85)"/>
+          </marker>
+          <marker id="s20arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(10,31,61,.95)"/>
+          </marker>
+        </defs>
+        <g stroke="rgba(10,31,61,.85)" stroke-width="1.4" fill="none">
+          <rect x="20"  y="20"  width="180" height="84"/>
+          <rect x="220" y="20"  width="180" height="84"/>
+          <rect x="20"  y="140" width="180" height="84"/>
+          <rect x="220" y="140" width="180" height="84"/>
+          <rect x="100" y="262" width="220" height="78"/>
+        </g>
+        <g fill="rgba(10,31,61,.96)" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="1">
+          <text x="110" y="44" text-anchor="middle" font-weight="700">BROWSER GUI</text>
+          <text x="110" y="64" text-anchor="middle" opacity=".7">3D scene + panels</text>
+          <text x="110" y="84" text-anchor="middle" opacity=".7" font-size="10">port :5000</text>
+
+          <text x="310" y="44" text-anchor="middle" font-weight="700">USER SCRIPT</text>
+          <text x="310" y="64" text-anchor="middle" opacity=".7" font-size="10">student_assignment.py</text>
+          <text x="310" y="84" text-anchor="middle" opacity=".7" font-size="10">SwarmSquadClient</text>
+
+          <text x="110" y="166" text-anchor="middle" font-weight="700">CHAT API</text>
+          <text x="110" y="186" text-anchor="middle" opacity=".7" font-size="10">chat.app · proxy</text>
+          <text x="110" y="206" text-anchor="middle" opacity=".7" font-size="10">port :5000</text>
+
+          <text x="310" y="166" text-anchor="middle" font-weight="700" fill="rgba(10,31,61,.95)">SIMULATION API</text>
+          <text x="310" y="186" text-anchor="middle" opacity=".7" font-size="10">simulation.api</text>
+          <text x="310" y="206" text-anchor="middle" opacity=".7" font-size="10">port :5001 · owns state</text>
+
+          <text x="210" y="288" text-anchor="middle" font-weight="700">SHARED STATE</text>
+          <text x="210" y="308" text-anchor="middle" opacity=".7" font-size="10">agents · zones · metrics</text>
+        </g>
+        <g stroke="rgba(10,31,61,.85)" stroke-width="1.4" fill="none">
+          <line x1="110" y1="104" x2="110" y2="140" marker-end="url(#s20arr)"/>
+          <line x1="200" y1="180" x2="220" y2="180" marker-end="url(#s20arr)"/>
+          <line x1="310" y1="104" x2="310" y2="140" marker-end="url(#s20arr)"/>
+        </g>
+        <line x1="310" y1="224" x2="210" y2="262" stroke="rgba(10,31,61,.95)" stroke-width="1.4" fill="none" marker-end="url(#s20arr2)"/>
+        <line x1="110" y1="224" x2="210" y2="262" stroke="rgba(10,31,61,.95)" stroke-width="1.4" fill="none" marker-end="url(#s20arr2)"/>
+      </svg>
+      <figcaption class="img-cap">Figure 9 · Simulator topology</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 20 · Topology · Figure 9</div>
+    <div>Act IV</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 21 · Layout 5 grid-3-3 · light · 6 GUI control panels ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>GUI tour · Six panels students will toggle</div>
+    <div>Act IV · 21 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:4.5vh">
+    <div class="kicker" data-anim>GUI panels</div>
+    <h2 class="h-xl" data-anim>Every knob lives in one of six panels.</h2>
+
+    <div class="grid-3-3" style="margin-top:4vh">
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">01 · Formation</div>
+        <h3 class="h-md">Formation</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5"><code style="font-family:var(--mono);font-size:.9em">line / v_formation / circle / wedge / column / diamond / communication_aware</code></p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">02 · Path</div>
+        <h3 class="h-md">Path planner</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5"><code style="font-family:var(--mono);font-size:.9em">direct / astar / theta_star / dijkstra / bfs / greedy / bi_astar / msp</code></p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">03 · Comm</div>
+        <h3 class="h-md">Comm model</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5"><code style="font-family:var(--mono);font-size:.9em">v2v_channel</code> enhanced or <code style="font-family:var(--mono);font-size:.9em">legacy</code> baseline. Switching shows how channel models matter.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">04 · Jamming</div>
+        <h3 class="h-md">Jamming zones</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Add / update / delete circular zones with <code style="font-family:var(--mono);font-size:.9em">physical</code>, <code style="font-family:var(--mono);font-size:.9em">low_jam</code>, or <code style="font-family:var(--mono);font-size:.9em">high_jam</code> type.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">05 · Spoofing</div>
+        <h3 class="h-md">Spoofing zones</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5"><code style="font-family:var(--mono);font-size:.9em">phantom / position_falsification / coordinate</code>; tune phantom count, magnitude, vector.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">06 · Defence</div>
+        <h3 class="h-md">Crypto + LLM</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Crypto auth (<code style="font-family:var(--mono);font-size:.9em">hmac_sha256 / chacha20_poly1305 / aes_256_ctr</code>) plus LLM-assistance toggle.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 21 · GUI panels</div>
+    <div>Act IV</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 22 · Layout 3 Big Numbers · dark · Algorithm catalog ============ -->
+<section class="slide dark">
+  <div class="chrome">
+    <div>Algorithm catalog · Spec sheet</div>
+    <div>Act IV · 22 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Spec sheet</div>
+    <h2 class="h-xl" data-anim>Twenty knobs.<br/>One simulator.</h2>
+    <p class="lead" style="margin-top:2vh; max-width:64vw" data-anim>
+      The same simulator state can be reshaped along four orthogonal dimensions. A* is the workhorse default [10]; Theta* and Dijkstra are useful baselines for comparisons.
+    </p>
+
+    <div class="grid-3" style="margin-top:5vh; gap:5vw; align-items:start">
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Formation modes</div>
+        <div class="stat-nb" style="font-size:6vw">7<span style="font-family:var(--sans-zh);font-weight:500;font-size:.34em;opacity:.6;margin-left:.18em">modes</span></div>
+        <div class="stat-note">line, v_formation, circle, wedge, column, diamond, communication_aware</div>
+      </div>
+      <div class="stat-card" data-anim>
+        <div class="stat-label">Path planners</div>
+        <div class="stat-nb" style="font-size:6vw">8<span style="font-family:var(--sans-zh);font-weight:500;font-size:.34em;opacity:.6;margin-left:.18em">planners</span></div>
+        <div class="stat-note">direct, astar, theta_star, dijkstra, bfs, greedy, bi_astar, msp · all reachable from <code style="font-family:var(--mono);font-size:.92em">set_algorithm()</code></div>
+      </div>
+      <div class="stat-card" data-anim style="border-top-width:2px">
+        <div class="stat-label">Crypto + Comm options</div>
+        <div class="stat-nb" style="font-size:6vw">5<span style="font-family:var(--sans-zh);font-weight:500;font-size:.34em;opacity:.6;margin-left:.18em">options</span></div>
+        <div class="stat-note">3 crypto algorithms (hmac_sha256, chacha20_poly1305, aes_256_ctr) plus 2 comm models (v2v_channel, legacy)</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:2.4vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;justify-content:space-between;align-items:baseline;gap:2vw">
+      <div style="font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.78">7 formations &times; 8 path planners &times; 3 crypto &times; 2 comm + 3 jam + 3 spoof = a very wide experiment grid.</div>
+      <div style="font-family:var(--mono);font-size:max(11px,.84vw);letter-spacing:.18em;text-transform:uppercase;opacity:.55;white-space:nowrap">20+ knobs · 6 threats</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 22 · Catalog · [10]</div>
+    <div>Act IV · Spec sheet</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 23 · Layout 10 + SVG loop · light · Lifecycle loop ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Control loop · How a scripted scenario flows</div>
+    <div>Act IV · 23 / 32</div>
+  </div>
+  <div class="frame grid-2-7-5" style="padding-top:5vh">
+    <div style="display:flex;flex-direction:column;gap:2.4vh">
+      <div class="kicker" data-anim>SwarmSquadClient lifecycle</div>
+      <h2 class="h-xl" style="font-size:5.4vw" data-anim>Reset. Configure.<br/>Start. Observe. Repeat.</h2>
+      <p class="body-zh" style="font-size:max(15px,1.18vw)" data-anim>
+        Each scenario in <code style="font-family:var(--mono);font-size:.92em">student_assignment.py</code> follows this four-step rhythm. The loop closes when the script picks up a new scenario row and calls <code style="font-family:var(--mono);font-size:.92em">reset_simulation()</code> again.
+      </p>
+      <ol style="margin-top:1vh;padding-left:1.4em;display:flex;flex-direction:column;gap:1vh;font-family:var(--sans-zh);font-size:max(14px,1.08vw);line-height:1.55" data-anim>
+        <li><strong>Reset.</strong> <code style="font-family:var(--mono);font-size:.92em">reset_simulation()</code> + clear zones.</li>
+        <li><strong>Configure.</strong> Algorithm, zones, crypto, LLM.</li>
+        <li><strong>Start &amp; observe.</strong> <code style="font-family:var(--mono);font-size:.92em">start_simulation(...)</code> + poll <code style="font-family:var(--mono);font-size:.92em">simulation_state()</code>.</li>
+        <li><strong>Collect &amp; next.</strong> <code style="font-family:var(--mono);font-size:.92em">attack_metrics()</code> + <code style="font-family:var(--mono);font-size:.92em">protocol_stats()</code>, then loop.</li>
+      </ol>
+    </div>
+
+    <figure class="frame-img" style="background:none;border:0" data-anim>
+      <svg viewBox="0 0 320 320" style="width:100%;height:auto;max-height:60vh" aria-hidden="true">
+        <defs>
+          <marker id="s23arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="rgba(10,31,61,.95)"/>
+          </marker>
+        </defs>
+        <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(10,31,61,.32)" stroke-width="1" stroke-dasharray="4 4"/>
+        <g fill="rgba(10,31,61,.95)" stroke="none">
+          <circle cx="160" cy="40"  r="20"/>
+          <circle cx="280" cy="160" r="20"/>
+          <circle cx="160" cy="280" r="20"/>
+          <circle cx="40"  cy="160" r="20"/>
+        </g>
+        <g stroke="rgba(10,31,61,.95)" stroke-width="1.6" fill="none">
+          <path d="M 178 44 A 120 120 0 0 1 280 142" marker-end="url(#s23arr)"/>
+          <path d="M 280 178 A 120 120 0 0 1 178 280" marker-end="url(#s23arr)"/>
+          <path d="M 142 280 A 120 120 0 0 1 40 178" marker-end="url(#s23arr)"/>
+          <path d="M 40 142 A 120 120 0 0 1 142 40" marker-end="url(#s23arr)"/>
+        </g>
+        <g fill="rgba(241,243,245,.96)" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600" text-anchor="middle">
+          <text x="160" y="44">01</text>
+          <text x="280" y="164">02</text>
+          <text x="160" y="284">03</text>
+          <text x="40"  y="164">04</text>
+        </g>
+        <g fill="rgba(10,31,61,.88)" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="2" text-anchor="middle">
+          <text x="160" y="20">RESET</text>
+          <text x="300" y="115" text-anchor="end">CONFIGURE</text>
+          <text x="160" y="308">START</text>
+          <text x="20"  y="115">OBSERVE</text>
+        </g>
+      </svg>
+      <figcaption class="img-cap">Figure 10 · SwarmSquadClient control loop</figcaption>
+    </figure>
+  </div>
+  <div class="foot">
+    <div>Page 23 · Lifecycle · Figure 10</div>
+    <div>Act IV</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 24 · Layout 5 grid-3-3 · light · 6 API calls ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>API · Six SwarmSquadClient calls students use most</div>
+    <div>Act IV · 24 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:4.5vh">
+    <div class="kicker" data-anim>High-leverage API</div>
+    <h2 class="h-xl" data-anim>Six methods cover ~80% of Assignment 2.</h2>
+
+    <div class="grid-3-3" style="margin-top:4vh">
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">01 · ALG</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">set_algorithm(...)</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Switch formation + path planner mid-mission. Accepts <code style="font-family:var(--mono);font-size:.9em">formation</code>, <code style="font-family:var(--mono);font-size:.9em">path_algorithm</code>.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">02 · JAM</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">add_jamming_zone(...)</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Drop a circular jamming zone. <code style="font-family:var(--mono);font-size:.9em">center=(x,y,z)</code>, <code style="font-family:var(--mono);font-size:.9em">radius</code>, <code style="font-family:var(--mono);font-size:.9em">jam_type</code>, <code style="font-family:var(--mono);font-size:.9em">intensity</code>.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">03 · SPOOF</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">add_spoofing_zone(...)</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Configure one of three modes plus magnitude / vector. Compose with jamming to study layered attacks.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">04 · CRYPTO</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">set_crypto_auth(...)</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Toggle keyed authentication + pick algorithm. The single most important defence knob.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">05 · LLM</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">set_llm_assistance(...)</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Enable LLM-driven rerouting when comm quality drops. Best paired with high-jam scenarios.</p>
+      </div>
+      <div data-anim style="padding:2vh 1.4vw;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;flex-direction:column;gap:.8vh">
+        <div class="meta" style="opacity:.55">06 · METRICS</div>
+        <h3 class="h-md" style="font-family:var(--mono);font-size:max(15px,1.4vw)">attack_metrics()</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5">Returns the confusion-matrix dict (<code style="font-family:var(--mono);font-size:.85em">tp / fp / fn / tn / detection_rate</code>), which is the rubric's evidence row.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 24 · API calls</div>
+    <div>Act IV</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 25 · Layout 2 Act Divider · hero dark · Assignment 1 ============ -->
+<section class="slide hero dark">
+  <div class="chrome">
+    <div>Act V · Assignment 1 · GUI track</div>
+    <div>Act V · 25 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>Assignment 1 · Track 1</div>
+    <h1 class="h-hero" style="font-size:7.4vw" data-anim>Visual Cyber<br/>Defense <em>Lab</em>.</h1>
+    <p class="lead" style="max-width:60vw" data-anim>
+      For students who have not yet written Python. They launch the GUI, run a scenario matrix, and write a short reflection.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>50-70 min · GUI only</span><span>·</span><span>docs/assignment-gui-student.md</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 25 · Assignment 1 opener</div>
+    <div>Act V</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 26 · Layout 6 Pipeline · light · Assignment 1 tasks ============ -->
+<section class="slide light" data-animate="pipeline">
+  <div class="chrome">
+    <div>Assignment 1 · Five required tasks</div>
+    <div>Act V · 26 / 32</div>
+  </div>
+  <div class="frame">
+    <div class="kicker">Required tasks</div>
+    <h2 class="h-xl">Five tasks · one variable at a time.</h2>
+
+    <div class="pipeline-section" style="margin-top:5vh">
+      <div class="pipeline-label">Tasks 01-05 · GUI track</div>
+      <div class="pipeline">
+        <div class="step" data-anim="step">
+          <div class="step-nb">01</div>
+          <div class="step-title">Baseline mission</div>
+          <div class="step-desc">Pick formation + path, no zones, observe.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">02</div>
+          <div class="step-title">Jamming compare</div>
+          <div class="step-desc"><code style="font-family:var(--mono);font-size:.9em">low_jam</code> vs <code style="font-family:var(--mono);font-size:.9em">high_jam</code>, same everything else.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">03</div>
+          <div class="step-title">Spoofing compare</div>
+          <div class="step-desc">All three modes, capture attack panel.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">04</div>
+          <div class="step-title">Defence compare</div>
+          <div class="step-desc">Crypto OFF vs <code style="font-family:var(--mono);font-size:.9em">hmac_sha256</code> ON.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">05</div>
+          <div class="step-title">Reflection</div>
+          <div class="step-desc">200-350 words tying metrics to behaviour.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:5vh">
+      Common failure mode (per teacher manual): students change two variables between runs and can't tell which one moved the metric. The rubric's "scenario quality" line penalises this directly.
+      <div class="callout-src">docs/assignment-gui-teacher.md</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 26 · Tasks · press → to walk steps</div>
+    <div>Act V · Pipeline</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 27 · Layout 9 + custom bars · light · Assignment 1 rubric ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Assignment 1 · Rubric weighting (100 pts)</div>
+    <div>Act V · 27 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Rubric · GUI track</div>
+    <h2 class="h-xl" data-anim>Evidence + scenario quality<br/>own half of the marks.</h2>
+
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:5vw;margin-top:6vh;align-items:start">
+      <p class="body-zh" style="font-size:max(15px,1.18vw);max-width:30ch" data-anim>
+        Use this to defend grading decisions: "controlled comparisons" and "quality of evidence" together outweigh raw execution.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:2.4vh" data-anim>
+        <div style="display:grid;grid-template-columns:18em 1fr 5em;gap:1.6vw;align-items:center">
+          <div class="meta" style="opacity:.75;white-space:nowrap">Execution &amp; workflow</div>
+          <div style="height:18px;background:rgba(10,31,61,.12);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:20%;background:currentColor"></div></div>
+          <div style="font-family:var(--serif-en);font-weight:800;font-size:max(18px,1.5vw);text-align:right">20</div>
+        </div>
+        <div style="display:grid;grid-template-columns:18em 1fr 5em;gap:1.6vw;align-items:center">
+          <div class="meta" style="opacity:.75;white-space:nowrap">Scenario quality</div>
+          <div style="height:18px;background:rgba(10,31,61,.12);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:25%;background:currentColor"></div></div>
+          <div style="font-family:var(--serif-en);font-weight:800;font-size:max(18px,1.5vw);text-align:right">25</div>
+        </div>
+        <div style="display:grid;grid-template-columns:18em 1fr 5em;gap:1.6vw;align-items:center">
+          <div class="meta" style="opacity:.75;white-space:nowrap">Evidence quality</div>
+          <div style="height:18px;background:rgba(10,31,61,.12);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:25%;background:currentColor"></div></div>
+          <div style="font-family:var(--serif-en);font-weight:800;font-size:max(18px,1.5vw);text-align:right">25</div>
+        </div>
+        <div style="display:grid;grid-template-columns:18em 1fr 5em;gap:1.6vw;align-items:center">
+          <div class="meta" style="opacity:.75;white-space:nowrap">Analysis depth</div>
+          <div style="height:18px;background:rgba(10,31,61,.12);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:20%;background:currentColor"></div></div>
+          <div style="font-family:var(--serif-en);font-weight:800;font-size:max(18px,1.5vw);text-align:right">20</div>
+        </div>
+        <div style="display:grid;grid-template-columns:18em 1fr 5em;gap:1.6vw;align-items:center">
+          <div class="meta" style="opacity:.75;white-space:nowrap">Communication</div>
+          <div style="height:18px;background:rgba(10,31,61,.12);position:relative"><div style="position:absolute;left:0;top:0;height:100%;width:10%;background:rgba(10,31,61,.45)"></div></div>
+          <div style="font-family:var(--serif-en);font-weight:800;font-size:max(18px,1.5vw);text-align:right">10</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:2.4vh;margin-bottom:2vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.4);display:flex;justify-content:space-between;align-items:baseline;gap:2vw">
+      <div style="display:flex;align-items:baseline;gap:.6em">
+        <span style="font-family:var(--serif-en);font-weight:800;font-size:4.2vw;line-height:1">100</span>
+        <span style="font-family:var(--sans-zh);font-size:max(15px,1.1vw);font-weight:500;opacity:.7;letter-spacing:.01em">pts total</span>
+      </div>
+      <div class="meta" style="text-align:right">Top-two rows = student deliverables tied to evidence</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 27 · Rubric</div>
+    <div>Act V</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 28 · Layout 2 Act Divider · hero light · Assignment 2 ============ -->
+<section class="slide hero light">
+  <div class="chrome">
+    <div>Act VI · Assignment 2 · Python track</div>
+    <div>Act VI · 28 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:6vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>Assignment 2 · Track 2</div>
+    <h1 class="h-hero" style="font-size:6.8vw" data-anim>Scripted Attack /<br/>Defense <em>Lab</em>.</h1>
+    <p class="lead" style="max-width:62vw" data-anim>
+      For students who can run a Python script with help from a starter. They drive the simulator from <code style="font-family:var(--mono);font-size:.92em">SwarmSquadClient</code>, register one custom algorithm, and write a 300-500-word analysis.
+    </p>
+    <div class="meta-row" data-anim>
+      <span>75-100 min · GUI + scripts</span><span>·</span><span>docs/assignment-python-student.md</span>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 28 · Assignment 2 opener</div>
+    <div>Act VI</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 29 · Layout 6 Pipeline · light · Assignment 2 tasks ============ -->
+<section class="slide light" data-animate="pipeline">
+  <div class="chrome">
+    <div>Assignment 2 · Five required tasks</div>
+    <div>Act VI · 29 / 32</div>
+  </div>
+  <div class="frame">
+    <div class="kicker">Required tasks</div>
+    <h2 class="h-xl">Five tasks · one script · ≥ 4 scenarios.</h2>
+
+    <div class="pipeline-section" style="margin-top:5vh">
+      <div class="pipeline-label">Tasks 01-05 · Python track</div>
+      <div class="pipeline">
+        <div class="step" data-anim="step">
+          <div class="step-nb">01</div>
+          <div class="step-title">Baseline script</div>
+          <div class="step-desc">Reset, set algorithm, start, print state.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">02</div>
+          <div class="step-title">Attack matrix</div>
+          <div class="step-desc">≥ 4 scripted scenarios with metrics captured.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">03</div>
+          <div class="step-title">Knob coverage</div>
+          <div class="step-desc">Touch ≥ 6 control surfaces in one script.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">04</div>
+          <div class="step-title">Custom algorithm</div>
+          <div class="step-desc">Register + use a path OR crypto plugin.</div>
+        </div>
+        <div class="step" data-anim="step">
+          <div class="step-nb">05</div>
+          <div class="step-title">Analysis write-up</div>
+          <div class="step-desc">300-500 words, evidence-backed.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:5vh">
+      Starter <code style="font-family:var(--mono);font-size:.92em">examples/ep1_assignment_starter.py</code> already implements a scenario-runner pattern. Have students fork it, then add their custom algorithm in Task 4.
+      <div class="callout-src">docs/assignment-python-teacher.md</div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 29 · Tasks · press → to walk steps</div>
+    <div>Act VI · Pipeline</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 30 · Layout 10 rowline · light · Assignment 2 deliverables ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>Assignment 2 · Submission ledger</div>
+    <div>Act VI · 30 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:5vh">
+    <div class="kicker" data-anim>Deliverables ledger</div>
+    <h2 class="h-xl" data-anim>Four artefacts to submit.<br/>Reject if any are missing.</h2>
+
+    <div style="margin-top:3vh" data-anim>
+      <div class="rowline" style="padding:1.6vh 0">
+        <div class="k" style="font-size:max(15px,1.5vw)">student_assignment.py</div>
+        <div class="v" style="font-size:max(13px,1.05vw);line-height:1.45">Runs end-to-end without manual GUI clicks. Hard-fail if it can't be invoked from a fresh terminal.</div>
+        <div class="m">01 / file</div>
+      </div>
+      <div class="rowline" style="padding:1.6vh 0">
+        <div class="k" style="font-size:max(15px,1.5vw)">Scenario results</div>
+        <div class="v" style="font-size:max(13px,1.05vw);line-height:1.45">CSV or JSON. Per-scenario summary with fields from <code style="font-family:var(--mono);font-size:.92em">attack_metrics()</code> and <code style="font-family:var(--mono);font-size:.92em">simulation_results()</code>.</div>
+        <div class="m">02 / artefact</div>
+      </div>
+      <div class="rowline" style="padding:1.6vh 0">
+        <div class="k" style="font-size:max(15px,1.5vw)">GUI screenshots</div>
+        <div class="v" style="font-size:max(13px,1.05vw);line-height:1.45">≥ 1 per scenario, ≥ 4 total. Each labelled with the scenario name; cross-reference to the results file.</div>
+        <div class="m">03 / images</div>
+      </div>
+      <div class="rowline" style="padding:1.6vh 0">
+        <div class="k" style="font-size:max(15px,1.5vw)">Analysis write-up</div>
+        <div class="v" style="font-size:max(13px,1.05vw);line-height:1.45">300-500 words. Two attack methods compared, defence effects tied to metrics. Earns 25 "analysis" points.</div>
+        <div class="m">04 / report</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 30 · Deliverables</div>
+    <div>Act VI · Ledger</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 31 · Layout 8 Big Quote · dark · Closing manifesto ============ -->
+<section class="slide dark" data-animate="quote">
+  <div class="chrome">
+    <div>Closing · The takeaway</div>
+    <div>31 / 32</div>
+  </div>
+  <div class="frame" style="display:grid; gap:4vh; align-content:center; min-height:78vh">
+    <div class="kicker" data-anim>Closing manifesto</div>
+    <blockquote style="font-family:var(--serif-zh); font-weight:700; font-size:5.6vw; line-height:1.15; letter-spacing:-.01em; max-width:80vw">
+      <span data-anim="line" style="display:block">"Build. Attack.</span>
+      <span data-anim="line" style="display:block">Defend. <em>Measure</em>."</span>
+    </blockquote>
+    <p class="lead" style="max-width:62vw; font-size:1.5vw; opacity:.72" data-anim>
+      A swarm you cannot reproduce is a story. A swarm you can reproduce, and break, and fix, and measure, is research.
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3vw;margin-top:3vh;max-width:84vw" data-anim>
+      <div style="padding-top:1.6vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">Takeaway 01</div>
+        <h3 class="h-md" style="margin-top:1vh;font-size:max(17px,1.7vw)">Change one variable at a time.</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">Both rubrics penalise scenarios that vary multiple knobs. Require a scenario matrix before the first run.</p>
+      </div>
+      <div style="padding-top:1.6vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">Takeaway 02</div>
+        <h3 class="h-md" style="margin-top:1vh;font-size:max(17px,1.7vw)">Numbers beat screenshots.</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">Make students paste <code style="font-family:var(--mono);font-size:.9em">attack_metrics()</code> JSON next to every screenshot. Visuals describe what; metrics prove how much.</p>
+      </div>
+      <div style="padding-top:1.6vh;border-top:1px solid currentColor;border-color:rgba(127,127,127,.45)">
+        <div class="meta" style="opacity:.55">Takeaway 03</div>
+        <h3 class="h-md" style="margin-top:1vh;font-size:max(17px,1.7vw)">Crypto and jamming are different layers.</h3>
+        <p class="body-zh" style="font-size:max(13px,1vw);line-height:1.5;margin-top:1vh">If a student claims HMAC stopped jamming, mark for re-read. Defences must be matched to the surface they actually protect.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 31 · Manifesto + three takeaways</div>
+    <div>END OF LECTURE</div>
+  </div>
+</section>
+
+<!-- ============ SLIDE 32 · Layout 5 (2x6) · light · References [1]-[12] ============ -->
+<section class="slide light">
+  <div class="chrome">
+    <div>References · Cited in this deck</div>
+    <div>32 / 32</div>
+  </div>
+  <div class="frame" style="padding-top:3.4vh">
+    <div class="kicker" data-anim>Bibliography</div>
+    <h2 style="font-family:var(--serif-zh);font-weight:700;font-size:3.6vw;line-height:1.1;letter-spacing:-.005em" data-anim>Twelve sources behind the slides you just saw.</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8vh 3vw;margin-top:2.2vh" data-anim>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:2px solid currentColor;display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[1]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Reynolds, C. W. (1987).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics</em> 21(4), 25-34. <span style="font-family:var(--mono);font-size:.92em">doi:10.1145/37401.37406</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[2]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">FAA NextGen Office (2023).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Urban Air Mobility (UAM) Concept of Operations, v2.0. Federal Aviation Administration, May 2023.</p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[3]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Brambilla, M. et al. (2013).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Swarm robotics: A review from the swarm engineering perspective. <em>Swarm Intelligence</em> 7(1), 1-41. <span style="font-family:var(--mono);font-size:.92em">doi:10.1007/s11721-012-0075-2</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[4]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Tahir, A. et al. (2019).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Swarms of Unmanned Aerial Vehicles: A Survey. <em>J. Industrial Information Integration</em> 16, 100106. <span style="font-family:var(--mono);font-size:.92em">doi:10.1016/j.jii.2019.100106</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:2px solid currentColor;display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[5]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Hassija, V., Chamola, V. et al. (2021).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Fast, Reliable, and Secure Drone Communication: A Comprehensive Survey. <em>IEEE COMST</em> 23(4), 2802-2832. <span style="font-family:var(--mono);font-size:.92em">doi:10.1109/COMST.2021.3097916</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[6]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Krishna, C. G. L. &amp; Murphy, R. R. (2017).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">A Review on Cybersecurity Vulnerabilities for Unmanned Aerial Vehicles. <em>IEEE SSRR 2017</em>, 194-199.</p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[7]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Humphreys, T. E. (2012).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Statement on the Vulnerability of Civil UAVs and Other Systems to Civil GPS Spoofing. UT Austin Radionavigation Lab, White Sands UAV hijack demonstration, June 2012.</p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[8]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Sedjelmaci, H. &amp; Senouci, S. M. (2018).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Cyber security methods for aerial vehicle networks: taxonomy, challenges and solution. <em>J. Supercomputing</em> 74(10), 4928-4944. <span style="font-family:var(--mono);font-size:.92em">doi:10.1007/s11227-018-2287-8</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:2px solid currentColor;display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[9]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">NIST (2008).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">FIPS 198-1: The Keyed-Hash Message Authentication Code (HMAC). <span style="font-family:var(--mono);font-size:.92em">doi:10.6028/NIST.FIPS.198-1</span></p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[10]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Hart, P. E., Nilsson, N. J. &amp; Raphael, B. (1968).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">A Formal Basis for the Heuristic Determination of Minimum Cost Paths. <em>IEEE Trans. Sys. Sci. &amp; Cyber.</em> SSC-4(2), 100-107.</p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[11]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">NASA (2023).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Advanced Air Mobility Missions for Public Good. NASA Contractor Report 20230012505.</p>
+        </div>
+      </div>
+      <div style="padding:.6vh 0 .6vh 1.2vw;border-left:1px solid currentColor;border-color:rgba(127,127,127,.4);display:grid;grid-template-columns:3em 1fr;gap:1vw;align-items:start">
+        <div class="meta" style="opacity:1;font-weight:700">[12]</div>
+        <div>
+          <p style="font-family:var(--serif-zh);font-weight:700;font-size:max(13px,.96vw);line-height:1.25">Market Research Future (2025).</p>
+          <p style="font-family:var(--sans-zh);font-weight:400;font-size:max(11px,.82vw);line-height:1.35;opacity:.82;margin-top:.2vh">Advanced Air Mobility Market Report: projected USD 223.58 B by 2035 at 22.2% CAGR.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <div>Page 32 · Bibliography · brackets [#] in body resolve here</div>
+    <div>END OF DECK</div>
+  </div>
+</section>
+
+</div>
+
+<div id="nav"></div>
+
+<script>
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+let drawDark=null, drawLight=null, glRAF=0, glT0=Date.now();
+function startGL(){
+  if(window.__lowPowerMode || glRAF) return;
+  if(!drawDark) drawDark=bootGL('bg-dark',FS_DARK);
+  if(!drawLight) drawLight=bootGL('bg-light',FS_LIGHT);
+  glT0=Date.now();
+  function loop(){
+    if(window.__lowPowerMode){glRAF=0;return;}
+    const t=(Date.now()-glT0)/1000;
+    drawDark(t);drawLight(t);
+    glRAF=requestAnimationFrame(loop);
+  }
+  glRAF=requestAnimationFrame(loop);
+}
+function stopGL(){
+  if(glRAF) cancelAnimationFrame(glRAF);
+  glRAF=0;
+}
+startGL();
+addEventListener('ppt-low-power-change', e=>{e.detail.on ? stopGL() : startGL();});
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n){
+  if(lock)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  window.__currentSlideIndex = idx;
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  /* 动效：翻页过渡中段触发当前页的入场动画（由 motion-boot 注册） */
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  lock=true;setTimeout(()=>lock=false,700);
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=(i+1)+' / '+total;
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(e.key && e.key.toLowerCase()==='b' && !e.metaKey && !e.ctrlKey && !e.altKey){
+    e.preventDefault();
+    window.__setLowPowerMode(!window.__lowPowerMode);
+    return;
+  }
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+    if(window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+1);
+    return;
+  }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){
+    if(wheelAcc>0 && window.__pipeAdvance && window.__pipeAdvance()){
+      wheelAcc=0;
+    }else{
+      go(idx+(wheelAcc>0?1:-1));wheelAcc=0;
+    }
+  }
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){
+    if(dx<0 && window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+(dx<0?1:-1));
+  }
+},{passive:true});
+
+/* Support direct slide jumps via ?slide=N URL parameter (1-indexed). */
+const initialSlideParam = new URLSearchParams(location.search).get('slide');
+const initialSlide = initialSlideParam ? Number(initialSlideParam) - 1 : 0;
+go(Number.isFinite(initialSlide) ? initialSlide : 0);
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<!-- ============ Motion One 动效引擎（本地优先,CDN 兜底） ============
+     加载策略:先 ./assets/motion.min.js(本地,离线可用),失败 fallback 到 jsDelivr CDN
+     加载完成后挂 window.__playSlide / window.__pipeAdvance,
+     导航脚本会在翻页中段调用 __playSlide(idx),键盘/滚轮/触屏会在翻页前调用 __pipeAdvance()
+     双双失败时会兜底把所有 [data-anim] 设为可见,不让动效破坏阅读
+-->
+<script type="module">
+let motion;
+try {
+  motion = await import('./assets/motion.min.js');
+} catch(e1) {
+  try {
+    motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  } catch(e2) {
+    console.warn('[motion] local + CDN both failed, disabling animations', e1, e2);
+    document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+    document.querySelectorAll('[data-animate="pipeline"] [data-anim]').forEach(el=>el.style.opacity='1');
+  }
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+  let pipeStep = -1;
+  let lastIdx = -1;
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function revealStatic(slide){
+    resetAnims(slide);
+    document.getAnimations?.().forEach(a=>a.cancel());
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='1';
+      el.style.transform='none';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    lastIdx = i;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    if(window.__lowPowerMode){
+      revealStatic(slide);
+      return;
+    }
+
+    if(recipe === 'pipeline'){
+      pipeStep = -1;
+      slide.querySelectorAll('[data-anim]').forEach(el=>{
+        el.style.opacity='0.15';
+        el.style.transform='none';
+      });
+      return;
+    }
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const divs   = all.filter(el=>el.dataset.anim==='divider');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right','divider'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[12,0]}, {duration:.6, delay:stagger(.1, {start:.15}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-24,0]}, {duration:.8, delay:.35, easing:EASE});
+      if(divs.length)   animate(divs,   {opacity:[0,.25]},          {duration:.5, delay:.9});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[24,0]},  {duration:.8, delay:1.0, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]},    {duration:.6, delay:stagger(.12, {start:.2}), easing:EASE});
+      if(lines.length)  animate(lines,  {opacity:[.35,1], y:[10,0]}, {duration:.8, delay:stagger(.55, {start:.5}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.9, delay:stagger(.16, {start:.2}), easing:EASE});
+      return;
+    }
+
+    // default: cascade
+    animate(all, {opacity:[0,1], y:[16,0]}, {duration:.75, delay:stagger(.1, {start:.15}), easing:EASE});
+  }
+
+  function pipeAdvance(){
+    if(window.__lowPowerMode) return false;
+    const slide = slides[lastIdx];
+    if(!slide || slide.dataset.animate !== 'pipeline') return false;
+    const steps  = [...slide.querySelectorAll('[data-anim="step"]')];
+    const arrows = [...slide.querySelectorAll('[data-anim="arrow"]')];
+    if(pipeStep >= steps.length - 1) return false;
+    pipeStep++;
+    animate(steps[pipeStep], {opacity:[0.15,1], y:[8,0]}, {duration:.5, easing:EASE});
+    if(pipeStep > 0 && arrows[pipeStep-1]){
+      animate(arrows[pipeStep-1], {opacity:[0.15,.7]}, {duration:.3, delay:.15});
+    }
+    return true;
+  }
+
+  window.__playSlide = playSlide;
+  window.__pipeAdvance = pipeAdvance;
+
+  // 首屏:go(0) 已跑过(同步),没来得及触发动效 → 这里补一下
+  playSlide(0);
+}
+</script>
+</body>
+</html>
