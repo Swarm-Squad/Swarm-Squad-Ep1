@@ -3,12 +3,9 @@
 <h1>Swarm Squad: Episode I – Surviving the Jam</h1>
 <h6><small>A 3D web simulation platform combining behavior-based formation control with LLM-powered decision making for autonomous multi-agent systems.</small></h6>
 <p><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#3D Simulation &emsp; #Communication-aware &emsp; #Formation Control</b></p>
-<p><small>Current <b>3D web</b> simulator. The original 2D PyQt app lives on the <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/tree/2d-sim"><code>2d-sim</code></a> branch.</small></p>
 </div>
 
 <h2 align="center">🔬 Research Evolution</h2>
-
-This project builds upon our [previous research](https://github.com/speccoud/Swarm-Control) in formation control and swarm intelligence:
 
 <img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/docs/img/gui.png" width="100%" />
 
@@ -177,7 +174,7 @@ Access points:
 ```
 
 
-Guides:
+📚 Guides:
 
 - Getting started: `docs/getting-started.md`
 - Runtime and CLI: `docs/runtime-and-cli.md`
