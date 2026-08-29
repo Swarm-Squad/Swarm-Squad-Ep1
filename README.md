@@ -1,5 +1,7 @@
 # Swarm Squad Ep1
 
+3D web simulator for Swarm Squad: Episode I. The original 2D PyQt formation-control app is on the [`2d-sim`](https://github.com/Swarm-Squad/Swarm-Squad-Ep1/tree/2d-sim) branch.
+
 Swarm Squad Ep1 is an installable swarm simulation platform for:
 
 - live browser visualization,
