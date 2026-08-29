@@ -1,15 +1,16 @@
 <div align="center">
-<a href="https://github.com/Sang-Buster/Swarm-Squad"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/banner.png" /></a>
+<a href="https://github.com/Sang-Buster/Swarm-Squad"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/2d-sim/lib/img/banner.png" /></a>
 <h1>Swarm Squad: Episode I – Surviving the Jam</h1>
 <h6><small>A hybrid control architecture combining behavior-based formation control with LLM-powered decision making for autonomous multi-agent systems.</small></h6>
 <p><b>#Unmanned Aerial Vehicles &emsp; #Multi-agent Systems &emsp; #LLM Integration<br/>#Behavior-based Control &emsp; #Communication-aware &emsp; #Formation Control</b></p>
+<p><small>Legacy <b>2D PyQt</b> simulator. The 3D web simulator lives on <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1">main</a>.</small></p>
 </div>
 
 <h2 align="center">🔬 Research Evolution</h2>
 
 This project builds upon our [previous research](https://github.com/speccoud/Swarm-Control) in formation control and swarm intelligence:
 
-<img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/gui.png" width="100%" />
+<img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/2d-sim/lib/img/gui.png" width="100%" />
 
 - 🚗 **Low-Level Controller:** Vehicle agents equipped with behavior-based and communication-aware formation control<br/>
 - 🤖 **High-Level Controller:** LLM agents processing simulation data to provide strategic guidance<br/>
@@ -24,13 +25,13 @@ This project builds upon our [previous research](https://github.com/speccoud/Swa
   </tr>
   <tr>
     <td align="center">
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-paper.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_paper.png" /></a>
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/2d-sim/lib/Xing-paper.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/2d-sim/lib/img/cover_paper.png" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/2d-sim/lib/Xing-paper.pdf"><img src="https://img.shields.io/badge/View%20More-282c34?style=for-the-badge&logoColor=white" width="100" /></a>
     </td>
     <td align="center">
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_ppt.png" /></a>
-          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/main/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>
-          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/main/lib/img/cover_video.png" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/2d-sim/lib/Xing-ppt.pdf"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/2d-sim/lib/img/cover_ppt.png" /></a>
+          <a href="https://github.com/Swarm-Squad/Swarm-Squad-Ep1/blob/2d-sim/lib/Xing-ppt.pdf"><img src="https://img.shields.io/badge/View%20Slides-282c34?style=for-the-badge&logoColor=white" /></a>
+          <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://raw.githubusercontent.com/Swarm-Squad/Swarm-Squad-Ep1/refs/heads/2d-sim/lib/img/cover_video.png" /></a>
           <a href="https://github.com/Sang-Buster/Communication-aware-Formation-Control/assets/97267956/03072ecc-8218-40d9-a169-90774cb7c2ae"><img src="https://img.shields.io/badge/View%20Simulation%20Video-282c34?style=for-the-badge&logoColor=white" /></a>
     </td>
   </tr>
@@ -59,7 +60,7 @@ swarm-squad-ep1 --help
 1. **Clone the repository and navigate to project folder:**
 
    ```bash
-   git clone https://github.com/Sang-Buster/Swarm-Squad-Ep1
+   git clone -b 2d-sim https://github.com/Swarm-Squad/Swarm-Squad-Ep1
    cd Swarm-Squad-Ep1
    ```
 
