@@ -1,0 +1,108 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "Proposal record (R1) \u2014 LLM-facing constrained JSON, Stage 3",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "v",
+  "s",
+  "q",
+  "t",
+  "i",
+  "b",
+  "u",
+  "a",
+  "g",
+  "j",
+  "l",
+  "f",
+  "r",
+  "c"
+ ],
+ "properties": {
+  "v": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 3,
+   "description": "protocol version"
+  },
+  "s": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 7,
+   "description": "source vehicle id"
+  },
+  "q": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 63,
+   "description": "sequence / round counter"
+  },
+  "t": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 15,
+   "description": "time to live, rounds"
+  },
+  "i": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 31,
+   "description": "intent class codebook index"
+  },
+  "b": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 511,
+   "description": "bearing, units of 360/512 deg"
+  },
+  "u": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 31,
+   "description": "speed, units of v_max/32"
+  },
+  "a": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 15,
+   "description": "altitude band, absolute"
+  },
+  "g": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 7,
+   "description": "target referent id"
+  },
+  "j": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 15,
+   "description": "own jamming severity, units of 1/16"
+  },
+  "l": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 15,
+   "description": "local link quality, units of 1/16"
+  },
+  "f": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 255,
+   "description": "observation flag bits b0..b7"
+  },
+  "r": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 3,
+   "description": "requested authority level, 0=A0..3=A3"
+  },
+  "c": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 255,
+   "description": "rationale codebook index"
+  }
+ }
+}

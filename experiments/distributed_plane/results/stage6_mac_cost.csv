@@ -1,0 +1,5 @@
+target,algorithm,tag_bytes,verify_ok,tamper_detected,sign_us,verify_us,frame_bytes,bps_N3,bps_N5,bps_N7
+repo JSON frame,hmac_sha256,32,True,True,10.65,9.79,208,6656,13312,19968
+repo JSON frame,chacha20_poly1305,237,True,True,14.3,14.28,413,13216,26432,39648
+repo JSON frame,aes_256_ctr,257,True,True,23.38,28.25,433,13856,27712,41568
+packed 12-B record,hmac_sha256_t64,8,True,True,1.958,1.958,20,640,1280,1920

@@ -1,0 +1,3 @@
+attack,records_sent,records_delivered,records_malformed,a3_rate,a2_rate,progress_frac,unsafe_true
+selfcert,3000,5253,1343,0.0,0.613,0.901,0
+edge_collude,3000,6342,0,0.0,0.619,0.829,0
