@@ -1,0 +1,5 @@
+kappa,quorum_required,N,F,a3_availability,max_influence_deg,unsafe
+1.0,3,7,1,0.9765,10.55,0
+1.5,3,7,1,0.9765,10.55,0
+2.0,4,7,1,0.913,10.55,0
+3.0,5,7,1,0.5925,10.55,0

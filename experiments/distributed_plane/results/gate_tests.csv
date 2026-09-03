@@ -1,0 +1,9 @@
+test,trials,status,result
+T1 pack/unpack round trip,200000,pass,exact equality on every field
+T2 determinism + arrival-order invariance,20000,pass,identical level and command under repetition and permutation
+T3 INV1 envelope containment,20000,pass,"every non-BRAKE command verified; BRAKE taken 0.3%, of which 47.3% from an already-infeasible state"
+T4 INV5 liveness floor,20000,pass,A0 candidate present in every call; commands missing: 0
+T5 INV4 no self-certification,20000,pass,"peers claiming max severity, link quality and authority raised the admitted level in 0 cases"
+"T6 one Byzantine proposer, F = 1",20000,pass,quorum reached on fewer than F+1 sources: 0; max heading shift induced in A3 commands: 0.00 deg over 15625 paired cases
+"T7 gate latency, N = 7",5000,pass,"mean 0.067 ms per call, pure Python"
+"T8 two colluding Byzantine, F = 2",20000,pass,quorum reached below 2F+1 sources: 0; max heading shift: 11.25 deg over 3160 paired cases

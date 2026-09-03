@@ -1,0 +1,14 @@
+N,topology,degree,r_robust,F_total,F_local,edges
+3,ring C(1),2,2,1,0,3
+3,complete K_N,2,2,1,0,3
+4,ring C(1),2,1,0,0,4
+4,complete K_N,3,2,1,0,6
+5,ring C(1),2,1,0,0,5
+5,"circulant C(1,2)",4,3,2,1,10
+5,complete K_N,4,3,2,1,10
+6,ring C(1),2,0,0,-1,6
+6,"circulant C(1,2)",4,2,1,0,12
+6,complete K_N,5,3,2,1,15
+7,ring C(1),2,0,0,-1,7
+7,"circulant C(1,2)",4,2,1,0,14
+7,complete K_N,6,4,3,1,21

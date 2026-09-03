@@ -21,20 +21,41 @@ controller drives that vehicle in the next step.
 | `test_gate.py` | gate property tests |
 | `demo_stage6.py` | runnable demo (see below) |
 | `build_stage6_spec.py` | regenerates `docs/integration_spec.md` from `results/*.csv` |
-| `docs/` | design specifications, each with a dated corrections section |
-| `results/` | measured results the specification renders from |
+| `build_report.py` | regenerates `docs/literature_matrix.md` from `results/byzantine_llm_swarm_matrix.csv` and `results/screening/` |
+| `docs/` | design specifications and the literature matrix (below) |
+| `results/` | measured results and figures the documents render from |
+
+### Documents
+
+| document | what it fixes | generated from |
+|---|---|---|
+| `docs/architecture_spec.md` | the five architecture invariants, the layer split, the A0–A4 command-authority hierarchy | written; figure `results/architecture.png` |
+| `docs/message_interface.md` | the proposal-record wire format, bandwidth budget, graph-robustness requirement | written; `results/bandwidth_budget.csv`, `results/topology_robustness.csv` |
+| `docs/override_spec.md` | the deterministic gate: envelope, evidence rules, arbitration, property tests | written; `results/gate_tests.csv` |
+| `docs/aggregation_spec.md` | consistency sweep, quorum rule, bounded-influence proposition, W-MSR | written; `results/aggregation_scaling.csv`, `results/failure_cases.csv`, `results/kappa_tradeoff.csv`, `results/tau_tradeoff.csv` |
+| `docs/integration_spec.md` | what running the plane on the simulator falsified in the four documents above | **generated** from `results/stage6_*.csv` |
+| `docs/literature_matrix.md` | 22 prior works scored on nine capability axes, each verified against its primary source | **generated** from `results/byzantine_llm_swarm_matrix.csv` |
+
+Each written document carries a dated corrections section recording what a later stage falsified in it;
+the corrections are appended rather than edited in silently, so the original claim and its refutation
+both stay readable.
 
 ## Running
 
 ```bash
-# from the repository root
-export PYTHONPATH=src
-python experiments/distributed_plane/demo_stage6.py --n 5 --arm distributed --byzantine agent3 --steps 400
+# from the repository root, in the project environment
+uv sync
+uv run python experiments/distributed_plane/demo_stage6.py --n 5 --arm distributed --byzantine agent3 --steps 400
 
 # arms: baseline (inherited controller only) | centralised (one ungated supervisor) | distributed
 # other flags: --no-jamming --crypto --sep-mode {static,worstcase,reported} --probe-g1 --enforce-g1 --json
-python experiments/distributed_plane/test_gate.py     # gate property tests
+uv run python experiments/distributed_plane/test_gate.py     # gate property tests
 ```
+
+`PYTHONPATH=src` works instead of `uv run` only if the package and its dependencies
+(`numpy`, `pathfinding3d`, `python-dotenv`, `matplotlib`) are already importable in the active
+interpreter; all four are declared in the repository's `pyproject.toml`, so `uv sync` is the
+shorter path.
 
 The demo constructs scenarios exactly as the experiment harness does, so a single-seed run reproduces
 the corresponding row of `results/stage6_grid.csv`.
@@ -50,7 +71,13 @@ for regenerating the specification.
 rendered from `results/*.csv` at build time. Regenerate with:
 
 ```bash
-python experiments/distributed_plane/build_stage6_spec.py   # runs from any cwd
+uv run --extra research --with tabulate python experiments/distributed_plane/build_stage6_spec.py
+uv run --extra research python experiments/distributed_plane/build_report.py   # docs/literature_matrix.md
 ```
 
-Section 9 of that document states explicitly what the measurements do not establish.
+Both generators resolve their inputs and outputs relative to their own location, so they run from any
+working directory and rewrite the committed document in place. Re-running them on an unmodified
+checkout reproduces the committed file byte for byte, which is the check that a document has not
+drifted from its data.
+
+Section 9 of `docs/integration_spec.md` states explicitly what the measurements do not establish.
