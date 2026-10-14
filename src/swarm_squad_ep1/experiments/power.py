@@ -5,7 +5,8 @@ GPU power sampling with nvidia-smi, for per-query inference energy.
 import shutil
 import subprocess
 import threading
-import time
+from datetime import datetime
+from time import monotonic, sleep
 
 import numpy as np
 
@@ -25,9 +26,10 @@ def query_gpu() -> dict:
     )
     if out.returncode != 0:
         return {"error": out.stdout.strip() or out.stderr.strip()}
-    name, driver, memory, limit = [
-        s.strip() for s in out.stdout.splitlines()[0].split(",")
-    ]
+    fields = [s.strip() for s in out.stdout.splitlines()[0].split(",")]
+    if len(fields) != 4:
+        return {"raw": out.stdout.strip()}
+    name, driver, memory, limit = fields
     return {"name": name, "driver": driver, "memory": memory, "power_limit": limit}
 
 
@@ -64,10 +66,12 @@ class PowerMonitor:
 
     def start(self):
         self.field = self._pick_field()
+        line_buffered = ["stdbuf", "-oL"] if shutil.which("stdbuf") else []
         self._proc = subprocess.Popen(
             [
+                *line_buffered,
                 "nvidia-smi",
-                f"--query-gpu={self.field}",
+                f"--query-gpu=timestamp,{self.field}",
                 "--format=csv,noheader,nounits",
                 f"--loop-ms={self.interval_ms}",
             ],
@@ -81,13 +85,13 @@ class PowerMonitor:
         return self
 
     def _read(self):
+        # nvidia-smi may block-buffer its output into the pipe, so each sample
+        # uses nvidia-smi's own timestamp rather than the time it is read
         for line in self._proc.stdout:
-            try:
-                watts = float(line.strip())
-            except ValueError:
-                continue
-            with self._lock:
-                self.samples.append((time.time(), watts))
+            sample = parse_sample(line)
+            if sample is not None:
+                with self._lock:
+                    self.samples.append(sample)
 
     def stop(self):
         if self._proc:
@@ -95,6 +99,16 @@ class PowerMonitor:
             self._proc.wait(timeout=5)
         if self._thread:
             self._thread.join(timeout=5)
+
+    def sync(self, t, timeout=30.0) -> bool:
+        """Wait until samples up to time t have been read."""
+        deadline = monotonic() + timeout
+        while monotonic() < deadline:
+            with self._lock:
+                if self.samples and self.samples[-1][0] >= t:
+                    return True
+            sleep(0.05)
+        return False
 
     def window(self, t0, t1):
         with self._lock:
@@ -110,6 +124,16 @@ class PowerMonitor:
     def mean_power(self, t0, t1) -> float:
         data = self.window(t0, t1)
         return float(data[:, 1].mean()) if len(data) else float("nan")
+
+
+def parse_sample(line: str):
+    """(unix time, watts) from a "YYYY/MM/DD HH:MM:SS.fff, watts" line, or None."""
+    try:
+        stamp, watts = (s.strip() for s in line.split(","))
+        t = datetime.strptime(stamp, "%Y/%m/%d %H:%M:%S.%f").timestamp()
+        return t, float(watts)
+    except ValueError:
+        return None
 
 
 def integrate_energy(samples, t0, t1, idle_w=0.0) -> float:

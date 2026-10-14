@@ -258,6 +258,8 @@ def run_one(
         }
     if idle_w is not None:
         run["gpu_idle_w"] = idle_w
+    if monitor is not None:
+        run["gpu_power_synced"] = monitor.sync(time.time())
     summary = metrics.summarize(arrays, sup.decisions, run, monitor, idle_w)
     if monitor is not None:
         summary["gpu_energy_run_j"] = monitor.energy(started, started + wall_s)
@@ -347,7 +349,9 @@ def main(argv=None):
         time.sleep(1.0)
         t0 = time.time()
         time.sleep(args.idle_seconds)
-        idle_w = monitor.mean_power(t0, time.time())
+        t1 = time.time()
+        monitor.sync(t1)
+        idle_w = monitor.mean_power(t0, t1)
         print(f"idle GPU power {idle_w:.1f} W ({monitor.field})", file=sys.stderr)
 
     seeds = parse_seeds(args.seeds)

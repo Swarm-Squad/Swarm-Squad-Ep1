@@ -207,6 +207,47 @@ def test_integrate_energy():
     )
 
 
+FAKE_NVIDIA_SMI = """#!{python}
+import sys, time
+from datetime import datetime
+if not any(a.startswith("--loop-ms") for a in sys.argv):
+    print("80.00")
+    sys.exit(0)
+k = 0
+while True:
+    stamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")[:-3]
+    sys.stdout.write(f"{{stamp}}, 80.00\\n")
+    k += 1
+    if k % 5 == 0:  # bursty delivery, as with a block-buffered pipe
+        sys.stdout.flush()
+    time.sleep(0.1)
+"""
+
+
+def test_power_monitor_uses_sample_timestamps(tmp_path, monkeypatch):
+    import sys
+    import time
+
+    fake = tmp_path / "nvidia-smi"
+    fake.write_text(FAKE_NVIDIA_SMI.format(python=sys.executable))
+    fake.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{tmp_path}:{os.environ['PATH']}")
+
+    monitor = power.PowerMonitor().start()
+    try:
+        time.sleep(0.3)
+        t0 = time.time()
+        time.sleep(1.0)
+        t1 = time.time()
+        assert monitor.sync(t1, timeout=5)
+        steps = np.diff(monitor.window(t0, t1)[:, 0])
+        assert steps.max() < 0.2
+        assert monitor.energy(t0, t1) == pytest.approx(80.0 * (t1 - t0), rel=0.02)
+        assert monitor.field == "power.draw.instant"
+    finally:
+        monitor.stop()
+
+
 def _tmp_dir(name):
     import tempfile
     from pathlib import Path

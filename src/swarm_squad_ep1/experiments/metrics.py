@@ -127,19 +127,24 @@ def summarize(ts: dict, decisions: list, run: dict, power=None, idle_w=None) -> 
         summary["llm_queries"] = len(llm)
         summary["llm_answered"] = len(answered)
         summary["llm_errors"] = len(errors)
+        # An answer that arrives as the run ends is never parsed
+        parsed_ok = [d for d in ok if "step_parsed" in d]
+        summary["llm_parsed"] = len(parsed_ok)
         summary["llm_latency_s"] = _stats([d["latency_s"] for d in ok])
         summary["llm_latency_steps"] = _stats(
-            [d["step_parsed"] - d["step_request"] for d in ok if "step_parsed" in d]
+            [d["step_response"] - d["step_request"] for d in ok]
         )
         summary["llm_prompt_tokens"] = _stats([d.get("prompt_eval_count") for d in ok])
         summary["llm_output_tokens"] = _stats([d.get("eval_count") for d in ok])
         summary["llm_parse_success"] = (
-            sum(1 for d in ok if d.get("n_valid", 0) > 0) / len(ok) if ok else None
+            sum(1 for d in parsed_ok if d["n_valid"] > 0) / len(parsed_ok)
+            if parsed_ok
+            else None
         )
         summary["llm_valid_per_instruction"] = (
-            sum(d.get("n_valid", 0) for d in ok)
-            / max(1, sum(d.get("n_instructions", 0) for d in ok))
-            if ok
+            sum(d["n_valid"] for d in parsed_ok)
+            / max(1, sum(d["n_instructions"] for d in parsed_ok))
+            if parsed_ok
             else None
         )
         if power is not None:
