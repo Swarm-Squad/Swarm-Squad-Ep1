@@ -221,12 +221,20 @@ def fig_performance(
     axes[0].axhline(config.PT, color="k", lw=0.5, ls=":")
     axes[0].set_ylim(0.84, 0.98)
     axes[0].set_ylabel("$J_n$")
-    axes[1].set_ylim(20, 42)
+    axes[1].set_ylim(14, 42)
     axes[1].set_ylabel("$r_n$")
     for ax in axes:
         ax.set_xlabel("Step")
         ax.tick_params(length=2)
-    axes[0].legend(loc="lower left", frameon=False, handlelength=2.2, borderaxespad=0.2)
+    axes[1].legend(
+        loc="lower left",
+        ncol=2,
+        frameon=False,
+        handlelength=2.0,
+        columnspacing=0.8,
+        borderaxespad=0.2,
+        fontsize=6,
+    )
     fig.tight_layout(pad=0.3, w_pad=0.8)
     fig.savefig(out, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
