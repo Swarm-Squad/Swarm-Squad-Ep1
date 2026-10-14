@@ -132,11 +132,15 @@ def hint_agreement(run_dir):
             _, agent, distance, bearing = m.groups()
             hints[step][int(agent)] = (int(distance), bearing.lower())
     out = {"commands": 0, "to_hinted": 0, "hint_bearing": 0, "within_45": 0}
+    out["hints_answered"] = 0
     for line in (Path(run_dir) / "decisions.jsonl").read_text().splitlines():
         d = json.loads(line)
-        if d.get("kind") != "llm" or not d.get("delivered"):
+        if d.get("kind") != "llm" or "step_parsed" not in d:
             continue
         query_hints = hints.get(d["step_request"], {})
+        out["hints_answered"] += len(query_hints)
+        if not d.get("delivered"):
+            continue
         for agent, _, bearing in INSTRUCTION_PATTERN.findall(d.get("text") or ""):
             agent = int(agent)
             if agent not in d["delivered"]:
@@ -234,6 +238,7 @@ def summarize_group(runs):
                 **mean_std(values),
                 "median": float(np.median(values)) if values.size else None,
                 "p95": float(np.percentile(values, 95)) if values.size else None,
+                "max": float(values.max()) if values.size else None,
             }
         steps = []
         for r in runs:
