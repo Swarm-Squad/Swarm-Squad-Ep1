@@ -1,0 +1,14 @@
+batch ablation started 2026-10-14T19:38:23-04:00, seeds 0-9
+warning: The `tool.uv.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+idle GPU power 44.0 W (power.draw.instant)
+jamming llm seed 0: success=True steps=494 Jn_min=0.8855 commands=177 wall=85.2s
+jamming llm seed 1: success=True steps=427 Jn_min=0.8697 commands=137 wall=66.9s
+jamming llm seed 2: success=True steps=448 Jn_min=0.8799 commands=150 wall=74.9s
+jamming llm seed 3: success=True steps=408 Jn_min=0.8701 commands=137 wall=66.3s
+jamming llm seed 4: success=True steps=478 Jn_min=0.8799 commands=155 wall=71.5s
+jamming llm seed 5: success=True steps=453 Jn_min=0.8422 commands=158 wall=70.5s
+jamming llm seed 6: success=True steps=480 Jn_min=0.8751 commands=168 wall=78.3s
+jamming llm seed 7: success=True steps=438 Jn_min=0.8814 commands=140 wall=71.8s
+jamming llm seed 8: success=True steps=460 Jn_min=0.843 commands=142 wall=73.6s
+jamming llm seed 9: success=True steps=445 Jn_min=0.8739 commands=176 wall=75.3s
+batch finished 2026-10-14T19:50:52-04:00

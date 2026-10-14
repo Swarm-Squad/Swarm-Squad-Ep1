@@ -1,0 +1,111 @@
+batch started 2026-10-14T17:58:40-04:00, seeds 0-9
+warning: The `tool.uv.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+idle GPU power 48.0 W (power.draw.instant)
+obstacles_1 llm seed 0: success=True steps=492 Jn_min=0.9596 commands=156 wall=122.8s
+obstacles_1 llm seed 1: success=True steps=501 Jn_min=0.9653 commands=150 wall=125.0s
+obstacles_1 llm seed 2: success=True steps=487 Jn_min=0.9662 commands=148 wall=121.5s
+obstacles_1 llm seed 3: success=True steps=465 Jn_min=0.9313 commands=147 wall=116.0s
+obstacles_1 llm seed 4: success=True steps=562 Jn_min=0.9556 commands=183 wall=140.3s
+obstacles_1 llm seed 5: success=True steps=499 Jn_min=0.9626 commands=170 wall=124.5s
+obstacles_1 llm seed 6: success=True steps=492 Jn_min=0.966 commands=143 wall=122.8s
+obstacles_1 llm seed 7: success=True steps=492 Jn_min=0.9687 commands=63 wall=122.8s
+2026-10-14 18:17:13,833 - LLMController - ERROR - Worker thread error: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=180)
+2026-10-14 18:17:13,862 - LLMController - ERROR - Worker thread traceback: Traceback (most recent call last):
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connection.py", line 516, in getresponse
+    httplib_response = super().getresponse()
+  File "/home/singsong/.local/share/uv/python/cpython-3.10.16-linux-x86_64-gnu/lib/python3.10/http/client.py", line 1375, in getresponse
+    response.begin()
+  File "/home/singsong/.local/share/uv/python/cpython-3.10.16-linux-x86_64-gnu/lib/python3.10/http/client.py", line 318, in begin
+    version, status, reason = self._read_status()
+  File "/home/singsong/.local/share/uv/python/cpython-3.10.16-linux-x86_64-gnu/lib/python3.10/http/client.py", line 279, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/home/singsong/.local/share/uv/python/cpython-3.10.16-linux-x86_64-gnu/lib/python3.10/socket.py", line 717, in readinto
+    return self._sock.recv_into(b)
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/adapters.py", line 667, in send
+    resp = conn.urlopen(
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connectionpool.py", line 841, in urlopen
+    retries = retries.increment(
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/util/retry.py", line 474, in increment
+    raise reraise(type(error), error, _stacktrace)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    response = self._make_request(
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connectionpool.py", line 536, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/urllib3/connectionpool.py", line 367, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=180)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/src/swarm_squad_ep1/controllers/llm_controller.py", line 557, in _llm_request_worker
+    response = requests.post(
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/api.py", line 115, in post
+    return request("post", url, data=data, json=json, **kwargs)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/singsong/Desktop/repo/Swarm-Squad-Ep1-icc/.venv/lib/python3.10/site-packages/requests/adapters.py", line 713, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=180)
+
+obstacles_1 llm seed 8: success=True steps=524 Jn_min=0.9658 commands=133 wall=130.8s
+obstacles_1 llm seed 9: success=True steps=469 Jn_min=0.9622 commands=116 wall=117.0s
+obstacles_2 llm seed 0: success=True steps=489 Jn_min=0.9488 commands=148 wall=122.0s
+obstacles_2 llm seed 1: success=True steps=462 Jn_min=0.9675 commands=124 wall=115.3s
+obstacles_2 llm seed 2: success=True steps=539 Jn_min=0.9678 commands=181 wall=134.5s
+obstacles_2 llm seed 3: success=True steps=484 Jn_min=0.965 commands=153 wall=120.8s
+obstacles_2 llm seed 4: success=True steps=498 Jn_min=0.9631 commands=170 wall=124.3s
+obstacles_2 llm seed 5: success=True steps=494 Jn_min=0.884 commands=166 wall=123.3s
+obstacles_2 llm seed 6: success=True steps=499 Jn_min=0.9629 commands=148 wall=124.5s
+obstacles_2 llm seed 7: success=True steps=498 Jn_min=0.9638 commands=173 wall=124.3s
+obstacles_2 llm seed 8: success=True steps=456 Jn_min=0.9677 commands=122 wall=113.8s
+obstacles_2 llm seed 9: success=True steps=549 Jn_min=0.9652 commands=173 wall=137.0s
+jamming llm seed 0: success=True steps=457 Jn_min=0.8822 commands=131 wall=114.0s
+jamming llm seed 1: success=True steps=433 Jn_min=0.8952 commands=147 wall=108.0s
+jamming llm seed 2: success=True steps=496 Jn_min=0.882 commands=176 wall=123.8s
+jamming llm seed 3: success=True steps=462 Jn_min=0.8381 commands=142 wall=115.3s
+jamming llm seed 4: success=True steps=484 Jn_min=0.8792 commands=117 wall=120.8s
+jamming llm seed 5: success=True steps=438 Jn_min=0.8571 commands=119 wall=109.3s
+jamming llm seed 6: success=True steps=436 Jn_min=0.8686 commands=128 wall=108.8s
+jamming llm seed 7: success=True steps=419 Jn_min=0.8817 commands=121 wall=104.5s
+jamming llm seed 8: success=True steps=430 Jn_min=0.8801 commands=127 wall=107.3s
+jamming llm seed 9: success=True steps=425 Jn_min=0.8637 commands=118 wall=106.0s
+### Worker thread exception: HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=180)
+warning: The `tool.uv.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+idle GPU power 46.9 W (power.draw.instant)
+jamming_c2 llm seed 0: success=True steps=457 Jn_min=0.868 commands=110 wall=114.0s
+jamming_c2 llm seed 1: success=True steps=399 Jn_min=0.8937 commands=104 wall=99.5s
+jamming_c2 llm seed 2: success=True steps=452 Jn_min=0.8921 commands=125 wall=112.8s
+jamming_c2 llm seed 3: success=True steps=398 Jn_min=0.8688 commands=106 wall=99.3s
+jamming_c2 llm seed 4: success=True steps=428 Jn_min=0.8376 commands=103 wall=106.8s
+jamming_c2 llm seed 5: success=True steps=410 Jn_min=0.8184 commands=76 wall=102.3s
+jamming_c2 llm seed 6: success=True steps=393 Jn_min=0.855 commands=85 wall=98.0s
+jamming_c2 llm seed 7: success=True steps=408 Jn_min=0.8637 commands=100 wall=101.8s
+jamming_c2 llm seed 8: success=True steps=408 Jn_min=0.871 commands=84 wall=101.8s
+jamming_c2 llm seed 9: success=True steps=407 Jn_min=0.8607 commands=83 wall=101.5s
+warning: The `tool.uv.dev-dependencies` field (used in `pyproject.toml`) is deprecated and will be removed in a future release; use `dependency-groups.dev` instead
+idle GPU power 46.7 W (power.draw.instant)
+jamming_c2d050 llm seed 0: success=True steps=475 Jn_min=0.8784 commands=124 wall=118.5s
+jamming_c2d050 llm seed 1: success=True steps=410 Jn_min=0.883 commands=113 wall=102.3s
+jamming_c2d050 llm seed 2: success=True steps=456 Jn_min=0.8565 commands=125 wall=113.8s
+jamming_c2d050 llm seed 3: success=True steps=395 Jn_min=0.8578 commands=77 wall=98.5s
+jamming_c2d050 llm seed 4: success=True steps=426 Jn_min=0.8578 commands=109 wall=106.3s
+jamming_c2d050 llm seed 5: success=True steps=432 Jn_min=0.8462 commands=130 wall=107.8s
+jamming_c2d050 llm seed 6: success=True steps=419 Jn_min=0.8443 commands=114 wall=104.5s
+jamming_c2d050 llm seed 7: success=True steps=416 Jn_min=0.8818 commands=109 wall=103.8s
+jamming_c2d050 llm seed 8: success=True steps=423 Jn_min=0.8693 commands=113 wall=105.5s
+jamming_c2d050 llm seed 9: success=True steps=451 Jn_min=0.8785 commands=119 wall=112.5s
+batch finished 2026-10-14T19:36:46-04:00

@@ -1,0 +1,1925 @@
+2026-10-14 18:13:30,981 - STATE DESCRIPTION (Step 5):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [-3.9, 8.9].
+Agent-0 is 146.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (31.7 units away to the south, 0.98 good quality, connected)
+  - Agent-2 (26.2 units away to the east, 0.98 good quality, connected)
+  - Agent-3 (44.0 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (67.7 units away to the southeast, 0.92 poor quality, disconnected)
+  - Agent-5 (66.0 units away to the east, 0.92 poor quality, disconnected)
+  - Agent-6 (88.7 units away to the east, 0.84 poor quality, disconnected)
+
+Agent-1 is at position [-16.0, -20.4].
+Agent-1 is 177.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (31.7 units away to the north, 0.98 good quality, connected)
+  - Agent-2 (43.0 units away to the northeast, 0.97 good quality, connected)
+  - Agent-3 (51.4 units away to the east, 0.96 good quality, connected)
+  - Agent-4 (69.2 units away to the east, 0.92 poor quality, disconnected)
+  - Agent-5 (83.6 units away to the east, 0.84 poor quality, disconnected)
+  - Agent-6 (102.3 units away to the east, 0.75 poor quality, disconnected)
+
+Agent-2 is at position [21.2, 1.2].
+Agent-2 is 149.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (26.2 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (43.0 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (19.0 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (43.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (41.8 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (63.2 units away to the east, 0.93 poor quality, disconnected)
+
+Agent-3 is at position [34.7, -12.2].
+Agent-3 is 162.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (44.0 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (51.4 units away to the west, 0.96 good quality, connected)
+  - Agent-2 (19.0 units away to the northwest, 0.97 good quality, connected)
+  - Agent-4 (24.1 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (34.8 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (50.9 units away to the east, 0.96 good quality, connected)
+
+Agent-4 is at position [52.8, -28.2].
+Agent-4 is 179.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (67.7 units away to the northwest, 0.92 poor quality, disconnected)
+  - Agent-1 (69.2 units away to the west, 0.92 poor quality, disconnected)
+  - Agent-2 (43.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (24.1 units away to the northwest, 0.98 good quality, connected)
+  - Agent-5 (38.6 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (42.0 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [62.1, 9.2].
+Agent-5 is 143.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (66.0 units away to the west, 0.92 poor quality, disconnected)
+  - Agent-1 (83.6 units away to the west, 0.84 poor quality, disconnected)
+  - Agent-2 (41.8 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (34.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (38.6 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (24.3 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [84.3, -0.5].
+Agent-6 is 158.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (88.7 units away to the west, 0.84 poor quality, disconnected)
+  - Agent-1 (102.3 units away to the west, 0.75 poor quality, disconnected)
+  - Agent-2 (63.2 units away to the west, 0.93 poor quality, disconnected)
+  - Agent-3 (50.9 units away to the west, 0.96 good quality, connected)
+  - Agent-4 (42.0 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (24.3 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:32,086 - RESPONSE (Step 9, Time: 1.10s):
+"Agent-1: Move 20 units north-northeast to optimize communication with Agent-2 and maintain formation distance. Agent-2: Reposition 10 units east by northeast to improve communication with Agent-3 and adjust to Agent-1's movement."
+
+(This instruction aims to enhance the communication between Agent-1 and Agent-2, while also adjusting Agent-2's position to better align with Agent-1's movement and maintain a stable formation.)
+2026-10-14 18:13:32,086 - --------------------------------------------------------------------------------
+2026-10-14 18:13:32,230 - FEEDBACK (Step 10): "Agent-1: Move 20 units north-northeast to optimize communication with Agent-2 and maintain formation distance. Agent-2: Reposition 10 units east by northeast to improve communication with Agent-3 and adjust to Agent-1's movement."
+
+(This instruction aims to enhance the communication between Agent-1 and Agent-2, while also adjusting Agent-2's position to better align with Agent-1's movement and maintain a stable formation.)
+2026-10-14 18:13:33,231 - STATE DESCRIPTION (Step 14):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [11.5, 6.3].
+Agent-0 is 145.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.2 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (18.7 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (29.2 units away to the southeast, 0.98 good quality, connected)
+  - Agent-4 (45.3 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (34.8 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (56.1 units away to the east, 0.94 good quality, connected)
+
+Agent-1 is at position [1.1, -13.2].
+Agent-1 is 166.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.2 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (34.0 units away to the northeast, 0.98 good quality, connected)
+  - Agent-3 (27.9 units away to the east, 0.98 good quality, connected)
+  - Agent-4 (45.9 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (50.2 units away to the northeast, 0.96 good quality, connected)
+  - Agent-6 (66.1 units away to the east, 0.92 poor quality, disconnected)
+
+Agent-2 is at position [30.1, 4.5].
+Agent-2 is 145.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (18.7 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (34.0 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (21.8 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (31.8 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (16.7 units away to the east, 0.96 good quality, connected)
+  - Agent-6 (37.5 units away to the east, 0.98 good quality, connected)
+
+Agent-3 is at position [28.7, -17.2].
+Agent-3 is 167.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (29.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (27.9 units away to the west, 0.98 good quality, connected)
+  - Agent-2 (21.8 units away to the north, 0.97 good quality, connected)
+  - Agent-4 (18.2 units away to the east, 0.96 good quality, connected)
+  - Agent-5 (31.3 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (40.1 units away to the east, 0.98 good quality, connected)
+
+Agent-4 is at position [46.0, -23.0].
+Agent-4 is 173.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (45.9 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (31.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (18.2 units away to the west, 0.96 good quality, connected)
+  - Agent-5 (31.7 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (27.9 units away to the northeast, 0.98 good quality, connected)
+
+Agent-5 is at position [46.2, 8.7].
+Agent-5 is 141.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (34.8 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (50.2 units away to the southwest, 0.96 good quality, connected)
+  - Agent-2 (16.7 units away to the west, 0.96 good quality, connected)
+  - Agent-3 (31.3 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (31.7 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (24.1 units away to the southeast, 0.98 good quality, connected)
+
+Agent-6 is at position [66.6, -4.2].
+Agent-6 is 157.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (56.1 units away to the west, 0.94 good quality, connected)
+  - Agent-1 (66.1 units away to the west, 0.92 poor quality, disconnected)
+  - Agent-2 (37.5 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (40.1 units away to the west, 0.98 good quality, connected)
+  - Agent-4 (27.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-5 (24.1 units away to the northwest, 0.98 good quality, connected)
+
+2026-10-14 18:13:34,826 - RESPONSE (Step 20, Time: 1.60s):
+"Agent-3: Reposition 7 units north-northwest to improve formation and maintain optimal spacing with Agent-2.
+
+Agent-4: Move 10 units east-southeast to re-establish communication link with Agent-5 and minimize distance from the destination.
+
+Agent-0: Maintain current direction, N. 
+
+Agent-1: Traverse 20 units northwest to align with Agent-3's new position and improve overall formation.
+
+Agent-2: Reposition 4 units west-northwest to stabilize formation and ensure optimal spacing with Agent-3.
+
+Agent-5: Align 15 units north-northeast with Agent-0's direction to enhance communication link and reduce distance from the destination.
+
+Agent-6: Traverse 20 units east-southeast to re-establish connection with Agent-4 and minimize distance from the destination."
+2026-10-14 18:13:34,834 - --------------------------------------------------------------------------------
+2026-10-14 18:13:34,980 - FEEDBACK (Step 21): "Agent-3: Reposition 7 units north-northwest to improve formation and maintain optimal spacing with Agent-2.
+
+Agent-4: Move 10 units east-southeast to re-establish communication link with Agent-5 and minimize distance from the destination.
+
+Agent-0: Maintain current direction, N. 
+
+Agent-1: Traverse 20 units northwest to align with Agent-3's new position and improve overall formation.
+
+Agent-2: Reposition 4 units west-northwest to stabilize formation and ensure optimal spacing with Agent-3.
+
+Agent-5: Align 15 units north-northeast with Agent-0's direction to enhance communication link and reduce distance from the destination.
+
+Agent-6: Traverse 20 units east-southeast to re-establish connection with Agent-4 and minimize distance from the destination."
+2026-10-14 18:13:35,231 - STATE DESCRIPTION (Step 22):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [14.6, 10.8].
+Agent-0 is 140.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (23.0 units away to the south, 0.97 good quality, connected)
+  - Agent-2 (18.8 units away to the southeast, 0.96 good quality, connected)
+  - Agent-3 (34.5 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (46.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (32.1 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (44.0 units away to the east, 0.97 good quality, connected)
+
+Agent-1 is at position [9.8, -11.7].
+Agent-1 is 163.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (23.0 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (26.3 units away to the northeast, 0.98 good quality, connected)
+  - Agent-3 (19.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (37.2 units away to the east, 0.98 good quality, connected)
+  - Agent-5 (45.1 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (45.8 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [31.7, 2.9].
+Agent-2 is 147.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (18.8 units away to the northwest, 0.96 good quality, connected)
+  - Agent-1 (26.3 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (25.2 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (30.0 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (18.8 units away to the northeast, 0.96 good quality, connected)
+  - Agent-6 (25.2 units away to the east, 0.98 good quality, connected)
+
+Agent-3 is at position [26.2, -21.7].
+Agent-3 is 171.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (34.5 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (19.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (25.2 units away to the north, 0.98 good quality, connected)
+  - Agent-4 (18.9 units away to the east, 0.96 good quality, connected)
+  - Agent-5 (41.5 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (33.1 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [45.0, -24.0].
+Agent-4 is 174.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (46.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (37.2 units away to the west, 0.98 good quality, connected)
+  - Agent-2 (30.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (18.9 units away to the west, 0.96 good quality, connected)
+  - Agent-5 (38.5 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (20.8 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [46.5, 14.5].
+Agent-5 is 136.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (32.1 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (45.1 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (18.8 units away to the southwest, 0.96 good quality, connected)
+  - Agent-3 (41.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (38.5 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.2 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.3, -5.9].
+Agent-6 is 157.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (44.0 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (45.8 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (25.2 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (33.1 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (20.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.2 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:36,758 - RESPONSE (Step 28, Time: 1.53s):
+Agent-0: Move 60 units north-northeast to maintain formation and improve distance from destination. 
+Agent-1: Reposition 21 units southwest to maintain optimal spacing and minimize physical obstacles.
+Agent-2: Move 40 units northwest to reduce distance from destination while maintaining formation. 
+Agent-3: Travel 45 units northeast to correct formation and ensure optimal communication with Agent-0. 
+Agent-4: Adjust 28 units south-southeast to improve formation and maintain good communication with Agents-1 and -5.
+Agent-5: Move 30 units west-northwest to adjust formation and reduce physical obstacles while maintaining communication.
+Agent-6: Reposition 25 units east-northeast to correct formation and ensure optimal spacing from Agents-4 and -5.
+2026-10-14 18:13:36,758 - --------------------------------------------------------------------------------
+2026-10-14 18:13:36,980 - FEEDBACK (Step 29): Agent-0: Move 60 units north-northeast to maintain formation and improve distance from destination. 
+Agent-1: Reposition 21 units southwest to maintain optimal spacing and minimize physical obstacles.
+Agent-2: Move 40 units northwest to reduce distance from destination while maintaining formation. 
+Agent-3: Travel 45 units northeast to correct formation and ensure optimal communication with Agent-0. 
+Agent-4: Adjust 28 units south-southeast to improve formation and maintain good communication with Agents-1 and -5.
+Agent-5: Move 30 units west-northwest to adjust formation and reduce physical obstacles while maintaining communication.
+Agent-6: Reposition 25 units east-northeast to correct formation and ensure optimal spacing from Agents-4 and -5.
+2026-10-14 18:13:37,231 - STATE DESCRIPTION (Step 30):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [16.7, 12.5].
+Agent-0 is 138.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (23.3 units away to the south, 0.97 good quality, connected)
+  - Agent-2 (20.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (37.9 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (46.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (27.8 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (41.8 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.5, -9.9].
+Agent-1 is 161.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (23.3 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (23.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-3 (20.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (37.6 units away to the east, 0.98 good quality, connected)
+  - Agent-5 (42.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (44.6 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.2, -0.7].
+Agent-2 is 150.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (20.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (23.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (24.8 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (26.6 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (20.5 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.9 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [25.2, -24.4].
+Agent-3 is 174.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (37.9 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (20.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (24.8 units away to the north, 0.98 good quality, connected)
+  - Agent-4 (20.2 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (44.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (35.5 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [45.4, -23.7].
+Agent-4 is 174.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (46.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (37.6 units away to the west, 0.98 good quality, connected)
+  - Agent-2 (26.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (20.2 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.6 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (21.1 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [44.3, 15.9].
+Agent-5 is 134.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (27.8 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (42.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (20.5 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (44.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.6 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (23.1 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [54.8, -4.7].
+Agent-6 is 156.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (41.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (44.6 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (35.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (21.1 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (23.1 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:38,264 - RESPONSE (Step 34, Time: 1.03s):
+"Agent-0: Reposition 12 units north-northeast to create a buffer zone and maintain optimal communication with neighbors.
+
+Agent-2: Move 6 units east-northeast to improve formation alignment with Agent-0.
+
+Agent-4: Rotate 20 degrees clockwise to align eastward trajectory with Agent-5's position, ensuring efficient routing."
+
+These instructions aim to establish good communication links between agents while optimizing their movement to reach the destination efficiently.
+2026-10-14 18:13:38,264 - --------------------------------------------------------------------------------
+2026-10-14 18:13:38,480 - FEEDBACK (Step 35): "Agent-0: Reposition 12 units north-northeast to create a buffer zone and maintain optimal communication with neighbors.
+
+Agent-2: Move 6 units east-northeast to improve formation alignment with Agent-0.
+
+Agent-4: Rotate 20 degrees clockwise to align eastward trajectory with Agent-5's position, ensuring efficient routing."
+
+These instructions aim to establish good communication links between agents while optimizing their movement to reach the destination efficiently.
+2026-10-14 18:13:39,481 - STATE DESCRIPTION (Step 39):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [18.4, 13.1].
+Agent-0 is 137.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (23.2 units away to the south, 0.97 good quality, connected)
+  - Agent-2 (21.7 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.1 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (24.4 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (40.4 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.4, -8.7].
+Agent-1 is 160.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (23.2 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (22.8 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (21.9 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.3 units away to the east, 0.98 good quality, connected)
+  - Agent-5 (40.6 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (45.2 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.5, -3.2].
+Agent-2 is 153.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (21.7 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.8 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (23.7 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (24.0 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (21.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.7 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.4, -25.5].
+Agent-3 is 175.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.1 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (21.9 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (23.7 units away to the north, 0.98 good quality, connected)
+  - Agent-4 (21.5 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.3 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (37.9 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [45.7, -23.3].
+Agent-4 is 173.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.3 units away to the west, 0.98 good quality, connected)
+  - Agent-2 (24.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (21.5 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.4 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (21.9 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [42.6, 16.0].
+Agent-5 is 134.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (24.4 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (40.6 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (21.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.3 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.4 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (23.2 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.2, -3.5].
+Agent-6 is 154.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (40.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (45.2 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (37.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (21.9 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (23.2 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:41,105 - RESPONSE (Step 45, Time: 1.62s):
+"Agent-0: Move 10 units north-northeast to align with Agent-1's trajectory. Maintain communication link.
+
+Agent-1: Reposition 6 units west-southwest to fill in the gap between Agents 0 and 2.
+
+Agent-2: Adjust course 5 units northwest to converge on the destination with Agents 0 and 1.
+
+Agent-3: Traverse 8 units east-northeast to bridge the gap between Agents 2 and 4.
+
+Agent-4: Move 7 units southeast to align with Agent-3's trajectory, ensuring a seamless formation transition.
+
+Agent-5: Navigate 9 units north-southwest to position for optimal communication with Agents 0 and 4.
+
+Agent-6: Reposition 12 units east-northeast to maintain coverage of the eastern flank and enhance overall coordination."
+2026-10-14 18:13:41,105 - --------------------------------------------------------------------------------
+2026-10-14 18:13:41,230 - FEEDBACK (Step 46): "Agent-0: Move 10 units north-northeast to align with Agent-1's trajectory. Maintain communication link.
+
+Agent-1: Reposition 6 units west-southwest to fill in the gap between Agents 0 and 2.
+
+Agent-2: Adjust course 5 units northwest to converge on the destination with Agents 0 and 1.
+
+Agent-3: Traverse 8 units east-northeast to bridge the gap between Agents 2 and 4.
+
+Agent-4: Move 7 units southeast to align with Agent-3's trajectory, ensuring a seamless formation transition.
+
+Agent-5: Navigate 9 units north-southwest to position for optimal communication with Agents 0 and 4.
+
+Agent-6: Reposition 12 units east-northeast to maintain coverage of the eastern flank and enhance overall coordination."
+2026-10-14 18:13:41,481 - STATE DESCRIPTION (Step 47):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [18.9, 13.2].
+Agent-0 is 137.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (23.0 units away to the south, 0.97 good quality, connected)
+  - Agent-2 (22.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (23.4 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (39.8 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.3, -8.1].
+Agent-1 is 160.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (23.0 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.8 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (39.8 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (45.3 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.7, -4.2].
+Agent-2 is 154.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (23.2 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (23.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.3 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.7 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.0, -25.7].
+Agent-3 is 176.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (23.2 units away to the north, 0.97 good quality, connected)
+  - Agent-4 (22.1 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.8 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.0, -23.2].
+Agent-4 is 173.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (23.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.1 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.4 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [42.1, 15.9].
+Agent-5 is 134.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (23.4 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (39.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.3 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (23.0 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.3, -2.9].
+Agent-6 is 154.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (39.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (45.3 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (23.0 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:43,460 - RESPONSE (Step 54, Time: 1.98s):
+"Agent-0: Move 12 units north-northwest to align with Agent-4. Maintain communication with Agents-1 and -2 at 0.97 quality.
+
+Agent-1: Reposition 5 units east by southeast to improve formation, while maintaining communication with Agent-0. Focus on closing the distance to the destination.
+
+Agent-2: Move 6 units north-northeast to adjust position for optimal spacing from Agents-3 and -4. Ensure continuous communication with Agents-0 and -1.
+
+Agent-3: Align with Agent-4 by moving 10 units east by southeast, while maintaining good communication quality.
+
+Agent-4: Position yourself 8 units south-southeast of Agent-5 to maintain efficient formation spacing. Maintain strong communication links with all agents.
+
+Agent-5: Travel 7 units north-northeast to align with Agents-0 and -1. Prioritize maintaining connection with Agent-6.
+
+Agent-6: Reposition 2 units east by southeast to facilitate formation adjustments, while ensuring continuous communication with Agents-0 through Agent-5."
+2026-10-14 18:13:43,460 - --------------------------------------------------------------------------------
+2026-10-14 18:13:43,480 - FEEDBACK (Step 55): "Agent-0: Move 12 units north-northwest to align with Agent-4. Maintain communication with Agents-1 and -2 at 0.97 quality.
+
+Agent-1: Reposition 5 units east by southeast to improve formation, while maintaining communication with Agent-0. Focus on closing the distance to the destination.
+
+Agent-2: Move 6 units north-northeast to adjust position for optimal spacing from Agents-3 and -4. Ensure continuous communication with Agents-0 and -1.
+
+Agent-3: Align with Agent-4 by moving 10 units east by southeast, while maintaining good communication quality.
+
+Agent-4: Position yourself 8 units south-southeast of Agent-5 to maintain efficient formation spacing. Maintain strong communication links with all agents.
+
+Agent-5: Travel 7 units north-northeast to align with Agents-0 and -1. Prioritize maintaining connection with Agent-6.
+
+Agent-6: Reposition 2 units east by southeast to facilitate formation adjustments, while ensuring continuous communication with Agents-0 through Agent-5."
+2026-10-14 18:13:43,731 - STATE DESCRIPTION (Step 56):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [19.1, 13.2].
+Agent-0 is 137.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.9 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (39.5 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.2, -7.8].
+Agent-1 is 159.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (39.1 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (39.5 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (45.4 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.7, -4.7].
+Agent-2 is 154.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.9 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.9 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.5 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.7 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [23.8, -25.8].
+Agent-3 is 176.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.9 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.5 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (39.1 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.2, -23.2].
+Agent-4 is 173.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (39.1 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.9 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.5 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [41.9, 15.9].
+Agent-5 is 134.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (22.9 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (39.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.5 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.8 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.3, -2.6].
+Agent-6 is 153.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (39.5 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (45.4 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (39.1 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.8 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:45,258 - RESPONSE (Step 62, Time: 1.53s):
+"Agent-0: Move 12 units north-northeast to reposition for optimal navigation. Agent-1: Reposition 4 units southwest to improve communication with Agent-3. Agent-2: Move 6 units northwest to maintain clear communication channels. Agent-3: Travel 10 units east-southeast to converge with Agent-0's trajectory. Agent-4: Adjust course 8 units north-northeast to synchronize with Agents 5 and 6's movements."
+
+"Agent-5: Change direction 2 units east-southwest to maintain distance from Agents 1 and 3 while supporting Agent 4's trajectory. Agent-6: Reposition 4 units northeast to optimize communication links between Agents 0, 1, 2, and 5."
+2026-10-14 18:13:45,258 - --------------------------------------------------------------------------------
+2026-10-14 18:13:45,480 - FEEDBACK (Step 63): "Agent-0: Move 12 units north-northeast to reposition for optimal navigation. Agent-1: Reposition 4 units southwest to improve communication with Agent-3. Agent-2: Move 6 units northwest to maintain clear communication channels. Agent-3: Travel 10 units east-southeast to converge with Agent-0's trajectory. Agent-4: Adjust course 8 units north-northeast to synchronize with Agents 5 and 6's movements."
+
+"Agent-5: Change direction 2 units east-southwest to maintain distance from Agents 1 and 3 while supporting Agent 4's trajectory. Agent-6: Reposition 4 units northeast to optimize communication links between Agents 0, 1, 2, and 5."
+2026-10-14 18:13:45,981 - STATE DESCRIPTION (Step 65):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [19.2, 13.2].
+Agent-0 is 137.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.8 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (39.4 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.2, -7.7].
+Agent-1 is 159.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (39.2 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (39.4 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (45.4 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.7, -4.9].
+Agent-2 is 154.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.8 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.7 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [23.8, -25.8].
+Agent-3 is 176.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.6 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (39.2 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.2, -23.2].
+Agent-4 is 173.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (39.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.8 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.6 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.3 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [41.8, 15.8].
+Agent-5 is 134.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (22.8 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (39.4 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.3 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.7 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.3, -2.5].
+Agent-6 is 153.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (39.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (45.4 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (39.2 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.7 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:47,685 - RESPONSE (Step 71, Time: 1.70s):
+"Agent-0: Move 10 units north-northwest to improve formation and reduce distance to destination.
+ Agent-1: Reposition 8 units east by southeast to maintain optimal spacing and communication with Agent-5.
+ Agent-2: Move 6 units northeast by northwest to fill gap between Agents 0 and 3, ensuring good communication links.
+ Agent-3: Adjust trajectory 5 units north-southeast to converge with Agents 0 and 2, maintaining formation integrity.
+ Agent-4: Travel 7 units south-southwest to reposition for optimal alignment with Agents 1 and 5, reducing congestion.
+ Agent-5: Shift 9 units northwest by west to maintain good communication with Agents 1 and 6, ensuring smooth navigation.
+ Agent-6: Align 8 units east-northeast to synchronize movement with Agents 0 and 4, maintaining cohesion in the swarm."
+2026-10-14 18:13:47,685 - --------------------------------------------------------------------------------
+2026-10-14 18:13:47,730 - FEEDBACK (Step 72): "Agent-0: Move 10 units north-northwest to improve formation and reduce distance to destination.
+ Agent-1: Reposition 8 units east by southeast to maintain optimal spacing and communication with Agent-5.
+ Agent-2: Move 6 units northeast by northwest to fill gap between Agents 0 and 3, ensuring good communication links.
+ Agent-3: Adjust trajectory 5 units north-southeast to converge with Agents 0 and 2, maintaining formation integrity.
+ Agent-4: Travel 7 units south-southwest to reposition for optimal alignment with Agents 1 and 5, reducing congestion.
+ Agent-5: Shift 9 units northwest by west to maintain good communication with Agents 1 and 6, ensuring smooth navigation.
+ Agent-6: Align 8 units east-northeast to synchronize movement with Agents 0 and 4, maintaining cohesion in the swarm."
+2026-10-14 18:13:48,231 - STATE DESCRIPTION (Step 74):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [19.6, 18.1].
+Agent-0 is 132.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.4 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.2 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (38.6 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [10.7, -2.8].
+Agent-1 is 154.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (22.2 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.6 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (38.9 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (44.5 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.8, -0.0].
+Agent-2 is 150.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.2 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.2 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.0, -21.0].
+Agent-3 is 171.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.4 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.2 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.8 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.1, -18.4].
+Agent-4 is 168.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.2 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.4 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [41.7, 20.8].
+Agent-5 is 129.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (22.2 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (38.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.4 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [54.9, 2.4].
+Agent-6 is 148.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (38.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (44.5 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.2 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:49,744 - RESPONSE (Step 80, Time: 1.51s):
+"Agent-1: Move 7 units east-southeast to reposition for optimal formation. Maintain communication with Agent-2 at 22.2 units to ensure coordinated movement.
+
+ Agent-2: Reposition 4 units west-northwest to maintain distance from Agent-0 and minimize conflict.
+
+ Agent-3: Travel 6 units north-northeast to position near Agent-5, optimizing distance and reducing congestion.
+
+ Agent-4: Adjust course 3 units northwest to enhance communication with Agent-1 and minimize separation from the swarm.
+
+ Agent-5: Move 5 units east by northeast to facilitate alignment with Agent-3 and improve overall formation efficiency.
+
+ Agent-6: Reposition 2 units west-southwest to maintain visibility of the destination and prevent potential collisions."
+2026-10-14 18:13:49,744 - --------------------------------------------------------------------------------
+2026-10-14 18:13:49,980 - FEEDBACK (Step 81): "Agent-1: Move 7 units east-southeast to reposition for optimal formation. Maintain communication with Agent-2 at 22.2 units to ensure coordinated movement.
+
+ Agent-2: Reposition 4 units west-northwest to maintain distance from Agent-0 and minimize conflict.
+
+ Agent-3: Travel 6 units north-northeast to position near Agent-5, optimizing distance and reducing congestion.
+
+ Agent-4: Adjust course 3 units northwest to enhance communication with Agent-1 and minimize separation from the swarm.
+
+ Agent-5: Move 5 units east by northeast to facilitate alignment with Agent-3 and improve overall formation efficiency.
+
+ Agent-6: Reposition 2 units west-southwest to maintain visibility of the destination and prevent potential collisions."
+2026-10-14 18:13:50,481 - STATE DESCRIPTION (Step 83):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Agent-0 is at position [19.8, 24.5].
+Agent-0 is 126.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.5 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.0 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (38.3 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [11.0, 3.5].
+Agent-1 is 148.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (22.0 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.4 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (38.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (44.0 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [32.9, 6.2].
+Agent-2 is 143.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.0 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (22.0 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.1, -14.8].
+Agent-3 is 165.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.5 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.1 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.5 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.6 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.1, -12.2].
+Agent-4 is 162.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.1 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.6 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [41.7, 27.2].
+Agent-5 is 123.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (22.0 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (38.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.5 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.6 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [54.7, 8.7].
+Agent-6 is 142.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (38.3 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (44.0 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.0 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.6 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:51,259 - RESPONSE (Step 86, Time: 0.78s):
+"Agent-3: Move 10 units north by southeast to improve formation. Agent-1: Reposition 8 units northeast to maintain optimal spacing with Agent-0. Agent-5: Travel 4 units west-northwest to align with Agents-1 and -3."
+2026-10-14 18:13:51,259 - --------------------------------------------------------------------------------
+2026-10-14 18:13:51,480 - FEEDBACK (Step 87): "Agent-3: Move 10 units north by southeast to improve formation. Agent-1: Reposition 8 units northeast to maintain optimal spacing with Agent-0. Agent-5: Travel 4 units west-northwest to align with Agents-1 and -3."
+2026-10-14 18:13:52,731 - STATE DESCRIPTION (Step 92):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0
+
+Agent-0 is at position [20.0, 30.8].
+Agent-0 is 120.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-2 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (39.6 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (45.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (21.9 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (38.2 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [11.2, 9.7].
+Agent-1 is 142.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (21.9 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.5 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.3 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (38.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (43.8 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [33.0, 12.5].
+Agent-2 is 137.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (21.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (21.9 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.2, -8.6].
+Agent-3 is 159.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.6 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.5 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.1 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.6 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.1, -6.0].
+Agent-4 is 156.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (45.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.3 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.1 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.7 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the north, 0.97 good quality, connected)
+
+Agent-5 is at position [41.7, 33.5].
+Agent-5 is 116.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (21.9 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (38.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (22.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.7 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [54.7, 15.0].
+Agent-6 is 136.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (38.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (43.8 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (21.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.6 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:53,697 - RESPONSE (Step 95, Time: 0.97s):
+"Agent-1: Move 2 units east-northeast to align with Agent-5's new position. Ensure communication remains stable above 0.94. 
+Agent-2: Adjust 3 units north-northwest to optimize spacing between Agents-1 and -5.
+Agent-3: Reposition 4 units south-southeast to avoid Obstacle 1 while maintaining good communication quality.
+2026-10-14 18:13:53,697 - --------------------------------------------------------------------------------
+2026-10-14 18:13:53,730 - FEEDBACK (Step 96): "Agent-1: Move 2 units east-northeast to align with Agent-5's new position. Ensure communication remains stable above 0.94. 
+Agent-2: Adjust 3 units north-northwest to optimize spacing between Agents-1 and -5.
+Agent-3: Reposition 4 units south-southeast to avoid Obstacle 1 while maintaining good communication quality.
+2026-10-14 18:13:54,731 - STATE DESCRIPTION (Step 100):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [24.5, 35.8].
+Agent-0 is 114.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (24.3 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (19.9 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (38.9 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (42.3 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (17.9 units away to the east, 0.97 good quality, connected)
+  - Agent-6 (34.0 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [11.3, 15.4].
+Agent-1 is 136.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (24.3 units away to the northeast, 0.98 good quality, connected)
+  - Agent-2 (21.9 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (38.4 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (38.9 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (43.8 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [33.1, 17.9].
+Agent-2 is 132.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (19.9 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (21.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (22.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (23.1 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (21.9 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.3, -3.1].
+Agent-3 is 153.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (38.9 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.1 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.6 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.3, -0.5].
+Agent-4 is 150.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (42.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (38.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.1 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (39.9 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.7 units away to the north, 0.97 good quality, connected)
+
+Agent-5 is at position [42.0, 39.2].
+Agent-5 is 111.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (17.9 units away to the west, 0.97 good quality, connected)
+  - Agent-1 (38.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (23.1 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (39.9 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [54.8, 20.5].
+Agent-6 is 131.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (34.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (43.8 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (21.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.6 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.7 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (22.6 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:56,265 - RESPONSE (Step 106, Time: 1.53s):
+"Agent-1: Move 3 units north-northwest to improve communication with Agent-0 and reduce distance from Destination. 
+Agent-2: Reposition 4 units east-southeast to maintain optimal spacing between Agent-5 and Agent-6. 
+Agent-3: Travel 8 units south-northeast to shorten path to Destination while maintaining good communication links.
+Agent-4: Move 6 units west-northwest to reduce distance from Destination and improve alignment with Agents-1 and -2.
+Agent-5: Adjust course 5 units northwest to correct formation error and optimize communication between Agents-3 and -4.
+Agent-6: Reposition 2 units east-southeast to enhance visibility for Agent-0 while maintaining safe distance from Obstacle 3."
+2026-10-14 18:13:56,265 - --------------------------------------------------------------------------------
+2026-10-14 18:13:56,480 - FEEDBACK (Step 107): "Agent-1: Move 3 units north-northwest to improve communication with Agent-0 and reduce distance from Destination. 
+Agent-2: Reposition 4 units east-southeast to maintain optimal spacing between Agent-5 and Agent-6. 
+Agent-3: Travel 8 units south-northeast to shorten path to Destination while maintaining good communication links.
+Agent-4: Move 6 units west-northwest to reduce distance from Destination and improve alignment with Agents-1 and -2.
+Agent-5: Adjust course 5 units northwest to correct formation error and optimize communication between Agents-3 and -4.
+Agent-6: Reposition 2 units east-southeast to enhance visibility for Agent-0 while maintaining safe distance from Obstacle 3."
+2026-10-14 18:13:56,731 - STATE DESCRIPTION (Step 108):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [29.5, 41.6].
+Agent-0 is 108.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (26.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (19.6 units away to the south, 0.96 good quality, connected)
+  - Agent-3 (39.5 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (40.8 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (15.8 units away to the east, 0.95 good quality, connected)
+  - Agent-6 (30.7 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [11.8, 22.0].
+Agent-1 is 130.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (26.5 units away to the northeast, 0.98 good quality, connected)
+  - Agent-2 (21.4 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (23.3 units away to the southeast, 0.97 good quality, connected)
+  - Agent-4 (39.1 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (40.4 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (43.9 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [33.2, 22.4].
+Agent-2 is 127.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (19.6 units away to the north, 0.96 good quality, connected)
+  - Agent-1 (21.4 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (21.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (25.4 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the east, 0.97 good quality, connected)
+
+Agent-3 is at position [24.6, 2.5].
+Agent-3 is 147.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.5 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (23.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (21.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.4 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (47.1 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (38.6 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [46.9, 4.7].
+Agent-4 is 145.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (40.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (39.1 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.4 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (40.3 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (22.6 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [44.9, 45.0].
+Agent-5 is 105.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (15.8 units away to the west, 0.95 good quality, connected)
+  - Agent-1 (40.4 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (25.4 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (47.1 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (40.3 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (22.2 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [55.6, 25.5].
+Agent-6 is 126.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (30.7 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (43.9 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (22.6 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (38.6 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (22.2 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:13:57,490 - RESPONSE (Step 111, Time: 0.76s):
+"Agent-3: Move 15 units north-northwest to create a buffer zone between yourself and Agent-4, ensuring clear communication paths. Agents-1 and 6: Reposition 10 units south-southeast to optimize formation and avoid physical obstacles."
+2026-10-14 18:13:57,490 - --------------------------------------------------------------------------------
+2026-10-14 18:13:57,730 - FEEDBACK (Step 112): "Agent-3: Move 15 units north-northwest to create a buffer zone between yourself and Agent-4, ensuring clear communication paths. Agents-1 and 6: Reposition 10 units south-southeast to optimize formation and avoid physical obstacles."
+2026-10-14 18:13:58,981 - STATE DESCRIPTION (Step 117):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [32.8, 47.1].
+Agent-0 is 102.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (26.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (19.3 units away to the south, 0.97 good quality, connected)
+  - Agent-3 (39.2 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (39.6 units away to the south, 0.98 good quality, connected)
+  - Agent-5 (15.4 units away to the east, 0.95 good quality, connected)
+  - Agent-6 (34.0 units away to the southeast, 0.98 good quality, connected)
+
+Agent-1 is at position [12.7, 29.5].
+Agent-1 is 122.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (26.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-2 (20.9 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (24.2 units away to the southeast, 0.98 good quality, connected)
+  - Agent-4 (39.7 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (41.1 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (47.1 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [33.6, 27.9].
+Agent-2 is 122.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (19.3 units away to the north, 0.97 good quality, connected)
+  - Agent-1 (20.9 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (21.0 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (22.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (27.2 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (26.2 units away to the east, 0.98 good quality, connected)
+
+Agent-3 is at position [25.0, 8.7].
+Agent-3 is 141.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.2 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (24.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (21.0 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (22.5 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (48.1 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (39.0 units away to the northeast, 0.98 good quality, connected)
+
+Agent-4 is at position [47.5, 10.4].
+Agent-4 is 140.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (39.6 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (39.7 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (22.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (22.5 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (40.7 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (20.2 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [47.8, 51.1].
+Agent-5 is 99.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (15.4 units away to the west, 0.95 good quality, connected)
+  - Agent-1 (41.1 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (27.2 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (48.1 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (40.7 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (27.5 units away to the southeast, 0.98 good quality, connected)
+
+Agent-6 is at position [59.8, 26.4].
+Agent-6 is 126.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (34.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (47.1 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (26.2 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (39.0 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (20.2 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (27.5 units away to the northwest, 0.98 good quality, connected)
+
+2026-10-14 18:14:00,455 - RESPONSE (Step 122, Time: 1.47s):
+Agent-1: Reposition 10 units north-northwest to maintain formation with Agent-0.
+
+Agent-2: Move 8 units east by southeast to optimize communication link with Agent-6.
+
+Agent-3: Travel 12 units south-southwest to avoid Obstacle 3 and align with the N direction for destination reach.
+
+Agent-4: Adjust position 5 units northwest to maintain clear line of sight with Agents 0, 1, and 2.
+
+Agent-5: Redirect 7 units north-northeast to strengthen communication link with Agent-6 and enhance formation stability.
+
+Agent-6: Reposition 15 units south-southwest to maintain optimal spacing with the swarm and ensure smooth navigation around Obstacle 3.
+2026-10-14 18:14:00,455 - --------------------------------------------------------------------------------
+2026-10-14 18:14:00,480 - FEEDBACK (Step 123): Agent-1: Reposition 10 units north-northwest to maintain formation with Agent-0.
+
+Agent-2: Move 8 units east by southeast to optimize communication link with Agent-6.
+
+Agent-3: Travel 12 units south-southwest to avoid Obstacle 3 and align with the N direction for destination reach.
+
+Agent-4: Adjust position 5 units northwest to maintain clear line of sight with Agents 0, 1, and 2.
+
+Agent-5: Redirect 7 units north-northeast to strengthen communication link with Agent-6 and enhance formation stability.
+
+Agent-6: Reposition 15 units south-southwest to maintain optimal spacing with the swarm and ensure smooth navigation around Obstacle 3.
+2026-10-14 18:14:00,981 - STATE DESCRIPTION (Step 125):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [31.9, 56.9].
+Agent-0 is 93.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (27.0 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (23.3 units away to the south, 0.97 good quality, connected)
+  - Agent-3 (42.9 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (43.9 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (18.8 units away to the east, 0.96 good quality, connected)
+  - Agent-6 (47.1 units away to the southeast, 0.97 good quality, connected)
+
+Agent-1 is at position [16.4, 34.9].
+Agent-1 is 116.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (27.0 units away to the northeast, 0.98 good quality, connected)
+  - Agent-2 (19.1 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (22.4 units away to the southeast, 0.98 good quality, connected)
+  - Agent-4 (36.2 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (39.0 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (51.0 units away to the east, 0.96 good quality, connected)
+
+Agent-2 is at position [35.5, 33.9].
+Agent-2 is 116.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (23.3 units away to the north, 0.97 good quality, connected)
+  - Agent-1 (19.1 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (21.8 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (21.6 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (24.9 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (32.2 units away to the east, 0.98 good quality, connected)
+
+Agent-3 is at position [25.7, 14.5].
+Agent-3 is 135.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (42.9 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (22.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (21.8 units away to the northeast, 0.97 good quality, connected)
+  - Agent-4 (21.5 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (46.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (42.0 units away to the east, 0.97 good quality, connected)
+
+Agent-4 is at position [47.2, 15.8].
+Agent-4 is 134.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (43.9 units away to the north, 0.97 good quality, connected)
+  - Agent-1 (36.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (21.6 units away to the northwest, 0.97 good quality, connected)
+  - Agent-3 (21.5 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (38.1 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (21.2 units away to the northeast, 0.97 good quality, connected)
+
+Agent-5 is at position [50.5, 53.8].
+Agent-5 is 97.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (18.8 units away to the west, 0.96 good quality, connected)
+  - Agent-1 (39.0 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (24.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-3 (46.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (38.1 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (33.0 units away to the southeast, 0.98 good quality, connected)
+
+Agent-6 is at position [66.4, 24.8].
+Agent-6 is 129.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (47.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (51.0 units away to the west, 0.96 good quality, connected)
+  - Agent-2 (32.2 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (42.0 units away to the west, 0.97 good quality, connected)
+  - Agent-4 (21.2 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (33.0 units away to the northwest, 0.98 good quality, connected)
+
+2026-10-14 18:14:01,963 - RESPONSE (Step 128, Time: 0.98s):
+"Agent-1: Move 7 units north-northeast to improve formation and close distance with Agent-0. Agent-2: Reposition 4 units east by southeast to align with Agent-3's position. Agent-3: Move 10 units north-southeast to reduce gap with the destination. Agent-4: Travel 5 units west by southwest to avoid Obstacle 1 and optimize spacing."
+2026-10-14 18:14:01,963 - --------------------------------------------------------------------------------
+2026-10-14 18:14:01,980 - FEEDBACK (Step 129): "Agent-1: Move 7 units north-northeast to improve formation and close distance with Agent-0. Agent-2: Reposition 4 units east by southeast to align with Agent-3's position. Agent-3: Move 10 units north-southeast to reduce gap with the destination. Agent-4: Travel 5 units west by southwest to avoid Obstacle 1 and optimize spacing."
+2026-10-14 18:14:02,981 - STATE DESCRIPTION (Step 133):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [23.3, 63.2].
+Agent-0 is 87.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (25.6 units away to the south, 0.98 good quality, connected)
+  - Agent-2 (27.9 units away to the southeast, 0.98 good quality, connected)
+  - Agent-3 (43.9 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (48.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (28.7 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (58.8 units away to the southeast, 0.95 good quality, connected)
+
+Agent-1 is at position [24.8, 37.6].
+Agent-1 is 112.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (25.6 units away to the north, 0.98 good quality, connected)
+  - Agent-2 (15.8 units away to the east, 0.95 good quality, connected)
+  - Agent-3 (18.3 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (27.7 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (33.0 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (45.3 units away to the east, 0.97 good quality, connected)
+
+Agent-2 is at position [40.2, 41.0].
+Agent-2 is 109.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (27.9 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (15.8 units away to the west, 0.95 good quality, connected)
+  - Agent-3 (25.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (20.9 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (19.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (32.2 units away to the southeast, 0.98 good quality, connected)
+
+Agent-3 is at position [26.2, 19.3].
+Agent-3 is 131.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (43.9 units away to the north, 0.97 good quality, connected)
+  - Agent-1 (18.3 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (25.8 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (21.2 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (45.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (42.7 units away to the east, 0.98 good quality, connected)
+
+Agent-4 is at position [47.3, 21.4].
+Agent-4 is 129.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (48.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (27.7 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (20.9 units away to the north, 0.97 good quality, connected)
+  - Agent-3 (21.2 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (36.0 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (21.6 units away to the east, 0.97 good quality, connected)
+
+Agent-5 is at position [51.4, 57.1].
+Agent-5 is 94.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (28.7 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (33.0 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (19.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-3 (45.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (36.0 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (35.9 units away to the southeast, 0.98 good quality, connected)
+
+Agent-6 is at position [68.5, 25.5].
+Agent-6 is 128.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (58.8 units away to the northwest, 0.95 good quality, connected)
+  - Agent-1 (45.3 units away to the west, 0.97 good quality, connected)
+  - Agent-2 (32.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (42.7 units away to the west, 0.98 good quality, connected)
+  - Agent-4 (21.6 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (35.9 units away to the northwest, 0.98 good quality, connected)
+
+2026-10-14 18:14:04,605 - RESPONSE (Step 139, Time: 1.62s):
+Agent-1: Move 3 units east by southeast to improve formation and avoid Obstacle 2.
+Agent-2: Reposition 4 units north-northeast to maintain optimal spacing and communication with Agent-0.
+Agent-3: Travel 6 units north by northeast to reestablish good communication with Agent-0 and Agent-4.
+Agent-4: Move 5 units east-southeast to align with Agent-1 and avoid Obstacle 2.
+Agent-5: Reposition 2 units south-northwest to improve formation and maintain communication with Agents 3 and 4.
+Agent-6: Move 4 units northwest to reduce distance from the destination while maintaining good communication with Agents 0, 1, and 2.
+
+These instructions aim to balance communication quality, physical obstacle avoidance, and efficient movement towards the destination.
+2026-10-14 18:14:04,605 - --------------------------------------------------------------------------------
+2026-10-14 18:14:04,730 - FEEDBACK (Step 140): Agent-1: Move 3 units east by southeast to improve formation and avoid Obstacle 2.
+Agent-2: Reposition 4 units north-northeast to maintain optimal spacing and communication with Agent-0.
+Agent-3: Travel 6 units north by northeast to reestablish good communication with Agent-0 and Agent-4.
+Agent-4: Move 5 units east-southeast to align with Agent-1 and avoid Obstacle 2.
+Agent-5: Reposition 2 units south-northwest to improve formation and maintain communication with Agents 3 and 4.
+Agent-6: Move 4 units northwest to reduce distance from the destination while maintaining good communication with Agents 0, 1, and 2.
+
+These instructions aim to balance communication quality, physical obstacle avoidance, and efficient movement towards the destination.
+2026-10-14 18:14:05,230 - STATE DESCRIPTION (Step 142):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [17.7, 62.5].
+Agent-0 is 89.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (24.0 units away to the southeast, 0.98 good quality, connected)
+  - Agent-2 (29.7 units away to the southeast, 0.98 good quality, connected)
+  - Agent-3 (39.6 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (46.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (34.3 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (62.2 units away to the southeast, 0.94 good quality, connected)
+
+Agent-1 is at position [29.9, 41.8].
+Agent-1 is 108.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (24.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (15.6 units away to the northeast, 0.96 good quality, connected)
+  - Agent-3 (18.5 units away to the south, 0.96 good quality, connected)
+  - Agent-4 (22.7 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (30.8 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (41.1 units away to the southeast, 0.98 good quality, connected)
+
+Agent-2 is at position [44.0, 48.6].
+Agent-2 is 101.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (29.7 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (15.6 units away to the southwest, 0.96 good quality, connected)
+  - Agent-3 (30.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (21.8 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (16.8 units away to the northeast, 0.96 good quality, connected)
+  - Agent-6 (33.2 units away to the southeast, 0.98 good quality, connected)
+
+Agent-3 is at position [26.0, 23.8].
+Agent-3 is 126.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (39.6 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (18.5 units away to the north, 0.96 good quality, connected)
+  - Agent-2 (30.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (21.4 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (47.4 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (41.6 units away to the east, 0.97 good quality, connected)
+
+Agent-4 is at position [47.1, 27.0].
+Agent-4 is 123.6 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (46.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (22.7 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (21.8 units away to the north, 0.97 good quality, connected)
+  - Agent-3 (21.4 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (36.6 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (20.4 units away to the east, 0.97 good quality, connected)
+
+Agent-5 is at position [52.0, 63.3].
+Agent-5 is 88.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (34.3 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (30.8 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (16.8 units away to the southwest, 0.96 good quality, connected)
+  - Agent-3 (47.4 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (36.6 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (41.2 units away to the south, 0.98 good quality, connected)
+
+Agent-6 is at position [67.5, 25.2].
+Agent-6 is 129.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (62.2 units away to the northwest, 0.94 good quality, connected)
+  - Agent-1 (41.1 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (33.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (41.6 units away to the west, 0.97 good quality, connected)
+  - Agent-4 (20.4 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (41.2 units away to the north, 0.98 good quality, connected)
+
+2026-10-14 18:14:06,463 - RESPONSE (Step 146, Time: 1.23s):
+"Agent-0: Move 10 units east-northeast to close distance with Agent-1 and improve communication. Agent-1: Reposition 4 units south-southeast to increase effective range with Agent-2."
+
+ Agent-6: Avoid Obstacle 1 by moving 15 units north-northwest to create safe clearance.
+
+Agent-5: Move 10 units west-southwest to realign with Agent-3 and maintain efficient formation.
+
+Agent-4: Shift 5 units east-northeast to align with Agent-0's new position and maintain optimal spacing.
+2026-10-14 18:14:06,463 - --------------------------------------------------------------------------------
+2026-10-14 18:14:06,480 - FEEDBACK (Step 147): "Agent-0: Move 10 units east-northeast to close distance with Agent-1 and improve communication. Agent-1: Reposition 4 units south-southeast to increase effective range with Agent-2."
+
+ Agent-6: Avoid Obstacle 1 by moving 15 units north-northwest to create safe clearance.
+
+Agent-5: Move 10 units west-southwest to realign with Agent-3 and maintain efficient formation.
+
+Agent-4: Shift 5 units east-northeast to align with Agent-0's new position and maintain optimal spacing.
+2026-10-14 18:14:07,481 - STATE DESCRIPTION (Step 151):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0
+
+Agent-0 is at position [14.5, 63.6].
+Agent-0 is 88.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (25.4 units away to the southeast, 0.98 good quality, connected)
+  - Agent-2 (33.9 units away to the east, 0.98 good quality, connected)
+  - Agent-3 (36.0 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (46.3 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (34.4 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (68.5 units away to the southeast, 0.92 poor quality, disconnected)
+
+Agent-1 is at position [34.5, 48.0].
+Agent-1 is 102.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (25.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (13.7 units away to the northeast, 0.94 poor quality, disconnected)
+  - Agent-3 (20.6 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (21.3 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (22.7 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (43.3 units away to the southeast, 0.97 good quality, connected)
+
+Agent-2 is at position [47.0, 53.6].
+Agent-2 is 97.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (33.9 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (13.7 units away to the southwest, 0.94 poor quality, disconnected)
+  - Agent-3 (32.3 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (22.3 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (12.1 units away to the north, 0.93 poor quality, disconnected)
+  - Agent-6 (37.6 units away to the southeast, 0.98 good quality, connected)
+
+Agent-3 is at position [25.7, 29.4].
+Agent-3 is 121.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (36.0 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (20.6 units away to the northeast, 0.97 good quality, connected)
+  - Agent-2 (32.3 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (22.2 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (43.0 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (45.6 units away to the east, 0.97 good quality, connected)
+
+Agent-4 is at position [47.8, 31.4].
+Agent-4 is 119.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (46.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (21.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (22.3 units away to the north, 0.97 good quality, connected)
+  - Agent-3 (22.2 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (34.2 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (24.1 units away to the east, 0.98 good quality, connected)
+
+Agent-5 is at position [48.8, 65.6].
+Agent-5 is 85.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (34.4 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (22.7 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (12.1 units away to the south, 0.93 poor quality, disconnected)
+  - Agent-3 (43.0 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (34.2 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (46.4 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [71.1, 24.8].
+Agent-6 is 130.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (68.5 units away to the northwest, 0.92 poor quality, disconnected)
+  - Agent-1 (43.3 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (37.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (45.6 units away to the west, 0.97 good quality, connected)
+  - Agent-4 (24.1 units away to the west, 0.98 good quality, connected)
+  - Agent-5 (46.4 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:14:08,210 - RESPONSE (Step 153, Time: 0.73s):
+"Agent-0: Move 30 units north-northeast to approach Agent-1. Agent-2: Reposition 15 units east by northeast to optimize formation alignment with Agent-3. Ensure continuous communication quality above 0.94."
+2026-10-14 18:14:08,210 - --------------------------------------------------------------------------------
+2026-10-14 18:14:08,230 - FEEDBACK (Step 154): "Agent-0: Move 30 units north-northeast to approach Agent-1. Agent-2: Reposition 15 units east by northeast to optimize formation alignment with Agent-3. Ensure continuous communication quality above 0.94."
+2026-10-14 18:14:09,481 - STATE DESCRIPTION (Step 159):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0 | Obstacle 4: Position [10.0, 95.0], Radius 10.0
+
+Agent-0 is at position [18.3, 74.8].
+Agent-0 is 77.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (21.2 units away to the southeast, 0.97 good quality, connected)
+  - Agent-2 (40.8 units away to the southeast, 0.98 good quality, connected)
+  - Agent-3 (41.1 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (49.1 units away to the southeast, 0.97 good quality, connected)
+  - Agent-5 (34.2 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (72.9 units away to the southeast, 0.91 poor quality, disconnected)
+
+Agent-1 is at position [31.3, 58.0].
+Agent-1 is 92.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (21.2 units away to the northwest, 0.97 good quality, connected)
+  - Agent-2 (23.3 units away to the east, 0.97 good quality, connected)
+  - Agent-3 (24.1 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (27.9 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (23.5 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (52.0 units away to the southeast, 0.96 good quality, connected)
+
+Agent-2 is at position [54.4, 55.9].
+Agent-2 is 96.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (40.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (23.3 units away to the west, 0.97 good quality, connected)
+  - Agent-3 (35.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (21.7 units away to the south, 0.97 good quality, connected)
+  - Agent-5 (13.4 units away to the north, 0.94 good quality, connected)
+  - Agent-6 (35.3 units away to the southeast, 0.98 good quality, connected)
+
+Agent-3 is at position [26.1, 34.4].
+Agent-3 is 115.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (41.1 units away to the north, 0.98 good quality, connected)
+  - Agent-1 (24.1 units away to the north, 0.98 good quality, connected)
+  - Agent-2 (35.5 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (21.4 units away to the east, 0.97 good quality, connected)
+  - Agent-5 (43.2 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (46.3 units away to the east, 0.97 good quality, connected)
+
+Agent-4 is at position [47.5, 35.3].
+Agent-4 is 115.4 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (49.1 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (27.9 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (21.7 units away to the north, 0.97 good quality, connected)
+  - Agent-3 (21.4 units away to the west, 0.97 good quality, connected)
+  - Agent-5 (34.0 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (26.1 units away to the southeast, 0.98 good quality, connected)
+
+Agent-5 is at position [52.0, 69.0].
+Agent-5 is 82.8 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (34.2 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (23.5 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (13.4 units away to the south, 0.94 good quality, connected)
+  - Agent-3 (43.2 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (34.0 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (48.1 units away to the southeast, 0.97 good quality, connected)
+
+Agent-6 is at position [71.5, 25.0].
+Agent-6 is 130.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (72.9 units away to the northwest, 0.91 poor quality, disconnected)
+  - Agent-1 (52.0 units away to the northwest, 0.96 good quality, connected)
+  - Agent-2 (35.3 units away to the northwest, 0.98 good quality, connected)
+  - Agent-3 (46.3 units away to the west, 0.97 good quality, connected)
+  - Agent-4 (26.1 units away to the northwest, 0.98 good quality, connected)
+  - Agent-5 (48.1 units away to the northwest, 0.97 good quality, connected)
+
+2026-10-14 18:14:11,089 - RESPONSE (Step 165, Time: 1.61s):
+Agent-0: Move 10 units north-northwest to improve formation.
+
+Agent-1: Reposition 8 units east-northeast to maintain optimal spacing and connection with Agent-0.
+
+Agent-2: Travel 14 units west-southwest to reestablish connection with Agent-0 and reduce congestion.
+
+Agent-3: Move 12 units south-southeast to position for efficient navigation and improve formation.
+
+Agent-4: Reposition 6 units north-northeast to enhance communication with Agent-0 and maintain optimal spacing.
+
+Agent-5: Travel 10 units east by southeast to support Agent-1's repositioning and improve overall swarm movement.
+
+Agent-6: Attempt to reconnect with Agent-0 (72.9 units away to the northwest, 0.91 poor quality) using a secure communication channel.
+2026-10-14 18:14:11,090 - --------------------------------------------------------------------------------
+2026-10-14 18:14:11,230 - FEEDBACK (Step 166): Agent-0: Move 10 units north-northwest to improve formation.
+
+Agent-1: Reposition 8 units east-northeast to maintain optimal spacing and connection with Agent-0.
+
+Agent-2: Travel 14 units west-southwest to reestablish connection with Agent-0 and reduce congestion.
+
+Agent-3: Move 12 units south-southeast to position for efficient navigation and improve formation.
+
+Agent-4: Reposition 6 units north-northeast to enhance communication with Agent-0 and maintain optimal spacing.
+
+Agent-5: Travel 10 units east by southeast to support Agent-1's repositioning and improve overall swarm movement.
+
+Agent-6: Attempt to reconnect with Agent-0 (72.9 units away to the northwest, 0.91 poor quality) using a secure communication channel.
+2026-10-14 18:14:11,481 - STATE DESCRIPTION (Step 167):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0 | Obstacle 4: Position [10.0, 95.0], Radius 10.0
+
+Agent-0 is at position [24.7, 87.9].
+Agent-0 is 62.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (23.2 units away to the south, 0.97 good quality, connected)
+  - Agent-2 (44.9 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (44.9 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (51.5 units away to the southeast, 0.96 good quality, connected)
+  - Agent-5 (37.5 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (76.9 units away to the southeast, 0.90 poor quality, disconnected)
+
+Agent-1 is at position [24.4, 64.7].
+Agent-1 is 85.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (23.2 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (34.9 units away to the east, 0.98 good quality, connected)
+  - Agent-3 (22.5 units away to the south, 0.97 good quality, connected)
+  - Agent-4 (32.6 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (36.0 units away to the east, 0.98 good quality, connected)
+  - Agent-6 (59.8 units away to the southeast, 0.95 good quality, connected)
+
+Agent-2 is at position [58.8, 58.7].
+Agent-2 is 94.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (44.9 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (34.9 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (30.2 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (20.2 units away to the southwest, 0.97 good quality, connected)
+  - Agent-5 (14.9 units away to the north, 0.95 good quality, connected)
+  - Agent-6 (35.2 units away to the south, 0.98 good quality, connected)
+
+Agent-3 is at position [32.6, 43.7].
+Agent-3 is 106.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (44.9 units away to the north, 0.97 good quality, connected)
+  - Agent-1 (22.5 units away to the north, 0.97 good quality, connected)
+  - Agent-2 (30.2 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (15.1 units away to the east, 0.95 good quality, connected)
+  - Agent-5 (40.1 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (41.0 units away to the southeast, 0.98 good quality, connected)
+
+Agent-4 is at position [47.7, 41.8].
+Agent-4 is 108.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (51.5 units away to the northwest, 0.96 good quality, connected)
+  - Agent-1 (32.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (20.2 units away to the northeast, 0.97 good quality, connected)
+  - Agent-3 (15.1 units away to the west, 0.95 good quality, connected)
+  - Agent-5 (33.8 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (27.2 units away to the southeast, 0.98 good quality, connected)
+
+Agent-5 is at position [59.3, 73.6].
+Agent-5 is 80.2 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (37.5 units away to the west, 0.98 good quality, connected)
+  - Agent-1 (36.0 units away to the west, 0.98 good quality, connected)
+  - Agent-2 (14.9 units away to the south, 0.95 good quality, connected)
+  - Agent-3 (40.1 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (33.8 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (49.5 units away to the south, 0.97 good quality, connected)
+
+Agent-6 is at position [69.2, 25.1].
+Agent-6 is 129.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (76.9 units away to the northwest, 0.90 poor quality, disconnected)
+  - Agent-1 (59.8 units away to the northwest, 0.95 good quality, connected)
+  - Agent-2 (35.2 units away to the north, 0.98 good quality, connected)
+  - Agent-3 (41.0 units away to the northwest, 0.98 good quality, connected)
+  - Agent-4 (27.2 units away to the northwest, 0.98 good quality, connected)
+  - Agent-5 (49.5 units away to the north, 0.97 good quality, connected)
+
+2026-10-14 18:14:13,526 - RESPONSE (Step 175, Time: 2.04s):
+To maintain good communication links and efficiently reach the destination while avoiding physical obstacles, issue the following instructions:
+
+"Agent-0: Move 5 units east by southeast to improve formation and reestablish connection with Agent-4. 
+
+Agent-1: Reposition 4 units north-northeast to maintain optimal spacing from Agent-2. 
+
+Agent-2: Realign 7 units west of north-northwest to reduce interference with Agent-3's communication link.
+
+Agent-3: Shift 10 units south-southeast to improve positioning relative to Agents-1 and 2, while ensuring good communication quality remains above 0.94.
+
+Agent-4: Establish a new connection with Agent-5 by moving 8 units north-northwest to bridge the distance between their current positions.
+
+Agent-5: Move 6 units west-southwest to enhance formation cohesion and reestablish strong communication with Agents-1, 2, and 3.
+
+Agent-6: Connect with Agent-4 by navigating 9 units south-southeast to strengthen their shared connection with Agents-0 through Agent-4's re-established link."
+2026-10-14 18:14:13,526 - --------------------------------------------------------------------------------
+2026-10-14 18:14:13,730 - FEEDBACK (Step 176): To maintain good communication links and efficiently reach the destination while avoiding physical obstacles, issue the following instructions:
+
+"Agent-0: Move 5 units east by southeast to improve formation and reestablish connection with Agent-4. 
+
+Agent-1: Reposition 4 units north-northeast to maintain optimal spacing from Agent-2. 
+
+Agent-2: Realign 7 units west of north-northwest to reduce interference with Agent-3's communication link.
+
+Agent-3: Shift 10 units south-southeast to improve positioning relative to Agents-1 and 2, while ensuring good communication quality remains above 0.94.
+
+Agent-4: Establish a new connection with Agent-5 by moving 8 units north-northwest to bridge the distance between their current positions.
+
+Agent-5: Move 6 units west-southwest to enhance formation cohesion and reestablish strong communication with Agents-1, 2, and 3.
+
+Agent-6: Connect with Agent-4 by navigating 9 units south-southeast to strengthen their shared connection with Agents-0 through Agent-4's re-established link."
+2026-10-14 18:14:13,730 - STATE DESCRIPTION (Step 176):
+The mission is to reach the destination at coordinates [35.0, 150.0] efficiently while maintaining communication between agents.
+
+The swarm destination is at coordinates [35.0, 150.0].
+
+Detected physical obstacles: Obstacle 1: Position [20.0, 50.0], Radius 10.0 | Obstacle 2: Position [50.0, 80.0], Radius 8.0 | Obstacle 3: Position [70.0, 40.0], Radius 12.0 | Obstacle 4: Position [10.0, 95.0], Radius 10.0
+
+Agent-0 is at position [22.9, 100.3].
+Agent-0 is 51.1 units away from the destination and needs to travel in the N direction to reach it.
+Agent-0 has communication with:
+  - Agent-1 (31.4 units away to the south, 0.98 good quality, connected)
+  - Agent-2 (49.4 units away to the southeast, 0.97 good quality, connected)
+  - Agent-3 (60.6 units away to the south, 0.95 good quality, connected)
+  - Agent-4 (58.4 units away to the southeast, 0.95 good quality, connected)
+  - Agent-5 (41.6 units away to the southeast, 0.98 good quality, connected)
+  - Agent-6 (85.5 units away to the southeast, 0.86 poor quality, disconnected)
+
+Agent-1 is at position [28.0, 69.4].
+Agent-1 is 80.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-1 has communication with:
+  - Agent-0 (31.4 units away to the north, 0.98 good quality, connected)
+  - Agent-2 (29.5 units away to the east, 0.98 good quality, connected)
+  - Agent-3 (29.4 units away to the south, 0.98 good quality, connected)
+  - Agent-4 (29.8 units away to the southeast, 0.98 good quality, connected)
+  - Agent-5 (35.9 units away to the northeast, 0.98 good quality, connected)
+  - Agent-6 (57.2 units away to the southeast, 0.95 good quality, connected)
+
+Agent-2 is at position [57.1, 64.8].
+Agent-2 is 88.0 units away from the destination and needs to travel in the N direction to reach it.
+Agent-2 has communication with:
+  - Agent-0 (49.4 units away to the northwest, 0.97 good quality, connected)
+  - Agent-1 (29.5 units away to the west, 0.98 good quality, connected)
+  - Agent-3 (31.1 units away to the southwest, 0.98 good quality, connected)
+  - Agent-4 (18.8 units away to the southwest, 0.96 good quality, connected)
+  - Agent-5 (19.2 units away to the north, 0.97 good quality, connected)
+  - Agent-6 (39.5 units away to the south, 0.98 good quality, connected)
+
+Agent-3 is at position [36.7, 41.3].
+Agent-3 is 108.7 units away from the destination and needs to travel in the N direction to reach it.
+Agent-3 has communication with:
+  - Agent-0 (60.6 units away to the north, 0.95 good quality, connected)
+  - Agent-1 (29.4 units away to the north, 0.98 good quality, connected)
+  - Agent-2 (31.1 units away to the northeast, 0.98 good quality, connected)
+  - Agent-4 (13.8 units away to the northeast, 0.94 poor quality, disconnected)
+  - Agent-5 (48.7 units away to the northeast, 0.97 good quality, connected)
+  - Agent-6 (32.4 units away to the southeast, 0.98 good quality, connected)
+
+Agent-4 is at position [48.8, 48.0].
+Agent-4 is 102.9 units away from the destination and needs to travel in the N direction to reach it.
+Agent-4 has communication with:
+  - Agent-0 (58.4 units away to the northwest, 0.95 good quality, connected)
+  - Agent-1 (29.8 units away to the northwest, 0.98 good quality, connected)
+  - Agent-2 (18.8 units away to the northeast, 0.96 good quality, connected)
+  - Agent-3 (13.8 units away to the southwest, 0.94 poor quality, disconnected)
+  - Agent-5 (37.6 units away to the north, 0.98 good quality, connected)
+  - Agent-6 (27.4 units away to the southeast, 0.98 good quality, connected)
+
+Agent-5 is at position [61.0, 83.6].
+Agent-5 is 71.3 units away from the destination and needs to travel in the N direction to reach it.
+Agent-5 has communication with:
+  - Agent-0 (41.6 units away to the northwest, 0.98 good quality, connected)
+  - Agent-1 (35.9 units away to the southwest, 0.98 good quality, connected)
+  - Agent-2 (19.2 units away to the south, 0.97 good quality, connected)
+  - Agent-3 (48.7 units away to the southwest, 0.97 good quality, connected)
+  - Agent-4 (37.6 units away to the south, 0.98 good quality, connected)
+  - Agent-6 (57.6 units away to the south, 0.95 good quality, connected)
+
+Agent-6 is at position [65.4, 26.2].
+Agent-6 is 127.5 units away from the destination and needs to travel in the N direction to reach it.
+Agent-6 has communication with:
+  - Agent-0 (85.5 units away to the northwest, 0.86 poor quality, disconnected)
+  - Agent-1 (57.2 units away to the northwest, 0.95 good quality, connected)
+  - Agent-2 (39.5 units away to the north, 0.98 good quality, connected)
+  - Agent-3 (32.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-4 (27.4 units away to the northwest, 0.98 good quality, connected)
+  - Agent-5 (57.6 units away to the north, 0.95 good quality, connected)
+

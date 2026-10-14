@@ -1,0 +1,118 @@
+{
+  "scenario": "obstacles_2",
+  "mode": "physical",
+  "supervisor": "mpc",
+  "c2_gate": false,
+  "c2_depth": null,
+  "seed": 6,
+  "paced": false,
+  "t_step": 0.25,
+  "max_iter": 1000,
+  "success": true,
+  "steps": 431,
+  "conv_step": 61,
+  "mission_steps": 370,
+  "wall_s": 1.4410955905914307,
+  "pacing_overruns": 0,
+  "obstacles": [
+    [
+      20.0,
+      50.0,
+      10.0
+    ],
+    [
+      50.0,
+      80.0,
+      8.0
+    ],
+    [
+      70.0,
+      40.0,
+      12.0
+    ],
+    [
+      10.0,
+      95.0,
+      10.0
+    ],
+    [
+      75.0,
+      105.0,
+      6.0
+    ],
+    [
+      -5.0,
+      70.0,
+      8.0
+    ],
+    [
+      75.0,
+      85.0,
+      6.0
+    ],
+    [
+      -20.0,
+      100.0,
+      10.0
+    ],
+    [
+      -25.0,
+      40.0,
+      10.0
+    ]
+  ],
+  "initial_positions": [
+    [
+      -4.847342594112227,
+      3.3730834792533537
+    ],
+    [
+      -5.523731040818487,
+      -9.50201293764847
+    ],
+    [
+      1.9497799607458663,
+      -9.468974909571415
+    ],
+    [
+      35.69729572201798,
+      -14.680146178458166
+    ],
+    [
+      68.71967064465609,
+      -11.50811050045124
+    ],
+    [
+      70.2069169279351,
+      4.400765387235149
+    ],
+    [
+      70.03558322214174,
+      -6.084929751258813
+    ]
+  ],
+  "jn_final": 0.9723,
+  "rn_final": 26.3709,
+  "jn_min_mission": 0.9695,
+  "jn_mean_mission": 0.9724486486486488,
+  "steps_below_pt": 0,
+  "first_below": null,
+  "recovery_steps": null,
+  "min_clearance": 1.9816264378268524,
+  "jammed_agent_steps": 0,
+  "max_depth": 0.0,
+  "unreachable_agent_steps": 0,
+  "override_steps": 105,
+  "override_agent_steps": 218,
+  "n_decisions": 54,
+  "n_decisions_with_commands": 18,
+  "n_commands": 36,
+  "n_dropped_c2": 0,
+  "decision_compute_s": {
+    "mean": 0.012491391814777401,
+    "median": 0.0009919804999753978,
+    "p95": 0.04376529129976916,
+    "max": 0.0540292750001754,
+    "n": 54
+  }
+}

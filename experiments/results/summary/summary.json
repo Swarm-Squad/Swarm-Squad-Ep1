@@ -1,0 +1,2599 @@
+{
+  "groups": {
+    "obstacles_1": {
+      "none": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.656640768508998,
+          "std": 0.12328909216792978,
+          "n": 10
+        },
+        "min_separation_worst": 12.465254996445147,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.9523250750878276,
+        "steps": {
+          "mean": 508.5,
+          "std": 26.454363219199465,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 442.3,
+          "std": 13.832730910577435,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96878,
+          "std": 0.000187379590967382,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9719308922156733,
+          "std": 9.540644166553149e-05,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 2.008876981850272,
+          "std": 0.049594548419290396,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        }
+      },
+      "rule": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.656640768508998,
+          "std": 0.12328909216792978,
+          "n": 10
+        },
+        "min_separation_worst": 12.465254996445147,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.9523250750878276,
+        "steps": {
+          "mean": 508.5,
+          "std": 26.454363219199465,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 442.3,
+          "std": 13.832730910577435,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96878,
+          "std": 0.000187379590967382,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9719308922156733,
+          "std": 9.540644166553149e-05,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 2.008876981850272,
+          "std": 0.049594548419290396,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.0009172500778025485,
+          "std": 1.336492702778042e-05,
+          "n": 10
+        }
+      },
+      "mpc": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.225566931414495,
+          "std": 0.9888121286729746,
+          "n": 10
+        },
+        "min_separation_worst": 11.378749023231233,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.7735331104611642,
+        "steps": {
+          "mean": 452.7,
+          "std": 34.4223764432382,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 386.5,
+          "std": 32.29120967418567,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96893,
+          "std": 0.0008832389886724372,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9722006451623042,
+          "std": 0.00032766036577466323,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 1.958787719131483,
+          "std": 0.09048645014655983,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 123.6,
+          "std": 86.32393771267748,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 47.1,
+          "std": 14.93281249091707,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.01512398715562597,
+          "std": 0.0028804702264717892,
+          "n": 10
+        }
+      },
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 7.303357344376413,
+          "std": 2.997879113838174,
+          "n": 10
+        },
+        "min_separation_worst": 1.9909886699415167,
+        "jump_runs": 3,
+        "jump_steps": 6,
+        "collision_runs": 1,
+        "collision_agent_steps": {
+          "mean": 0.2,
+          "std": 0.6324555320336759,
+          "n": 10
+        },
+        "min_clearance_worst": -3.0243794268374664,
+        "steps": {
+          "mean": 498.3,
+          "std": 27.769087529521425,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 430.8,
+          "std": 34.55366197026815,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.9603299999999999,
+          "std": 0.010881079399071066,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9715597882462692,
+          "std": 0.0003655965928572149,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.1,
+          "std": 0.31622776601683794,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 1.1672289163788956,
+          "std": 1.5475643034540152,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 258.7,
+          "std": 172.43552740404488,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 140.9,
+          "std": 32.952659646495576,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 1,
+        "recovery_steps": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 1
+        },
+        "llm_parse_success": {
+          "mean": 0.9264588563561379,
+          "std": 0.059411848464351574,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 53.0,
+          "std": 12.202003478482084,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.4048010961064752,
+          "std": 0.733513883887211,
+          "n": 530,
+          "median": 1.3940306901931763,
+          "p95": 2.10620687007904,
+          "max": 11.557241201400757
+        },
+        "query_prompt_tokens": {
+          "mean": 1808.9358490566037,
+          "std": 35.019568358166495,
+          "n": 530,
+          "median": 1820.0,
+          "p95": 1864.0,
+          "max": 1886.0
+        },
+        "query_output_tokens": {
+          "mean": 143.4132075471698,
+          "std": 99.05585016009822,
+          "n": 530,
+          "median": 142.0,
+          "p95": 239.54999999999995,
+          "max": 1502.0
+        },
+        "query_energy_j": {
+          "mean": 231.81988660229808,
+          "std": 150.1957976594039,
+          "n": 530,
+          "median": 227.655076741524,
+          "p95": 381.40348100895443,
+          "max": 2295.5379148695515
+        },
+        "query_energy_above_idle_j": {
+          "mean": 164.44222045461674,
+          "std": 115.58138952664724,
+          "n": 530,
+          "median": 158.83069057405464,
+          "p95": 276.185311327391,
+          "max": 1741.2246092959442
+        },
+        "query_latency_steps": {
+          "mean": 5.109433962264151,
+          "std": 2.97489585533227,
+          "n": 530
+        },
+        "run_energy_j": {
+          "mean": 18811.84670098051,
+          "std": 1853.7336803757503,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 1411,
+          "to_hinted": 0,
+          "hint_bearing": 0,
+          "within_45": 0,
+          "hints_answered": 0,
+          "hinted_queries": 0
+        }
+      }
+    },
+    "obstacles_2": {
+      "none": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.656640768508998,
+          "std": 0.12328909216792978,
+          "n": 10
+        },
+        "min_separation_worst": 12.465254996445147,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.9523250750878276,
+        "steps": {
+          "mean": 508.5,
+          "std": 26.454363219199465,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 442.3,
+          "std": 13.832730910577435,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96878,
+          "std": 0.000187379590967382,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9719308922156733,
+          "std": 9.540644166553149e-05,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 2.008876981850272,
+          "std": 0.049594548419290396,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        }
+      },
+      "rule": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.656640768508998,
+          "std": 0.12328909216792978,
+          "n": 10
+        },
+        "min_separation_worst": 12.465254996445147,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.9523250750878276,
+        "steps": {
+          "mean": 508.5,
+          "std": 26.454363219199465,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 442.3,
+          "std": 13.832730910577435,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96878,
+          "std": 0.000187379590967382,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9719308922156733,
+          "std": 9.540644166553149e-05,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 2.008876981850272,
+          "std": 0.049594548419290396,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.0009611691427013102,
+          "std": 1.6870047710016875e-05,
+          "n": 10
+        }
+      },
+      "mpc": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 12.225566931414495,
+          "std": 0.9888121286729746,
+          "n": 10
+        },
+        "min_separation_worst": 11.378749023231233,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "collision_runs": 0,
+        "collision_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance_worst": 1.7735331104611642,
+        "steps": {
+          "mean": 452.7,
+          "std": 34.4223764432382,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 386.5,
+          "std": 32.29120967418567,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.96893,
+          "std": 0.0008832389886724372,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9722006451623042,
+          "std": 0.00032766036577466323,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 1.958787719131483,
+          "std": 0.09048645014655983,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 123.6,
+          "std": 86.32393771267748,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 47.1,
+          "std": 14.93281249091707,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.015660096547472628,
+          "std": 0.003393142919393994,
+          "n": 10
+        }
+      },
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "min_separation": {
+          "mean": 8.201769436894399,
+          "std": 3.385948432379315,
+          "n": 10
+        },
+        "min_separation_worst": 1.6740491128201487,
+        "jump_runs": 2,
+        "jump_steps": 6,
+        "collision_runs": 1,
+        "collision_agent_steps": {
+          "mean": 0.2,
+          "std": 0.6324555320336759,
+          "n": 10
+        },
+        "min_clearance_worst": -9.180446015325,
+        "steps": {
+          "mean": 496.8,
+          "std": 29.100591822924226,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 429.3,
+          "std": 28.01210055989693,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.95558,
+          "std": 0.02574869144463677,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9714261612200005,
+          "std": 0.0006237413675091298,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.8,
+          "std": 2.5298221281347035,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": 0.2777209789495136,
+          "std": 3.3704634751235636,
+          "n": 10
+        },
+        "jammed_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 265.1,
+          "std": 198.97596169721942,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 155.8,
+          "std": 20.590181047177694,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 1,
+        "recovery_steps": {
+          "mean": 8.0,
+          "std": 0.0,
+          "n": 1
+        },
+        "llm_parse_success": {
+          "mean": 0.9265158794298969,
+          "std": 0.04879497865055625,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 57.1,
+          "std": 4.653553003411002,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.3802163964186367,
+          "std": 0.6005431808899865,
+          "n": 571,
+          "median": 1.3805654048919678,
+          "p95": 2.096137285232544,
+          "max": 11.375107526779175
+        },
+        "query_prompt_tokens": {
+          "mean": 1817.3870402802102,
+          "std": 45.283850653368916,
+          "n": 571,
+          "median": 1820.0,
+          "p95": 1886.0,
+          "max": 1930.0
+        },
+        "query_output_tokens": {
+          "mean": 140.36427320490367,
+          "std": 81.52272561397986,
+          "n": 571,
+          "median": 141.0,
+          "p95": 238.0,
+          "max": 1480.0
+        },
+        "query_energy_j": {
+          "mean": 225.41345651019222,
+          "std": 124.32178590962596,
+          "n": 571,
+          "median": 223.62678948879238,
+          "p95": 375.3406527167558,
+          "max": 2247.7422443187234
+        },
+        "query_energy_above_idle_j": {
+          "mean": 159.2149321588116,
+          "std": 96.16825484814316,
+          "n": 571,
+          "median": 156.92791030363605,
+          "p95": 281.5415415420135,
+          "max": 1702.164511316148
+        },
+        "query_latency_steps": {
+          "mean": 5.005253940455342,
+          "std": 2.44123359605115,
+          "n": 571
+        },
+        "run_energy_j": {
+          "mean": 18172.81256168664,
+          "std": 1217.9823337592115,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 1558,
+          "to_hinted": 0,
+          "hint_bearing": 0,
+          "within_45": 0,
+          "hints_answered": 0,
+          "hinted_queries": 0
+        }
+      }
+    },
+    "jamming": {
+      "none": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 192.6,
+          "std": 23.65586608010791,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 15.627717602142585,
+          "std": 0.036799400116880106,
+          "n": 10
+        },
+        "min_separation_worst": 15.572668930968804,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "steps": {
+          "mean": 393.1,
+          "std": 19.42192346579275,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 326.9,
+          "std": 1.4491376746189437,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.85321,
+          "std": 0.007668760583620313,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9399678848107076,
+          "std": 0.002978075204586414,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 118.0,
+          "std": 4.268749491621899,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 428.1,
+          "std": 16.888194430166628,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 118.0,
+          "std": 4.268749491621899,
+          "n": 10
+        },
+        "decision_compute_s": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        }
+      },
+      "rule": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.3079001429534565,
+          "std": 0.022900267400416112,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 7.716560559003827,
+          "std": 2.676500471231072,
+          "n": 10
+        },
+        "min_separation_worst": 5.090468164567704,
+        "jump_runs": 2,
+        "jump_steps": 2,
+        "steps": {
+          "mean": 450.4,
+          "std": 18.536450577173614,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 384.2,
+          "std": 6.44291169511977,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.94641,
+          "std": 0.0022128162046486095,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9685464655787026,
+          "std": 0.0005975209343458417,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 319.7,
+          "std": 38.54593219639251,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 321.9,
+          "std": 29.793548891589865,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 38.7,
+          "std": 3.560586718193756,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.000806834744905746,
+          "std": 3.350456440294415e-05,
+          "n": 10
+        }
+      },
+      "mpc": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.1692634126117953,
+          "std": 0.019436212093422955,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 5.141153971203387,
+          "std": 1.706866983436853,
+          "n": 10
+        },
+        "min_separation_worst": 2.345590336288147,
+        "jump_runs": 4,
+        "jump_steps": 4,
+        "steps": {
+          "mean": 384.4,
+          "std": 15.636140472920065,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 318.2,
+          "std": 4.341018825626588,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.9543200000000001,
+          "std": 0.007183592416054788,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9698247074707315,
+          "std": 0.0005989122170015801,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 167.9,
+          "std": 11.110055505411903,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 321.8,
+          "std": 19.982214313956522,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 40.6,
+          "std": 2.988868236194653,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.013400369509211344,
+          "std": 0.0009686193270363145,
+          "n": 10
+        }
+      },
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 122.2,
+          "std": 62.91228461561029,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.9408336184659358,
+          "std": 0.09439876753274164,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 6.158142992503967,
+          "std": 3.303014434916211,
+          "n": 10
+        },
+        "min_separation_worst": 1.0513506614665118,
+        "jump_runs": 4,
+        "jump_steps": 8,
+        "steps": {
+          "mean": 448.0,
+          "std": 25.90581230363393,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 380.2,
+          "std": 23.686845857282616,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.87279,
+          "std": 0.016327376464766855,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.949081747150936,
+          "std": 0.006925411826017358,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 117.8,
+          "std": 29.283290646904955,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 453.9,
+          "std": 74.91691694433537,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 519.1,
+          "std": 86.92327395787365,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 132.6,
+          "std": 18.28903739645389,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 120.1,
+          "std": 26.29089407211385,
+          "n": 10
+        },
+        "llm_parse_success": {
+          "mean": 0.8813117872647132,
+          "std": 0.04570000874978438,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 51.1,
+          "std": 3.956710193526379,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.2946738674216074,
+          "std": 0.72954494402364,
+          "n": 511,
+          "median": 1.2389745712280273,
+          "p95": 1.977362871170044,
+          "max": 11.152085304260254
+        },
+        "query_prompt_tokens": {
+          "mean": 1881.720156555773,
+          "std": 138.39105563290977,
+          "n": 511,
+          "median": 1771.0,
+          "p95": 2137.0,
+          "max": 2222.0
+        },
+        "query_output_tokens": {
+          "mean": 127.03913894324853,
+          "std": 98.97570723163452,
+          "n": 511,
+          "median": 117.0,
+          "p95": 222.0,
+          "max": 1442.0
+        },
+        "query_energy_j": {
+          "mean": 204.38280585374363,
+          "std": 152.71372409637377,
+          "n": 511,
+          "median": 190.24946716070173,
+          "p95": 344.31156158372636,
+          "max": 2254.1128938956886
+        },
+        "query_energy_above_idle_j": {
+          "mean": 142.28710856888836,
+          "std": 118.09887855141318,
+          "n": 511,
+          "median": 130.97539752808007,
+          "p95": 252.21078864472602,
+          "max": 1719.2318473450532
+        },
+        "query_latency_steps": {
+          "mean": 4.6614481409001955,
+          "std": 2.947391844171669,
+          "n": 511
+        },
+        "run_energy_j": {
+          "mean": 15550.493354869142,
+          "std": 1054.681388067214,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 1332,
+          "to_hinted": 320,
+          "hint_bearing": 200,
+          "within_45": 250,
+          "hints_answered": 507,
+          "hinted_queries": 211
+        }
+      }
+    },
+    "jamming_c2": {
+      "none": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 192.6,
+          "std": 23.65586608010791,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 15.627717602142585,
+          "std": 0.036799400116880106,
+          "n": 10
+        },
+        "min_separation_worst": 15.572668930968804,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "steps": {
+          "mean": 393.1,
+          "std": 19.42192346579275,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 326.9,
+          "std": 1.4491376746189437,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.85321,
+          "std": 0.007668760583620313,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9399678848107076,
+          "std": 0.002978075204586414,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 118.0,
+          "std": 4.268749491621899,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 428.1,
+          "std": 16.888194430166628,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 118.0,
+          "std": 4.268749491621899,
+          "n": 10
+        },
+        "decision_compute_s": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        }
+      },
+      "rule": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 234.6,
+          "std": 22.940502755316125,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 13.253803022555166,
+          "std": 0.22737387504225906,
+          "n": 10
+        },
+        "min_separation_worst": 12.871659599238148,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "steps": {
+          "mean": 409.9,
+          "std": 18.46588445996803,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 343.7,
+          "std": 2.496664441476534,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.8424799999999999,
+          "std": 0.013142365760310354,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9347365031327033,
+          "std": 0.003676020650445364,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 133.1,
+          "std": 6.15449248742557,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 514.1,
+          "std": 32.99309692109009,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 57.6,
+          "std": 7.351492667781452,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 7.2,
+          "std": 0.9189365834726815,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 3.7,
+          "std": 1.7029386365926402,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 133.1,
+          "std": 6.15449248742557,
+          "n": 10
+        },
+        "decision_compute_s": {
+          "mean": 0.0007480452279704441,
+          "std": 8.816717424847006e-06,
+          "n": 10
+        }
+      },
+      "mpc": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 186.5,
+          "std": 25.443837935517685,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 15.95132611491756,
+          "std": 0.3199126965801158,
+          "n": 10
+        },
+        "min_separation_worst": 15.373967136504833,
+        "jump_runs": 0,
+        "jump_steps": 0,
+        "steps": {
+          "mean": 385.3,
+          "std": 17.93847509931903,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 319.1,
+          "std": 1.286683937707919,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.84399,
+          "std": 0.009511682874818274,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9394580800184821,
+          "std": 0.0034541440400292158,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 112.4,
+          "std": 5.399588461684424,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 418.1,
+          "std": 20.6852067376127,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 160.8,
+          "std": 13.830722645215936,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 20.1,
+          "std": 1.728840330651992,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 10.3,
+          "std": 3.3349995835415367,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 112.4,
+          "std": 5.399588461684424,
+          "n": 10
+        },
+        "decision_compute_s": {
+          "mean": 0.007525026378386023,
+          "std": 0.0006888405954670062,
+          "n": 10
+        }
+      },
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 187.9,
+          "std": 39.88163041356816,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.95368151212772,
+          "std": 0.08619374700844812,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 9.936640508143949,
+          "std": 3.3701321220581404,
+          "n": 10
+        },
+        "min_separation_worst": 4.013387630068993,
+        "jump_runs": 1,
+        "jump_steps": 1,
+        "steps": {
+          "mean": 416.0,
+          "std": 22.38054710879269,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 348.2,
+          "std": 8.966604708583958,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.8629,
+          "std": 0.022646903148603393,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9422682273599114,
+          "std": 0.005853927618334936,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 121.7,
+          "std": 12.490440789304078,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 437.4,
+          "std": 64.73398557858837,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 283.5,
+          "std": 67.25118751533108,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 97.6,
+          "std": 15.181860521322442,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 19.0,
+          "std": 4.618802153517006,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 121.7,
+          "std": 12.490440789304078,
+          "n": 10
+        },
+        "llm_parse_success": {
+          "mean": 0.8993358377412493,
+          "std": 0.023600687956514876,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 48.1,
+          "std": 2.7264140062238043,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.304569921969376,
+          "std": 0.4289426679965428,
+          "n": 481,
+          "median": 1.2817552089691162,
+          "p95": 2.0194365978240967,
+          "max": 3.1697802543640137
+        },
+        "query_prompt_tokens": {
+          "mean": 1771.0,
+          "std": 0.0,
+          "n": 481,
+          "median": 1771.0,
+          "p95": 1771.0,
+          "max": 1771.0
+        },
+        "query_output_tokens": {
+          "mean": 130.56548856548858,
+          "std": 58.77825893258682,
+          "n": 481,
+          "median": 127.0,
+          "p95": 227.0,
+          "max": 385.0
+        },
+        "query_energy_j": {
+          "mean": 204.50459512294418,
+          "std": 90.12049259086292,
+          "n": 481,
+          "median": 201.90813579916954,
+          "p95": 352.5103424358368,
+          "max": 596.6736671137809
+        },
+        "query_energy_above_idle_j": {
+          "mean": 143.26584281512854,
+          "std": 70.78654277331384,
+          "n": 481,
+          "median": 142.15493346963262,
+          "p95": 263.9812334816153,
+          "max": 447.8787389169317
+        },
+        "query_latency_steps": {
+          "mean": 4.700623700623701,
+          "std": 1.761208044739115,
+          "n": 481
+        },
+        "run_energy_j": {
+          "mean": 14475.133407139409,
+          "std": 1025.4275019333354,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 979,
+          "to_hinted": 0,
+          "hint_bearing": 0,
+          "within_45": 0,
+          "hints_answered": 0,
+          "hinted_queries": 0
+        }
+      }
+    },
+    "jamming_c2d050": {
+      "rule": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.3079001429534565,
+          "std": 0.022900267400416112,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 7.716560559003827,
+          "std": 2.676500471231072,
+          "n": 10
+        },
+        "min_separation_worst": 5.090468164567704,
+        "jump_runs": 2,
+        "jump_steps": 2,
+        "steps": {
+          "mean": 450.4,
+          "std": 18.536450577173614,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 384.2,
+          "std": 6.44291169511977,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.94641,
+          "std": 0.0022128162046486095,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9685464655787026,
+          "std": 0.0005975209343458417,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 319.7,
+          "std": 38.54593219639251,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 321.9,
+          "std": 29.793548891589865,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 38.7,
+          "std": 3.560586718193756,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.0007792650530239273,
+          "std": 8.50119393332032e-06,
+          "n": 10
+        }
+      },
+      "mpc": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.1692634126117953,
+          "std": 0.019436212093422955,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 5.141153971203387,
+          "std": 1.706866983436853,
+          "n": 10
+        },
+        "min_separation_worst": 2.345590336288147,
+        "jump_runs": 4,
+        "jump_steps": 4,
+        "steps": {
+          "mean": 384.4,
+          "std": 15.636140472920065,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 318.2,
+          "std": 4.341018825626588,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.9543200000000001,
+          "std": 0.007183592416054788,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9698247074707315,
+          "std": 0.0005989122170015801,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 167.9,
+          "std": 11.110055505411903,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 321.8,
+          "std": 19.982214313956522,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 40.6,
+          "std": 2.988868236194653,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 0,
+        "recovery_steps": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "decision_compute_s": {
+          "mean": 0.013340098210624995,
+          "std": 0.0009421598789824268,
+          "n": 10
+        }
+      },
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 170.3,
+          "std": 41.965726756750236,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.9675689544105781,
+          "std": 0.04780761476105,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 8.293717503878687,
+          "std": 3.0356132367398834,
+          "n": 10
+        },
+        "min_separation_worst": 2.589559934140448,
+        "jump_runs": 2,
+        "jump_steps": 4,
+        "steps": {
+          "mean": 430.3,
+          "std": 23.926043458030325,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 362.5,
+          "std": 12.642520845675254,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.8653600000000001,
+          "std": 0.014693551117563245,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9437649852076919,
+          "std": 0.005647676806741651,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 121.3,
+          "std": 20.439884757231116,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 466.3,
+          "std": 67.4076322747572,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 407.8,
+          "std": 115.52662030891409,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 113.3,
+          "std": 14.598706183159596,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 11.6,
+          "std": 5.621387729022079,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 113.5,
+          "std": 42.716767459888885,
+          "n": 10
+        },
+        "llm_parse_success": {
+          "mean": 0.8645472860641693,
+          "std": 0.06611676676616023,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 49.4,
+          "std": 2.7968235951204043,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.2491219840069048,
+          "std": 0.5803367003511394,
+          "n": 494,
+          "median": 1.210547685623169,
+          "p95": 1.8661970853805538,
+          "max": 10.844942569732666
+        },
+        "query_prompt_tokens": {
+          "mean": 1891.5222672064776,
+          "std": 142.95800923269147,
+          "n": 494,
+          "median": 1771.0,
+          "p95": 2144.0,
+          "max": 2218.0
+        },
+        "query_output_tokens": {
+          "mean": 120.42105263157895,
+          "std": 79.06325838001217,
+          "n": 494,
+          "median": 114.0,
+          "p95": 204.0,
+          "max": 1414.0
+        },
+        "query_energy_j": {
+          "mean": 193.47367359278383,
+          "std": 120.86097301097509,
+          "n": 494,
+          "median": 185.08211575343867,
+          "p95": 317.55752540006347,
+          "max": 2180.8492202532293
+        },
+        "query_energy_above_idle_j": {
+          "mean": 135.07987049315437,
+          "std": 94.25851475470152,
+          "n": 494,
+          "median": 130.32489478836828,
+          "p95": 233.7653127811637,
+          "max": 1673.8711595418597
+        },
+        "query_latency_steps": {
+          "mean": 4.483805668016195,
+          "std": 2.3511985831856697,
+          "n": 494
+        },
+        "run_energy_j": {
+          "mean": 14642.5043636675,
+          "std": 1204.8344722695772,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 1133,
+          "to_hinted": 206,
+          "hint_bearing": 136,
+          "within_45": 170,
+          "hints_answered": 539,
+          "hinted_queries": 218
+        }
+      }
+    },
+    "jamming_blocking": {
+      "llm": {
+        "n": 10,
+        "success": 10,
+        "deep_agent_steps": {
+          "mean": 140.4,
+          "std": 40.972077212549415,
+          "n": 10
+        },
+        "max_depth": {
+          "mean": 0.9183999266046913,
+          "std": 0.10116899703030309,
+          "n": 10
+        },
+        "min_separation": {
+          "mean": 6.383169783047888,
+          "std": 2.4658074712187648,
+          "n": 10
+        },
+        "min_separation_worst": 2.0648151088689692,
+        "jump_runs": 4,
+        "jump_steps": 5,
+        "steps": {
+          "mean": 453.1,
+          "std": 26.031818137724372,
+          "n": 10
+        },
+        "mission_steps": {
+          "mean": 386.4,
+          "std": 19.648013753162036,
+          "n": 10
+        },
+        "jn_min_mission": {
+          "mean": 0.8700700000000001,
+          "std": 0.015309187510192125,
+          "n": 10
+        },
+        "jn_mean_mission": {
+          "mean": 0.9462189433331425,
+          "std": 0.005248766324433705,
+          "n": 10
+        },
+        "steps_below_pt": {
+          "mean": 133.5,
+          "std": 25.622255950637914,
+          "n": 10
+        },
+        "min_clearance": {
+          "mean": null,
+          "std": null,
+          "n": 0
+        },
+        "jammed_agent_steps": {
+          "mean": 527.1,
+          "std": 88.11791342665046,
+          "n": 10
+        },
+        "override_agent_steps": {
+          "mean": 668.0,
+          "std": 120.83965500704734,
+          "n": 10
+        },
+        "n_commands": {
+          "mean": 154.0,
+          "std": 15.491933384829668,
+          "n": 10
+        },
+        "n_dropped_c2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 10
+        },
+        "runs_below_pt": 10,
+        "recovery_steps": {
+          "mean": 137.7,
+          "std": 22.05573747476052,
+          "n": 10
+        },
+        "llm_parse_success": {
+          "mean": 0.8891386092305276,
+          "std": 0.039486416210799846,
+          "n": 10
+        },
+        "llm_answered": {
+          "mean": 56.7,
+          "std": 3.3349995835415367,
+          "n": 10
+        },
+        "query_latency_s": {
+          "mean": 1.2872886506337968,
+          "std": 0.4619257935756888,
+          "n": 567,
+          "median": 1.2660696506500244,
+          "p95": 1.9554892778396606,
+          "max": 6.247109651565552
+        },
+        "query_prompt_tokens": {
+          "mean": 1898.4285714285713,
+          "std": 148.21094970793015,
+          "n": 567,
+          "median": 1771.0,
+          "p95": 2145.0,
+          "max": 2230.0
+        },
+        "query_output_tokens": {
+          "mean": 124.58730158730158,
+          "std": 63.32625472986749,
+          "n": 567,
+          "median": 120.0,
+          "p95": 215.69999999999993,
+          "max": 804.0
+        },
+        "query_energy_j": {
+          "mean": 252.1951239433626,
+          "std": 97.3854681042967,
+          "n": 567,
+          "median": 241.67826846972156,
+          "p95": 401.98153385074556,
+          "max": 1272.1910544919967
+        },
+        "query_energy_above_idle_j": {
+          "mean": 195.49520803754638,
+          "std": 77.99918252683982,
+          "n": 567,
+          "median": 189.6633023944474,
+          "p95": 316.9592382497455,
+          "max": 997.0308627791403
+        },
+        "query_latency_steps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "n": 567
+        },
+        "run_energy_j": {
+          "mean": 14387.418234203546,
+          "std": 1110.7530790867488,
+          "n": 10
+        },
+        "hint_agreement": {
+          "commands": 1542,
+          "to_hinted": 387,
+          "hint_bearing": 249,
+          "within_45": 290,
+          "hints_answered": 663,
+          "hinted_queries": 258
+        }
+      }
+    }
+  },
+  "paired": {
+    "obstacles_1/rule-none/steps": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_1/rule-none/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_1/rule-none/jn_min_mission": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_1/mpc-none/steps": {
+      "mean": -55.8,
+      "std": 36.32201658620965,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_1/mpc-none/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_1/mpc-none/jn_min_mission": {
+      "mean": 0.0001500000000000168,
+      "std": 0.0009143911149563412,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 1
+    },
+    "obstacles_1/mpc-rule/steps": {
+      "mean": -55.8,
+      "std": 36.32201658620965,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_1/mpc-rule/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_1/mpc-rule/jn_min_mission": {
+      "mean": 0.0001500000000000168,
+      "std": 0.0009143911149563412,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 1
+    },
+    "obstacles_1/llm-none/steps": {
+      "mean": -10.2,
+      "std": 39.63107647064639,
+      "n": 10,
+      "a_lower": 6,
+      "ties": 0
+    },
+    "obstacles_1/llm-none/steps_below_pt": {
+      "mean": 0.1,
+      "std": 0.31622776601683794,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_1/llm-none/jn_min_mission": {
+      "mean": -0.00844999999999999,
+      "std": 0.010849603167346206,
+      "n": 10,
+      "a_lower": 9,
+      "ties": 1
+    },
+    "obstacles_1/llm-rule/steps": {
+      "mean": -10.2,
+      "std": 39.63107647064639,
+      "n": 10,
+      "a_lower": 6,
+      "ties": 0
+    },
+    "obstacles_1/llm-rule/steps_below_pt": {
+      "mean": 0.1,
+      "std": 0.31622776601683794,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_1/llm-rule/jn_min_mission": {
+      "mean": -0.00844999999999999,
+      "std": 0.010849603167346206,
+      "n": 10,
+      "a_lower": 9,
+      "ties": 1
+    },
+    "obstacles_1/llm-mpc/steps": {
+      "mean": 45.6,
+      "std": 49.27519096304391,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 1
+    },
+    "obstacles_1/llm-mpc/steps_below_pt": {
+      "mean": 0.1,
+      "std": 0.31622776601683794,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_1/llm-mpc/jn_min_mission": {
+      "mean": -0.008600000000000007,
+      "std": 0.011433187559809254,
+      "n": 10,
+      "a_lower": 9,
+      "ties": 0
+    },
+    "obstacles_2/rule-none/steps": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_2/rule-none/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_2/rule-none/jn_min_mission": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_2/mpc-none/steps": {
+      "mean": -55.8,
+      "std": 36.32201658620965,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_2/mpc-none/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_2/mpc-none/jn_min_mission": {
+      "mean": 0.0001500000000000168,
+      "std": 0.0009143911149563412,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 1
+    },
+    "obstacles_2/mpc-rule/steps": {
+      "mean": -55.8,
+      "std": 36.32201658620965,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_2/mpc-rule/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "obstacles_2/mpc-rule/jn_min_mission": {
+      "mean": 0.0001500000000000168,
+      "std": 0.0009143911149563412,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 1
+    },
+    "obstacles_2/llm-none/steps": {
+      "mean": -11.7,
+      "std": 38.815947467217356,
+      "n": 10,
+      "a_lower": 6,
+      "ties": 0
+    },
+    "obstacles_2/llm-none/steps_below_pt": {
+      "mean": 0.8,
+      "std": 2.5298221281347035,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_2/llm-none/jn_min_mission": {
+      "mean": -0.013200000000000012,
+      "std": 0.025667922047221164,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_2/llm-rule/steps": {
+      "mean": -11.7,
+      "std": 38.815947467217356,
+      "n": 10,
+      "a_lower": 6,
+      "ties": 0
+    },
+    "obstacles_2/llm-rule/steps_below_pt": {
+      "mean": 0.8,
+      "std": 2.5298221281347035,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_2/llm-rule/jn_min_mission": {
+      "mean": -0.013200000000000012,
+      "std": 0.025667922047221164,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "obstacles_2/llm-mpc/steps": {
+      "mean": 44.1,
+      "std": 48.78854601463567,
+      "n": 10,
+      "a_lower": 3,
+      "ties": 0
+    },
+    "obstacles_2/llm-mpc/steps_below_pt": {
+      "mean": 0.8,
+      "std": 2.5298221281347035,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 9
+    },
+    "obstacles_2/llm-mpc/jn_min_mission": {
+      "mean": -0.013350000000000029,
+      "std": 0.0255788649735154,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/rule-none/steps": {
+      "mean": 57.3,
+      "std": 6.766748767974831,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/rule-none/steps_below_pt": {
+      "mean": -118.0,
+      "std": 4.268749491621899,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/rule-none/jn_min_mission": {
+      "mean": 0.09319999999999998,
+      "std": 0.007276751411935869,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/mpc-none/steps": {
+      "mean": -8.7,
+      "std": 5.143496432929215,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/mpc-none/steps_below_pt": {
+      "mean": -118.0,
+      "std": 4.268749491621899,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/mpc-none/jn_min_mission": {
+      "mean": 0.10110999999999999,
+      "std": 0.010515116103337444,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/mpc-rule/steps": {
+      "mean": -66.0,
+      "std": 6.765927710061479,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/mpc-rule/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "jamming/mpc-rule/jn_min_mission": {
+      "mean": 0.007910000000000018,
+      "std": 0.00871747287539989,
+      "n": 10,
+      "a_lower": 3,
+      "ties": 0
+    },
+    "jamming/llm-none/steps": {
+      "mean": 54.9,
+      "std": 33.457933787568734,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming/llm-none/steps_below_pt": {
+      "mean": -0.2,
+      "std": 26.83198754389163,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 0
+    },
+    "jamming/llm-none/jn_min_mission": {
+      "mean": 0.019579999999999986,
+      "std": 0.013503645598298432,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming/llm-rule/steps": {
+      "mean": -2.4,
+      "std": 34.03658162755021,
+      "n": 10,
+      "a_lower": 6,
+      "ties": 0
+    },
+    "jamming/llm-rule/steps_below_pt": {
+      "mean": 117.8,
+      "std": 29.283290646904955,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/llm-rule/jn_min_mission": {
+      "mean": -0.07361999999999999,
+      "std": 0.015346863595608804,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming/llm-mpc/steps": {
+      "mean": 63.6,
+      "std": 30.159575593830894,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/llm-mpc/steps_below_pt": {
+      "mean": 117.8,
+      "std": 29.283290646904955,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming/llm-mpc/jn_min_mission": {
+      "mean": -0.08153000000000002,
+      "std": 0.018359802104961097,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/rule-none/steps": {
+      "mean": 16.8,
+      "std": 2.5298221281347035,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming_c2/rule-none/steps_below_pt": {
+      "mean": 15.1,
+      "std": 4.840798832148815,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming_c2/rule-none/jn_min_mission": {
+      "mean": -0.010729999999999995,
+      "std": 0.009579729757264668,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-none/steps": {
+      "mean": -7.8,
+      "std": 2.250925735484551,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-none/steps_below_pt": {
+      "mean": -5.6,
+      "std": 2.590581230363393,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-none/jn_min_mission": {
+      "mean": -0.009220000000000016,
+      "std": 0.00318496467798311,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-rule/steps": {
+      "mean": -24.6,
+      "std": 2.8751811537130436,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-rule/steps_below_pt": {
+      "mean": -20.7,
+      "std": 5.375872022286245,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2/mpc-rule/jn_min_mission": {
+      "mean": 0.001509999999999978,
+      "std": 0.010601409759503183,
+      "n": 10,
+      "a_lower": 5,
+      "ties": 0
+    },
+    "jamming_c2/llm-none/steps": {
+      "mean": 22.9,
+      "std": 19.93573006772848,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming_c2/llm-none/steps_below_pt": {
+      "mean": 3.7,
+      "std": 9.78717982305878,
+      "n": 10,
+      "a_lower": 3,
+      "ties": 1
+    },
+    "jamming_c2/llm-none/jn_min_mission": {
+      "mean": 0.009689999999999999,
+      "std": 0.017642653491530765,
+      "n": 10,
+      "a_lower": 2,
+      "ties": 0
+    },
+    "jamming_c2/llm-rule/steps": {
+      "mean": 6.1,
+      "std": 19.393297811357407,
+      "n": 10,
+      "a_lower": 2,
+      "ties": 0
+    },
+    "jamming_c2/llm-rule/steps_below_pt": {
+      "mean": -11.4,
+      "std": 9.868017925489282,
+      "n": 10,
+      "a_lower": 9,
+      "ties": 0
+    },
+    "jamming_c2/llm-rule/jn_min_mission": {
+      "mean": 0.020419999999999994,
+      "std": 0.01906607225180664,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming_c2/llm-mpc/steps": {
+      "mean": 30.7,
+      "std": 19.229895706656574,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming_c2/llm-mpc/steps_below_pt": {
+      "mean": 9.3,
+      "std": 9.165757530674217,
+      "n": 10,
+      "a_lower": 2,
+      "ties": 0
+    },
+    "jamming_c2/llm-mpc/jn_min_mission": {
+      "mean": 0.018910000000000017,
+      "std": 0.017339899397375715,
+      "n": 10,
+      "a_lower": 1,
+      "ties": 0
+    },
+    "jamming_c2d050/mpc-rule/steps": {
+      "mean": -66.0,
+      "std": 6.765927710061479,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2d050/mpc-rule/steps_below_pt": {
+      "mean": 0.0,
+      "std": 0.0,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 10
+    },
+    "jamming_c2d050/mpc-rule/jn_min_mission": {
+      "mean": 0.007910000000000018,
+      "std": 0.00871747287539989,
+      "n": 10,
+      "a_lower": 3,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-rule/steps": {
+      "mean": -20.1,
+      "std": 20.490919398059663,
+      "n": 10,
+      "a_lower": 8,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-rule/steps_below_pt": {
+      "mean": 121.3,
+      "std": 20.439884757231116,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-rule/jn_min_mission": {
+      "mean": -0.08105,
+      "std": 0.015403552981193787,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-mpc/steps": {
+      "mean": 45.9,
+      "std": 17.7792013318934,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-mpc/steps_below_pt": {
+      "mean": 121.3,
+      "std": 20.439884757231116,
+      "n": 10,
+      "a_lower": 0,
+      "ties": 0
+    },
+    "jamming_c2d050/llm-mpc/jn_min_mission": {
+      "mean": -0.08896000000000001,
+      "std": 0.014688635062523676,
+      "n": 10,
+      "a_lower": 10,
+      "ties": 0
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "scenario": "jamming",
+  "mode": "low_power_jamming",
+  "supervisor": "mpc",
+  "c2_gate": true,
+  "c2_depth": 0.5,
+  "seed": 3,
+  "paced": false,
+  "t_step": 0.25,
+  "max_iter": 1000,
+  "success": true,
+  "steps": 363,
+  "conv_step": 42,
+  "mission_steps": 321,
+  "wall_s": 1.0431499481201172,
+  "pacing_overruns": 0,
+  "obstacles": [
+    [
+      -8.572973276247039,
+      72.7376035290166,
+      25.0
+    ]
+  ],
+  "initial_positions": [
+    [
+      -6.657403331425503,
+      2.947242026384399
+    ],
+    [
+      -3.7949021391744124,
+      -8.671351855742529
+    ],
+    [
+      -1.6234854310384033,
+      -10.267492239054105
+    ],
+    [
+      34.91620519256334,
+      -15.361044341451686
+    ],
+    [
+      68.93830860563686,
+      -11.545311920314386
+    ],
+    [
+      71.56491276198265,
+      3.0669607304854547
+    ],
+    [
+      71.72251208165672,
+      -7.652805714247437
+    ]
+  ],
+  "jn_final": 0.9723,
+  "rn_final": 26.3711,
+  "jn_min_mission": 0.9597,
+  "jn_mean_mission": 0.97005015576324,
+  "steps_below_pt": 0,
+  "first_below": null,
+  "recovery_steps": null,
+  "min_clearance": null,
+  "jammed_agent_steps": 158,
+  "max_depth": 0.1737216926175068,
+  "unreachable_agent_steps": 0,
+  "override_steps": 107,
+  "override_agent_steps": 312,
+  "n_decisions": 45,
+  "n_decisions_with_commands": 15,
+  "n_commands": 42,
+  "n_dropped_c2": 0,
+  "decision_compute_s": {
+    "mean": 0.01372152964447903,
+    "median": 0.0006467480002356751,
+    "p95": 0.0563502533999781,
+    "max": 0.05977279399985491,
+    "n": 45
+  }
+}

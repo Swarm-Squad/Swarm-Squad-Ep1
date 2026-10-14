@@ -1,0 +1,132 @@
+{
+  "scenario": "jamming",
+  "mode": "low_power_jamming",
+  "supervisor": "llm",
+  "c2_gate": false,
+  "c2_depth": null,
+  "seed": 9,
+  "paced": true,
+  "t_step": 0.25,
+  "max_iter": 1000,
+  "success": true,
+  "steps": 425,
+  "conv_step": 62,
+  "mission_steps": 363,
+  "wall_s": 106.00104546546936,
+  "pacing_overruns": 0,
+  "obstacles": [
+    [
+      -7.100186534282947,
+      71.70765911603608,
+      25.0
+    ]
+  ],
+  "initial_positions": [
+    [
+      -3.5190031841196614,
+      3.1472688363502215
+    ],
+    [
+      -4.587407399793753,
+      -7.889863668319284
+    ],
+    [
+      0.8642985184142611,
+      -8.33847951803797
+    ],
+    [
+      36.44157459673154,
+      -12.32704948380495
+    ],
+    [
+      66.10635093787039,
+      -10.251007999481965
+    ],
+    [
+      71.93977730790915,
+      1.26061678948043
+    ],
+    [
+      70.02250420271757,
+      -6.677514252114972
+    ]
+  ],
+  "llm_model": "llama3.2:3b-instruct-q4_K_M",
+  "llm_options": {
+    "temperature": 0.8,
+    "top_k": 40,
+    "top_p": 0.9,
+    "repeat_penalty": 1.1,
+    "num_ctx": 4096,
+    "num_predict": -1
+  },
+  "gpu_idle_w": 47.962424242424234,
+  "gpu_power_synced": true,
+  "jn_final": 0.9723,
+  "rn_final": 26.371,
+  "jn_min_mission": 0.8637,
+  "jn_mean_mission": 0.9428677685950414,
+  "steps_below_pt": 139,
+  "first_below": 62,
+  "recovery_steps": 139,
+  "min_clearance": null,
+  "jammed_agent_steps": 454,
+  "max_depth": 1.0,
+  "unreachable_agent_steps": 0,
+  "override_steps": 117,
+  "override_agent_steps": 385,
+  "n_decisions": 45,
+  "n_decisions_with_commands": 38,
+  "n_commands": 118,
+  "n_dropped_c2": 0,
+  "llm_queries": 45,
+  "llm_answered": 45,
+  "llm_errors": 0,
+  "llm_parsed": 44,
+  "llm_latency_s": {
+    "mean": 1.5218856122758653,
+    "median": 1.3105895519256592,
+    "p95": 2.0318941116333007,
+    "max": 11.152085304260254,
+    "n": 45
+  },
+  "llm_latency_steps": {
+    "mean": 5.622222222222222,
+    "median": 5.0,
+    "p95": 7.799999999999997,
+    "max": 44.0,
+    "n": 45
+  },
+  "llm_prompt_tokens": {
+    "mean": 1873.2888888888888,
+    "median": 1771.0,
+    "p95": 2077.8,
+    "max": 2144.0,
+    "n": 45
+  },
+  "llm_output_tokens": {
+    "mean": 157.6,
+    "median": 132.0,
+    "p95": 231.39999999999998,
+    "max": 1442.0,
+    "n": 45
+  },
+  "llm_parse_success": 0.8636363636363636,
+  "llm_valid_per_instruction": 0.9672131147540983,
+  "llm_energy_j": {
+    "mean": 255.14821877966452,
+    "median": 215.7872589195444,
+    "p95": 363.3462209798688,
+    "max": 2254.1128938956886,
+    "n": 45
+  },
+  "llm_energy_above_idle_j": {
+    "mean": 182.1548953952479,
+    "median": 151.2945255170287,
+    "p95": 265.9322688875537,
+    "max": 1719.2318473450532,
+    "n": 45
+  },
+  "gpu_energy_run_j": 15955.543835914135,
+  "gpu_power_field": "power.draw.instant"
+}

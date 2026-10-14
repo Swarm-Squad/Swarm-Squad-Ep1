@@ -58,8 +58,31 @@ Runs with an existing `summary.json` are skipped unless `--force` is given.
 
 LLM requests pass the decoding options explicitly (the Ollama 0.6.2 sampling
 defaults, `num_ctx` 4096) and a per-request seed of `1000 * run seed + query
-index`. The 0.6.2 default context of 2048 tokens truncates the jamming prompt,
-which is 2144 tokens when four agents are jammed.
+index`. The 0.6.2 default context of 2048 tokens truncates the jamming prompt;
+the longest prompt in the LLM runs is 2222 tokens.
+
+## Results
+
+`experiments/results/` holds the runs reported in the paper:
+
+- `local/`: `none`, `rule`, and `mpc` on all scenarios, including both C2
+  variants (laptop, Intel i7-1185G7)
+- `llm/`: the paced LLM runs (NVIDIA RTX 3060 Ti, driver 615.78.08,
+  Ollama 0.24.0)
+- `llm_blocking/`: the zero-latency LLM ablation on `jamming`
+- `summary/` and `figures/`: the outputs of the two commands below
+
+```bash
+uv run python -m swarm_squad_ep1.experiments.aggregate experiments/results/local \
+    experiments/results/llm experiments/results/llm_blocking --out experiments/results/summary
+uv run python -m swarm_squad_ep1.experiments.figures experiments/results/local \
+    experiments/results/llm --seed 0 --out experiments/results/figures
+```
+
+`summary/summary.json` has the per-group statistics (mean, standard deviation,
+and per-query latency, token, and energy distributions) and paired per-seed
+differences between supervisors; `summary/table_wide_rows.tex` is the body of
+Table I.
 
 ## Outputs
 
