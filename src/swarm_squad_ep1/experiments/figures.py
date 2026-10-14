@@ -105,25 +105,31 @@ def draw_trajectories(ax, ts, summary):
 
 def fig_obstacles(dirs, seed, out, group="obstacles_2"):
     fig, axes = plt.subplots(
-        2, 2, figsize=(3.5, 3.55), gridspec_kw={"height_ratios": [1.45, 1]}
+        1, 3, figsize=(3.5, 1.95), gridspec_kw={"width_ratios": [1, 1, 1.3]}
     )
+    jn_ax = axes[2]
     for col, (sup, tag) in enumerate([("none", "a"), ("llm", "b")]):
         ts, summary, _ = load(find_run(dirs, group, sup, seed))
-        ax = axes[0, col]
+        ax = axes[col]
         draw_trajectories(ax, ts, summary)
         ax.set_xlim(-30, 100)
         ax.set_ylim(-30, 175)
         ax.set_title(
-            f"{tag}-1) {SUPERVISOR_STYLE[sup]['label']}: {summary['steps']} steps"
+            f"({tag}) {SUPERVISOR_STYLE[sup]['label']},\n{summary['steps']} steps"
         )
-        ax = axes[1, col]
-        ax.plot(ts["jn"], color="#1f77b4")
-        ax.axhline(config.PT, color="k", lw=0.5, ls=":")
-        ax.set_ylim(0.9, 0.98)
-        ax.set_xlabel("Step")
-        ax.set_ylabel("$J_n$")
-        ax.set_title(f"{tag}-2)")
-    fig.tight_layout(pad=0.3, h_pad=0.4, w_pad=0.6)
+        if col:
+            ax.set_ylabel("")
+        style = SUPERVISOR_STYLE[sup]
+        jn_ax.plot(
+            ts["jn"], color=style["color"], ls=style["ls"], lw=0.9, label=style["label"]
+        )
+    jn_ax.axhline(config.PT, color="k", lw=0.5, ls=":")
+    jn_ax.set_ylim(0.9, 0.98)
+    jn_ax.set_xlabel("Step")
+    jn_ax.set_ylabel("$J_n$", labelpad=1)
+    jn_ax.set_title("(c) Link quality")
+    jn_ax.legend(loc="lower right", frameon=False, handlelength=1.5)
+    fig.tight_layout(pad=0.2, w_pad=0.3)
     fig.savefig(out, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
 
