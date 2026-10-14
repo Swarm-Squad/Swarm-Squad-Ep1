@@ -48,6 +48,10 @@ uv run python -m swarm_squad_ep1.experiments.runner \
 experiments/run_llm_batch.sh check
 experiments/run_llm_batch.sh start
 experiments/run_llm_batch.sh status
+
+# ablation: LLM on the jamming scenario with no latency in steps
+# (unpaced; the simulation waits for each answer)
+experiments/run_llm_batch.sh start ablation
 ```
 
 Runs with an existing `summary.json` are skipped unless `--force` is given.

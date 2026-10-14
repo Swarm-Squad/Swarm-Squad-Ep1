@@ -9,15 +9,26 @@ Usage:
 import argparse
 import csv
 import json
+import re
 from collections import defaultdict
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 import numpy as np
 
+from swarm_squad_ep1.experiments import compass
 from swarm_squad_ep1.experiments.runner import group_name
+from swarm_squad_ep1.experiments.supervisors import HINT_PATTERN, INSTRUCTION_PATTERN
 
 SUPERVISOR_ORDER = ["none", "rule", "mpc", "llm"]
-GROUP_ORDER = ["obstacles_1", "obstacles_2", "jamming", "jamming_c2", "jamming_c2d050"]
+GROUP_ORDER = [
+    "obstacles_1",
+    "obstacles_2",
+    "jamming",
+    "jamming_c2",
+    "jamming_c2d050",
+    "jamming_blocking",
+]
 
 RUN_FIELDS = [
     "group",
@@ -60,9 +71,13 @@ def load_runs(dirs):
             continue
         for line in index.read_text().splitlines():
             run = json.loads(line)
-            run["group"] = group_name(
+            folder = group_name(
                 run["scenario"], run["c2_gate"], run.get("c2_depth") or 0.0
             )
+            run["run_dir"] = str(
+                Path(d) / folder / run["supervisor"] / f"seed_{run['seed']:02d}"
+            )
+            run["group"] = folder + ("_blocking" if run.get("blocking") else "")
             # A re-run with --force appends a newer line for the same run
             runs[(run["group"], run["supervisor"], run["seed"])] = run
     return list(runs.values())
@@ -94,8 +109,90 @@ def per_query(runs, key):
     return np.array(values, dtype=float)
 
 
+STATE_HEADER = re.compile(r" - STATE DESCRIPTION \(Step (\d+)\):")
+
+
+def hint_agreement(run_dir):
+    """
+    Compare delivered LLM commands with the evasion and avoidance hints in
+    the telemetry of the same query (read back from supervisor.log).
+    """
+    hints, step = {}, None
+    log = Path(run_dir) / "supervisor.log"
+    if not log.exists():
+        return None
+    for line in log.read_text().splitlines():
+        m = STATE_HEADER.search(line)
+        if m:
+            step = int(m.group(1))
+            hints[step] = {}
+            continue
+        m = HINT_PATTERN.search(line)
+        if m and step is not None:
+            _, agent, distance, bearing = m.groups()
+            hints[step][int(agent)] = (int(distance), bearing.lower())
+    out = {"commands": 0, "to_hinted": 0, "hint_bearing": 0, "within_45": 0}
+    for line in (Path(run_dir) / "decisions.jsonl").read_text().splitlines():
+        d = json.loads(line)
+        if d.get("kind") != "llm" or not d.get("delivered"):
+            continue
+        query_hints = hints.get(d["step_request"], {})
+        for agent, _, bearing in INSTRUCTION_PATTERN.findall(d.get("text") or ""):
+            agent = int(agent)
+            if agent not in d["delivered"]:
+                continue
+            out["commands"] += 1
+            if agent not in query_hints:
+                continue
+            out["to_hinted"] += 1
+            hinted = compass.BEARINGS[query_hints[agent][1]]
+            diff = abs((compass.BEARINGS[bearing.lower()] - hinted + 180) % 360 - 180)
+            out["hint_bearing"] += diff == 0
+            out["within_45"] += diff <= 45
+    out["hinted_queries"] = sum(1 for h in hints.values() if h)
+    return out
+
+
+def collision_agent_steps(run_dir):
+    """Agent-steps spent inside a physical obstacle."""
+    ts = np.load(Path(run_dir) / "timeseries.npz")
+    obstacles = ts["obstacles"]
+    if obstacles.size == 0:
+        return 0
+    pos = ts["positions"][:, :, None, :]
+    dist = np.linalg.norm(pos - obstacles[None, None, :, :2], axis=-1)
+    return int((dist < obstacles[None, None, :, 2]).any(axis=-1).sum())
+
+
+def motion_stats(run_dir, conv_step):
+    """Minimum inter-agent distance and steps of more than 5 units, after convergence."""
+    pos = np.load(Path(run_dir) / "timeseries.npz")["positions"][conv_step or 0 :]
+    diff = pos[:, :, None, :] - pos[:, None, :, :]
+    dist = np.linalg.norm(diff, axis=-1)
+    n = pos.shape[1]
+    dist[:, np.arange(n), np.arange(n)] = np.inf
+    moves = np.linalg.norm(np.diff(pos, axis=0), axis=-1)
+    return float(dist.min()), int((moves > 5.0).sum())
+
+
 def summarize_group(runs):
     out = {"n": len(runs), "success": sum(bool(r["success"]) for r in runs)}
+    motion = [motion_stats(r["run_dir"], r["conv_step"]) for r in runs]
+    out["min_separation"] = mean_std([m[0] for m in motion])
+    out["min_separation_worst"] = float(min(m[0] for m in motion)) if motion else None
+    out["jump_runs"] = sum(m[1] > 0 for m in motion)
+    out["jump_steps"] = int(sum(m[1] for m in motion))
+    if runs and runs[0]["mode"] == "physical":
+        collisions = [collision_agent_steps(r["run_dir"]) for r in runs]
+        out["collision_runs"] = sum(c > 0 for c in collisions)
+        out["collision_agent_steps"] = mean_std(collisions)
+        clear = [
+            r["min_clearance"]["min"]
+            if isinstance(r["min_clearance"], dict)
+            else r["min_clearance"]
+            for r in runs
+        ]
+        out["min_clearance_worst"] = float(min(clear))
     for key in [
         "steps",
         "mission_steps",
@@ -137,6 +234,13 @@ def summarize_group(runs):
                     steps.append(d["step_response"] - d["step_request"])
         out["query_latency_steps"] = mean_std(steps)
         out["run_energy_j"] = mean_std(_values(runs, "gpu_energy_run_j"))
+        agreement = [hint_agreement(r["run_dir"]) for r in runs]
+        agreement = [a for a in agreement if a is not None]
+        out["hint_agreement"] = (
+            {k: sum(a[k] for a in agreement) for k in agreement[0]}
+            if agreement
+            else None
+        )
     else:
         compute = []
         for r in runs:
@@ -164,25 +268,76 @@ def paired_difference(runs, group, a, b, key):
     return out
 
 
+def round_half_up(x, digits=0):
+    quantum = Decimal(1).scaleb(-digits)
+    return str(Decimal(repr(x)).quantize(quantum, rounding=ROUND_HALF_UP))
+
+
 def fmt(stat, digits=0):
     if stat["mean"] is None:
         return "--"
-    return f"{stat['mean']:.{digits}f}$\\pm${stat['std']:.{digits}f}"
+    mean = round_half_up(stat["mean"], digits)
+    std = round_half_up(stat["std"], digits)
+    return f"{mean}$\\pm${std}"
 
 
-def latex_rows(summary):
+GROUP_LABELS = {
+    "obstacles_1": "Obstacles~I",
+    "obstacles_2": "Obstacles~II",
+    "jamming": "Jamming",
+    "jamming_c2": "Jamming, jammed C2",
+    "jamming_c2d050": "Jamming, jammed C2 for $d_{\\mathrm{pen}}\\geq0.5$",
+    "jamming_blocking": "Jamming, LLM without latency",
+}
+SUPERVISOR_LABELS = {"none": "None", "rule": "Rule", "mpc": "MPC", "llm": "LLM"}
+
+
+def latex_rows(summary, groups=GROUP_ORDER[:4], columns=5):
+    """Body of the results table: one block of rows per scenario."""
     lines = []
-    for group in GROUP_ORDER:
+    for group in groups:
         if group not in summary:
             continue
+        lines.append(
+            f"\\multicolumn{{{columns}}}{{|l|}}{{\\emph{{{GROUP_LABELS[group]}}}}} \\\\"
+        )
+        lines.append("\\hline")
         for sup in SUPERVISOR_ORDER:
             s = summary[group].get(sup)
             if s is None:
                 continue
             lines.append(
-                f"{group} & {sup} & {fmt(s['steps'])} & {fmt(s['jn_min_mission'], 3)}"
-                f" & {fmt(s['steps_below_pt'])} & {fmt(s['n_commands'])} \\\\"
+                f"{SUPERVISOR_LABELS[sup]} & {fmt(s['steps'], 1)}"
+                f" & {fmt(s['jn_min_mission'], 3)} & {fmt(s['steps_below_pt'], 1)}"
+                f" & {fmt(s['n_commands'], 1)} \\\\"
             )
+        lines.append("\\hline")
+    return "\n".join(lines)
+
+
+def latex_wide_rows(summary):
+    """Body of the full-width table: one row per supervisor."""
+    obstacle_cols = [("steps", 0), ("n_commands", 0)]
+    jamming_cols = [
+        ("steps", 0),
+        ("steps_below_pt", 0),
+        ("jn_min_mission", 3),
+        ("n_commands", 0),
+    ]
+    layout = [
+        ("obstacles_1", obstacle_cols),
+        ("obstacles_2", obstacle_cols),
+        ("jamming", jamming_cols),
+        ("jamming_c2", jamming_cols),
+    ]
+    lines = []
+    for sup in SUPERVISOR_ORDER:
+        cells = [SUPERVISOR_LABELS[sup]]
+        for group, cols in layout:
+            s = summary.get(group, {}).get(sup)
+            for key, digits in cols:
+                cells.append(fmt(s[key], digits) if s else "--")
+        lines.append(" & ".join(cells) + " \\\\")
     return "\n".join(lines)
 
 
@@ -229,6 +384,7 @@ def main(argv=None):
         ):
             writer.writerow(r)
     (args.out / "table_rows.tex").write_text(latex_rows(summary) + "\n")
+    (args.out / "table_wide_rows.tex").write_text(latex_wide_rows(summary) + "\n")
 
     for group in GROUP_ORDER:
         for sup in SUPERVISOR_ORDER:

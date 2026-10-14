@@ -141,7 +141,12 @@ def run_one(
     options: dict = None,
     monitor=None,
     idle_w=None,
+    blocking: bool = False,
 ) -> dict:
+    """
+    One seeded run. With blocking (unpaced LLM runs only), the simulation
+    waits for each LLM answer, so the LLM has no latency in steps.
+    """
     run_dir.mkdir(parents=True, exist_ok=True)
     instance = scenario.instance(seed)
 
@@ -183,6 +188,8 @@ def run_one(
     for k in range(max_iter):
         factory.applied_agents = []
         factory.step()
+        if blocking and sup.feedback_thread is not None:
+            sup.feedback_thread.join(timeout=200)
 
         applied = np.zeros(n, dtype=bool)
         applied[factory.applied_agents] = True
@@ -240,6 +247,7 @@ def run_one(
         "c2_depth": c2_depth if c2 else None,
         "seed": seed,
         "paced": paced,
+        "blocking": blocking,
         "t_step": t_step,
         "max_iter": max_iter,
         "success": success,
@@ -314,6 +322,11 @@ def main(argv=None):
         "(0: as soon as it enters the field)",
     )
     parser.add_argument("--paced", action="store_true", help="real-time steps")
+    parser.add_argument(
+        "--llm-blocking",
+        action="store_true",
+        help="unpaced: wait for each LLM answer, so it arrives with no step latency",
+    )
     parser.add_argument("--t-step", type=float, default=T_STEP)
     parser.add_argument("--max-iter", type=int, default=config.MAX_ITER)
     parser.add_argument("--model", default=LLM_MODEL)
@@ -323,6 +336,8 @@ def main(argv=None):
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--force", action="store_true", help="re-run finished runs")
     args = parser.parse_args(argv)
+    if args.llm_blocking and args.paced:
+        parser.error("--llm-blocking needs unpaced runs")
 
     logging.getLogger().setLevel(logging.WARNING)
     for name in ("LLMController", "LLMResponseFile", "urllib3"):
@@ -380,6 +395,7 @@ def main(argv=None):
                             c2=args.c2,
                             c2_depth=args.c2_depth,
                             paced=args.paced,
+                            blocking=args.llm_blocking,
                             t_step=args.t_step,
                             max_iter=args.max_iter,
                             model=args.model,

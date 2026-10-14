@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # LLM batch for the ICC revision, run on the NVIDIA machine.
 #
-#   experiments/run_llm_batch.sh check    verify GPU, Ollama, model digest, git state
-#   experiments/run_llm_batch.sh start    check, then run the batch detached (nohup setsid)
-#   experiments/run_llm_batch.sh status   show whether the batch is running and the log tail
+#   experiments/run_llm_batch.sh check            verify GPU, Ollama, model digest, git state
+#   experiments/run_llm_batch.sh start [batch]    check, then run detached (nohup setsid)
+#   experiments/run_llm_batch.sh status [batch]   show whether it is running and the log tail
 #
-# Environment: SEEDS (default 0-9), UV (default ~/.local/bin/uv), OUT.
+# batch: main (paced runs, default) or ablation (jamming with no LLM latency).
+# Environment: SEEDS (default 0-9), UV (default ~/.local/bin/uv).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,7 +15,15 @@ MODEL=llama3.2:3b-instruct-q4_K_M
 DIGEST=a80c4f17acd5
 OLLAMA=${OLLAMA_HOST:-http://localhost:11434}
 SEEDS=${SEEDS:-0-9}
-OUT=${OUT:-experiments/results/llm}
+BATCH=${2:-main}
+case "$BATCH" in
+main) OUT=experiments/results/llm ;;
+ablation) OUT=experiments/results/llm_blocking ;;
+*)
+	echo "unknown batch: $BATCH" >&2
+	exit 2
+	;;
+esac
 LOG=$OUT/batch.log
 PID=$OUT/batch.pid
 
@@ -58,10 +67,17 @@ check() {
 
 batch() {
 	local run=("$UV" run python -m swarm_squad_ep1.experiments.runner
-		--supervisors llm --seeds "$SEEDS" --paced --gpu-power --out "$OUT")
-	"${run[@]}" --scenarios obstacles_1 obstacles_2 jamming
-	"${run[@]}" --scenarios jamming --c2
-	"${run[@]}" --scenarios jamming --c2 --c2-depth 0.5
+		--supervisors llm --seeds "$SEEDS" --gpu-power --out "$OUT")
+	case "$BATCH" in
+	main)
+		"${run[@]}" --paced --scenarios obstacles_1 obstacles_2 jamming
+		"${run[@]}" --paced --scenarios jamming --c2
+		"${run[@]}" --paced --scenarios jamming --c2 --c2-depth 0.5
+		;;
+	ablation)
+		"${run[@]}" --llm-blocking --scenarios jamming
+		;;
+	esac
 	echo "batch finished $(date -Is)"
 }
 
@@ -78,8 +94,8 @@ start)
 	check
 	mkdir -p "$OUT"
 	"$UV" sync --frozen >/dev/null
-	echo "batch started $(date -Is), seeds $SEEDS" >"$LOG"
-	setsid nohup "$0" _batch >>"$LOG" 2>&1 </dev/null &
+	echo "batch $BATCH started $(date -Is), seeds $SEEDS" >"$LOG"
+	setsid nohup "$0" _batch "$BATCH" >>"$LOG" 2>&1 </dev/null &
 	echo $! >"$PID"
 	echo "started pid $(cat "$PID"), log $LOG"
 	;;
@@ -92,7 +108,7 @@ _batch)
 	batch
 	;;
 *)
-	sed -n '2,8p' "$0"
+	sed -n '2,9p' "$0"
 	exit 2
 	;;
 esac
