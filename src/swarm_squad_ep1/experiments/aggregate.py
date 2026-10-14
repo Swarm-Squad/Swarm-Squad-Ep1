@@ -175,8 +175,18 @@ def motion_stats(run_dir, conv_step):
     return float(dist.min()), int((moves > 5.0).sum())
 
 
+def depth_stats(run_dir):
+    """Agent-steps with penetration depth >= 0.5, and the maximum depth."""
+    depth = np.load(Path(run_dir) / "timeseries.npz")["depth"]
+    return int((depth >= 0.5).sum()), float(depth.max()) if depth.size else 0.0
+
+
 def summarize_group(runs):
     out = {"n": len(runs), "success": sum(bool(r["success"]) for r in runs)}
+    if runs and runs[0]["mode"] != "physical":
+        depth = [depth_stats(r["run_dir"]) for r in runs]
+        out["deep_agent_steps"] = mean_std([d[0] for d in depth])
+        out["max_depth"] = mean_std([d[1] for d in depth])
     motion = [motion_stats(r["run_dir"], r["conv_step"]) for r in runs]
     out["min_separation"] = mean_std([m[0] for m in motion])
     out["min_separation_worst"] = float(min(m[0] for m in motion)) if motion else None
@@ -337,6 +347,11 @@ def latex_wide_rows(summary):
             s = summary.get(group, {}).get(sup)
             for key, digits in cols:
                 cells.append(fmt(s[key], digits) if s else "--")
+        lines.append(" & ".join(cells) + " \\\\")
+    s = summary.get("jamming_blocking", {}).get("llm")
+    if s:
+        cells = ["LLM, no latency"] + ["--"] * 4
+        cells += [fmt(s[key], digits) for key, digits in jamming_cols] + ["--"] * 4
         lines.append(" & ".join(cells) + " \\\\")
     return "\n".join(lines)
 
