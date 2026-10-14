@@ -85,6 +85,14 @@ class LLMController(BaseController):
         self.feedback_queue = queue.Queue()
         self.is_llm_request_pending = False
         self.last_request_time = 0
+        self._last_processed_feedback = None
+
+        # Clock used for the minimum gap between requests (replaceable for
+        # headless runs that are not paced in real time)
+        self._clock = time.time
+
+        # Optional Ollama decoding options sent with every request
+        self.ollama_options = None
 
         # Set up logging to file
         self._setup_file_logging()
@@ -94,6 +102,9 @@ class LLMController(BaseController):
         self.llm_affected_agents = []
         self.llm_control_expiry = 0  # Time when the current control inputs expire
         self.llm_control_lifetime = 10  # Number of steps a control input remains active
+
+        # Agents whose input was changed by the avoidance layer in the last step
+        self.avoidance_agents = []
 
     def _setup_file_logging(self):
         """Set up dedicated file logging for LLM responses"""
@@ -170,6 +181,7 @@ class LLMController(BaseController):
         """
         # Increment step counter
         self.step_counter += 1
+        self.avoidance_agents = []
 
         # Log execution at different verbosity levels
         if self.step_counter % 10 == 0:  # Reduced frequency for higher visibility logs
@@ -209,7 +221,7 @@ class LLMController(BaseController):
             return control_inputs
 
         # Check if it's time to update LLM feedback and no request is pending
-        current_time = time.time()
+        current_time = self._clock()
         time_since_last_request = current_time - self.last_request_time
         steps_since_update = self.step_counter - self.last_llm_update_step
 
@@ -237,6 +249,11 @@ class LLMController(BaseController):
             logger.debug(
                 f"Skipping LLM request at step {self.step_counter}: last request was {time_since_last_request:.1f}s ago"
             )
+
+        # A command lasts llm_control_lifetime steps; afterwards the reactive
+        # input applies again
+        if self.llm_affected_agents and self.step_counter >= self.llm_control_expiry:
+            self.llm_affected_agents = []
 
         # Only apply LLM control inputs when abnormal conditions exist
         if (
@@ -359,6 +376,8 @@ class LLMController(BaseController):
                     control_inputs[agent_idx] = (1 - avoidance_weight) * control_inputs[
                         agent_idx
                     ] + avoidance_weight * avoidance
+                    if agent_idx not in self.avoidance_agents:
+                        self.avoidance_agents.append(agent_idx)
 
                     logger.info(
                         f"Applied avoidance to agent {agent_idx} near jamming-affected agent {affected_idx}"
@@ -478,8 +497,19 @@ class LLMController(BaseController):
             logger.error(f"Traceback: {traceback.format_exc()}")
             self.is_llm_request_pending = False  # Make sure we don't get stuck
 
+    def _on_llm_result(self, info):
+        """
+        Hook called by the worker thread once per request.
+
+        Args:
+            info: dict with t_start, t_end, prompt_kind, result (the Ollama
+                JSON response or None), and error (None on success)
+        """
+
     def _llm_request_worker(self, state_description, result_queue):
         """Worker function that runs in a separate thread to make LLM requests"""
+        request_started = time.time()
+        has_jamming = False
         try:
             # Check if there are any jamming fields before sending the request
             has_jamming = "jamming" in state_description.lower() and (
@@ -507,6 +537,8 @@ Provide tactical advice:"""
 
             # Create request for Ollama API format
             request_data = {"model": self.llm_model, "prompt": prompt, "stream": False}
+            if self.ollama_options:
+                request_data["options"] = dict(self.ollama_options)
 
             # Print debug info about the request
             logger.info(
@@ -555,6 +587,16 @@ Provide tactical advice:"""
                         )
                         self.log_to_file("-" * 80)
 
+                        self._on_llm_result(
+                            {
+                                "t_start": request_started,
+                                "t_end": end_time,
+                                "prompt_kind": "jamming" if has_jamming else "normal",
+                                "result": result,
+                                "error": None,
+                            }
+                        )
+
                         # Put the result in the queue
                         result_queue.put(content)
                         return
@@ -577,6 +619,15 @@ Provide tactical advice:"""
                 print(f"### Worker thread request failed: {response.status_code}")
 
             # If we get here, something went wrong
+            self._on_llm_result(
+                {
+                    "t_start": request_started,
+                    "t_end": time.time(),
+                    "prompt_kind": "jamming" if has_jamming else "normal",
+                    "result": None,
+                    "error": f"bad response (status {response.status_code})",
+                }
+            )
             result_queue.put(None)
 
         except Exception as e:
@@ -585,6 +636,15 @@ Provide tactical advice:"""
             self.log_to_file(f"ERROR: {error_msg}")
             print(f"### Worker thread exception: {str(e)}")
             logger.error(f"Worker thread traceback: {traceback.format_exc()}")
+            self._on_llm_result(
+                {
+                    "t_start": request_started,
+                    "t_end": time.time(),
+                    "prompt_kind": "jamming" if has_jamming else "normal",
+                    "result": None,
+                    "error": error_msg,
+                }
+            )
             result_queue.put(None)
         finally:
             logger.info("Worker thread finished")
@@ -1274,11 +1334,6 @@ Provide tactical advice:"""
         # Example format: "Agent-1: Move 8 units north-northwest to escape jamming."
         feedback = self.current_feedback
 
-        # Regular expression to match agent instructions
-        # Matches: Agent-X: Move/Reposition Y units DIRECTION
-        # Now handles "to" after the direction (e.g., "Move 8 units north to escape jamming")
-        agent_instruction_pattern = r"Agent-(\d+):\s+(?:Move|Reposition)\s+(\d+)\s+units\s+([\w\-\s]+?)(?:\s+to\s+.*?)?(?:\.|\s|$)"
-
         # Direction to vector mapping
         direction_to_vector = {
             # Cardinal directions
@@ -1318,6 +1373,18 @@ Provide tactical advice:"""
             "northwest by north": (-0.5556, 0.8315),
             "north by northwest": (-0.1951, 0.9808),
         }
+
+        # Regular expression to match agent instructions
+        # Matches: Agent-X: Move/Reposition Y units DIRECTION, where DIRECTION
+        # is one of the 32 bearings (longest names first, so that
+        # "north by northeast" is not read as "north")
+        bearing_alternation = "|".join(
+            re.escape(name) for name in sorted(direction_to_vector, key=len, reverse=True)
+        )
+        agent_instruction_pattern = (
+            r"Agent-(\d+):\s+(?:Move|Reposition)\s+(\d+)\s+units\s+"
+            rf"((?i:{bearing_alternation}))\b"
+        )
 
         # Find all agent instructions in the feedback
         agent_instructions = re.findall(agent_instruction_pattern, feedback)

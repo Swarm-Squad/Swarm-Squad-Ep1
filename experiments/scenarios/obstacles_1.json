@@ -1,0 +1,16 @@
+{
+  "name": "obstacles_1",
+  "label": "Obstacles I",
+  "mode": "physical",
+  "obstacles": [
+    [20, 50, 10],
+    [50, 80, 8],
+    [70, 40, 12],
+    [10, 95, 10],
+    [75, 105, 8],
+    [-20, 100, 10],
+    [-25, 40, 10]
+  ],
+  "jitter": {"initial_positions": 2.0, "obstacle_centers": 0.0},
+  "source": "lib/img/tests/test.md, test1 (the layout of the CCNC runs)"
+}

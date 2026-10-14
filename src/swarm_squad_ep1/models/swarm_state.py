@@ -37,6 +37,7 @@ class SwarmState:
         self.jamming_affected = np.zeros(
             self.swarm_size, dtype=bool
         )  # Track which agents are affected by jamming
+        self.jamming_depth = np.zeros(self.swarm_size)
 
         # Performance indicators
         self.Jn = []
@@ -76,6 +77,7 @@ class SwarmState:
         # Reset agent status
         self.agent_status = np.ones(self.swarm_size, dtype=bool)
         self.jamming_affected = np.zeros(self.swarm_size, dtype=bool)
+        self.jamming_depth = np.zeros(self.swarm_size)
 
         # Reset performance indicators
         self.Jn = []
@@ -169,8 +171,10 @@ class SwarmState:
 
     def apply_obstacle_effects(self):
         """Apply the effects of obstacles based on the current obstacle mode"""
-        # Reset jamming effects
+        # Reset jamming effects; the penetration depth is recomputed every step
+        # so that degradation follows the agent's current position
         self.jamming_affected.fill(False)
+        self.jamming_depth = np.zeros(self.swarm_size)
 
         # Skip if no obstacles
         if not self.obstacles:
@@ -203,10 +207,6 @@ class SwarmState:
                             (dist_to_center - obstacle_radius)
                             / (jamming_radius - obstacle_radius),
                         )
-
-                        # Store the penetration depth for this agent (used later in apply_lowpower_jamming)
-                        if not hasattr(self, "jamming_depth"):
-                            self.jamming_depth = np.zeros(self.swarm_size)
 
                         # Use the maximum depth if multiple obstacles affect the same agent
                         self.jamming_depth[i] = max(

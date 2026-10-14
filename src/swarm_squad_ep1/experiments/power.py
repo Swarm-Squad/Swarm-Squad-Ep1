@@ -1,0 +1,127 @@
+"""
+GPU power sampling with nvidia-smi, for per-query inference energy.
+"""
+
+import shutil
+import subprocess
+import threading
+import time
+
+import numpy as np
+
+
+def query_gpu() -> dict:
+    """GPU name, driver, and power limit, or {} without an NVIDIA GPU."""
+    if not shutil.which("nvidia-smi"):
+        return {}
+    out = subprocess.run(
+        [
+            "nvidia-smi",
+            "--query-gpu=name,driver_version,memory.total,power.limit",
+            "--format=csv,noheader",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if out.returncode != 0:
+        return {"error": out.stdout.strip() or out.stderr.strip()}
+    name, driver, memory, limit = [
+        s.strip() for s in out.stdout.splitlines()[0].split(",")
+    ]
+    return {"name": name, "driver": driver, "memory": memory, "power_limit": limit}
+
+
+class PowerMonitor:
+    """
+    Samples board power every interval_ms in a background thread.
+
+    The field is power.draw.instant when the driver supports it (otherwise
+    power.draw, which the driver may average over up to 1 s).
+    """
+
+    def __init__(self, interval_ms=100):
+        self.interval_ms = interval_ms
+        self.samples = []  # (unix time, watts)
+        self.field = None
+        self._proc = None
+        self._thread = None
+        self._lock = threading.Lock()
+
+    def _pick_field(self):
+        for field in ("power.draw.instant", "power.draw"):
+            out = subprocess.run(
+                ["nvidia-smi", f"--query-gpu={field}", "--format=csv,noheader,nounits"],
+                capture_output=True,
+                text=True,
+            )
+            if out.returncode == 0:
+                try:
+                    float(out.stdout.strip().splitlines()[0])
+                    return field
+                except ValueError:
+                    continue
+        raise RuntimeError("nvidia-smi cannot report GPU power")
+
+    def start(self):
+        self.field = self._pick_field()
+        self._proc = subprocess.Popen(
+            [
+                "nvidia-smi",
+                f"--query-gpu={self.field}",
+                "--format=csv,noheader,nounits",
+                f"--loop-ms={self.interval_ms}",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            bufsize=1,
+        )
+        self._thread = threading.Thread(target=self._read, daemon=True)
+        self._thread.start()
+        return self
+
+    def _read(self):
+        for line in self._proc.stdout:
+            try:
+                watts = float(line.strip())
+            except ValueError:
+                continue
+            with self._lock:
+                self.samples.append((time.time(), watts))
+
+    def stop(self):
+        if self._proc:
+            self._proc.terminate()
+            self._proc.wait(timeout=5)
+        if self._thread:
+            self._thread.join(timeout=5)
+
+    def window(self, t0, t1):
+        with self._lock:
+            data = np.array(self.samples, dtype=float)
+        if data.size == 0:
+            return np.empty((0, 2))
+        return data[(data[:, 0] >= t0) & (data[:, 0] <= t1)]
+
+    def energy(self, t0, t1, idle_w=0.0) -> float:
+        """Energy in joules over [t0, t1], above idle_w, by the trapezoid rule."""
+        return integrate_energy(self.window(t0 - 1.0, t1 + 1.0), t0, t1, idle_w)
+
+    def mean_power(self, t0, t1) -> float:
+        data = self.window(t0, t1)
+        return float(data[:, 1].mean()) if len(data) else float("nan")
+
+
+def integrate_energy(samples, t0, t1, idle_w=0.0) -> float:
+    """
+    Integrate (power - idle_w) over [t0, t1] from (time, watts) samples,
+    interpolating linearly at the window edges.
+    """
+    samples = np.asarray(samples, dtype=float)
+    if len(samples) < 2 or t1 <= t0:
+        return float("nan")
+    t, p = samples[:, 0], samples[:, 1] - idle_w
+    inner = (t > t0) & (t < t1)
+    times = np.concatenate([[t0], t[inner], [t1]])
+    power = np.interp(times, t, p)
+    return float(np.sum(0.5 * (power[1:] + power[:-1]) * np.diff(times)))

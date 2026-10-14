@@ -189,18 +189,9 @@ class ControllerFactory:
 
                     # Let the LLM controller decide if its inputs should be applied
                     # based on abnormal conditions
-                    if (
-                        hasattr(llm_controller, "llm_affected_agents")
-                        and llm_controller.llm_affected_agents
-                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
-                        and llm_controller._check_for_abnormal_conditions()[0]
-                    ):
-                        for agent_idx in llm_controller.llm_affected_agents:
-                            if agent_idx < self.swarm_state.swarm_size:
-                                # Use the LLM control inputs directly since they already consider base control
-                                control_inputs[agent_idx] = llm_control_inputs[
-                                    agent_idx
-                                ]
+                    self._apply_llm_overrides(
+                        control_inputs, llm_control_inputs, llm_controller
+                    )
 
                     # Apply combined control inputs using the base method
                     self.swarm_state.swarm_control_ui = control_inputs
@@ -227,18 +218,9 @@ class ControllerFactory:
 
                     # Let the LLM controller decide if its inputs should be applied
                     # based on abnormal conditions
-                    if (
-                        hasattr(llm_controller, "llm_affected_agents")
-                        and llm_controller.llm_affected_agents
-                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
-                        and llm_controller._check_for_abnormal_conditions()[0]
-                    ):
-                        for agent_idx in llm_controller.llm_affected_agents:
-                            if agent_idx < self.swarm_state.swarm_size:
-                                # Use the LLM control inputs directly since they already consider base control
-                                control_inputs[agent_idx] = llm_control_inputs[
-                                    agent_idx
-                                ]
+                    self._apply_llm_overrides(
+                        control_inputs, llm_control_inputs, llm_controller
+                    )
 
                     # Apply combined control inputs using the base method
                     self.swarm_state.swarm_control_ui = control_inputs
@@ -251,18 +233,9 @@ class ControllerFactory:
 
                     # Let the LLM controller decide if its inputs should be applied
                     # based on abnormal conditions
-                    if (
-                        hasattr(llm_controller, "llm_affected_agents")
-                        and llm_controller.llm_affected_agents
-                        and hasattr(llm_controller, "_check_for_abnormal_conditions")
-                        and llm_controller._check_for_abnormal_conditions()[0]
-                    ):
-                        for agent_idx in llm_controller.llm_affected_agents:
-                            if agent_idx < self.swarm_state.swarm_size:
-                                # Use the LLM control inputs directly since they already consider base control
-                                control_inputs[agent_idx] = llm_control_inputs[
-                                    agent_idx
-                                ]
+                    self._apply_llm_overrides(
+                        control_inputs, llm_control_inputs, llm_controller
+                    )
 
                     comm_controller.apply_control(control_inputs)
 
@@ -295,21 +268,37 @@ class ControllerFactory:
 
             # Let the LLM controller decide if its inputs should be applied
             # based on abnormal conditions
-            if (
-                hasattr(llm_controller, "llm_affected_agents")
-                and llm_controller.llm_affected_agents
-                and hasattr(llm_controller, "_check_for_abnormal_conditions")
-                and llm_controller._check_for_abnormal_conditions()[0]
-            ):
-                for agent_idx in llm_controller.llm_affected_agents:
-                    if agent_idx < self.swarm_state.swarm_size:
-                        # Use the LLM control inputs directly since they already consider base control
-                        control_inputs[agent_idx] = llm_control_inputs[agent_idx]
+            self._apply_llm_overrides(
+                control_inputs, llm_control_inputs, llm_controller
+            )
 
             self.controllers[self.active_controller_type].apply_control(control_inputs)
             self.swarm_state.update_performance_metrics()
             self.swarm_state.update_swarm_paths()
             self.swarm_state.iteration += 1
+
+    def _apply_llm_overrides(self, control_inputs, llm_control_inputs, llm_controller):
+        """
+        Replace the reactive input of commanded agents, and of agents moved by
+        the avoidance layer, with the LLM controller's blended input. This is
+        done only while an abnormal condition holds.
+
+        Returns:
+            Sorted list of agent indices whose input was replaced
+        """
+        if not llm_controller.llm_affected_agents:
+            return []
+        if not llm_controller._check_for_abnormal_conditions()[0]:
+            return []
+
+        agents = set(llm_controller.llm_affected_agents) | set(
+            llm_controller.avoidance_agents
+        )
+        applied = sorted(i for i in agents if i < self.swarm_state.swarm_size)
+        for agent_idx in applied:
+            # The LLM controller's input already blends in the base control
+            control_inputs[agent_idx] = llm_control_inputs[agent_idx]
+        return applied
 
     # LLM intervention hooks
     def llm_override_control(self, agent_indices, control_inputs):

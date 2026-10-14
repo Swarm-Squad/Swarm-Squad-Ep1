@@ -1,0 +1,10 @@
+{
+  "name": "jamming",
+  "label": "Jamming",
+  "mode": "low_power_jamming",
+  "obstacles": [
+    [-10, 70, 25]
+  ],
+  "jitter": {"initial_positions": 2.0, "obstacle_centers": 3.0},
+  "source": "lib/img/tests/test.md, test3 (the field of the CCNC run); jamming radius 2 x 25 = 50"
+}
